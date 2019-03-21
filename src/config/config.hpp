@@ -9,5 +9,6 @@
 #include <pugixml.hpp>
 
 #include "types.hpp"
+#include "../datamap/datamap.hpp"
 
 #endif //GRUUTSCE_CONFIG_HPP

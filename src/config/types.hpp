@@ -9,6 +9,12 @@
 namespace gruut {
 namespace gsce {
 
+enum class VariableType {
+  INT,
+  FLOAT,
+  BOOL
+};
+
 
 }}
 
