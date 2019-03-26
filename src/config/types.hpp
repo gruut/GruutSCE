@@ -9,10 +9,15 @@
 namespace gruut {
 namespace gsce {
 
-enum class VariableType {
+enum class VariableTyp : int {
   INT,
   FLOAT,
   BOOL
+};
+
+enum class EvalRuleType : int {
+  AND,
+  OR
 };
 
 

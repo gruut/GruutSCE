@@ -24,14 +24,14 @@ set(BOTAN_LIBS "${LIB_PREFIX}/libbotan-2.so")
 
 file(GLOB SOURCE_FILES
     "src/*.cpp"
-    "src/condition/*.cpp"
+    "src/*/*.cpp"
     "include/*.cpp"
     "include/*/*.cpp"
     )
 
 file(GLOB HEADER_FILES
     "src/*.hpp"
-    "src/condition/*.hpp"
+    "src/*/*.hpp"
     "include/*.hpp"
     "include/*/*.hpp"
     )

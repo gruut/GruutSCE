@@ -8,7 +8,8 @@
 // common include files
 #include <pugixml.hpp>
 
-#include "types.hpp"
-#include "../datamap/datamap.hpp"
+#include "config/types.hpp"
+#include "datamap/datamap.hpp"
+#include "util/vs_tool.hpp"
 
 #endif //GRUUTSCE_CONFIG_HPP

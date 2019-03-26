@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "../config/config.hpp"
+#include "../config.hpp"
 
 namespace gruut{
 namespace gsce{
