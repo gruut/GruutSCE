@@ -9,7 +9,7 @@ namespace gsce {
 
 class ReceiverHandler : public ConditionHandler {
 public:
-  ReceiverHandler();
+  ReceiverHandler() = default;
 
   bool evalue(pugi::xml_node &document_element, Datamap &datamap) override {
     return true;

@@ -37,7 +37,7 @@ enum class PrimaryConditionType : int {
 class Condition {
 
 public:
-  Condition();
+  Condition() = default;
 
   bool evalue(std::string &document, Datamap &datamap) {
     xml_document doc;

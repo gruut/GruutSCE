@@ -8,10 +8,10 @@ namespace gsce {
 
 class ConditionHandler {
 public:
-  ConditionHandler();
+  ConditionHandler() = default;
 
   virtual bool evalue(pugi::xml_node &document_element, Datamap &datamap);
-  
+
 };
 
 }

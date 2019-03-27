@@ -12,6 +12,9 @@ namespace gsce{
 struct DataRecord {
   std::string value;
   VariableType type;
+  DataRecord() : value(""), type(VariableTyp::TEXT){
+
+  }
   DataRecord(std::string value_, VariableType type_) : value(std::move(value_)), type(type_){
 
   };

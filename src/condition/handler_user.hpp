@@ -9,7 +9,7 @@ namespace gsce {
 
 class UserHandler : public ConditionHandler {
 public:
-  UserHandler();
+  UserHandler() = default;
 
   bool evalue(pugi::xml_node &document_element, Datamap &datamap) override {
     return true;

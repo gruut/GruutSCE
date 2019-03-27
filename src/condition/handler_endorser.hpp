@@ -9,7 +9,7 @@ namespace gsce {
 
 class EndorserHandler : public ConditionHandler {
 public:
-  EndorserHandler();
+  EndorserHandler() = default;
 
   bool evalue(pugi::xml_node &document_element, Datamap &datamap) override {
     return true;

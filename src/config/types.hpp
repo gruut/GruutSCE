@@ -12,7 +12,8 @@ namespace gsce {
 enum class VariableTyp : int {
   INT,
   FLOAT,
-  BOOL
+  BOOL,
+  TEXT
 };
 
 enum class EvalRuleType : int {

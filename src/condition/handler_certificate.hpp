@@ -9,7 +9,7 @@ namespace gsce {
 
 class CertificateHandler : public ConditionHandler {
 public:
-  CertificateHandler();
+  CertificateHandler() = default;
 
   bool evalue(pugi::xml_node &document_element, Datamap &datamap) override {
     return true;

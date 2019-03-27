@@ -9,7 +9,7 @@ namespace gsce {
 
 class SignatureHandler : public ConditionHandler {
 public:
-  SignatureHandler();
+  SignatureHandler() = default;
 
   bool evalue(pugi::xml_node &document_element, Datamap &datamap) override {
     return true;
