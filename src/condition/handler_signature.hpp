@@ -11,7 +11,7 @@ class SignatureHandler : public ConditionHandler {
 public:
   SignatureHandler() = default;
 
-  bool evalue(pugi::xml_node &document_element, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
     return true;
   }
 

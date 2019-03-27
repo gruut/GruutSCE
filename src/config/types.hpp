@@ -21,6 +21,34 @@ enum class EvalRuleType : int {
   OR
 };
 
+enum class PrimaryConditionType : int {
+  CONDITION,
+  IF,
+  NIF,
+  COMPARE,
+  SIGNATURE,
+  CERTIFICATE,
+  TIME,
+  ENDORSER,
+  RECEIVER,
+  USER,
+  VAR,
+  UNKNOWN
+};
+
+enum class SecondaryConditionType : int {
+  USER,
+  RECEIVER,
+  IF,
+  NIF,
+  ID,
+  LOCATION,
+  SERVICE,
+  AGE,
+  UNKNOWN
+};
+
+
 
 }}
 

@@ -25,11 +25,11 @@ class CompareHandler : public ConditionHandler {
 public:
   CompareHandler() = default;
 
-  bool evalue(pugi::xml_node &doc, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
 
-    std::string src_str = doc.attribute("src").value();
-    std::string ref_str = doc.attribute("ref").value();
-    CompareType comp_type = getCompareType(doc.attribute("type").value());
+    std::string src_str = doc_node.attribute("src").value();
+    std::string ref_str = doc_node.attribute("ref").value();
+    CompareType comp_type = getCompareType(doc_node.attribute("type").value());
 
     if(src_str[0] == '$'){
       DataRecord src_data;
@@ -61,7 +61,7 @@ public:
       try {
         src_int = std::stoi(src_str);
         ref_int = std::stoi(ref_str);
-        abs_val = std::stoi(doc.attribute("abs").value());
+        abs_val = std::stoi(doc_node.attribute("abs").value());
       }
       catch (...) {
         return false;
@@ -102,7 +102,7 @@ public:
 
 private:
   CompareType getCompareType(const std::string &type_str){
-    std::string type_str_lower = vs::toLower(type_str)
+    std::string type_str_lower = vs::toLower(type_str);
 
     static std::map<std::string, CompareType> tag_to_type_map = {
         {"eq", CompareType::EQ},

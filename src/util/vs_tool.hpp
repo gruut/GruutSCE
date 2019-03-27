@@ -67,6 +67,7 @@ public:
 
     return static_cast<uint64_t>(time_point.time_since_epoch().count());
   }
+
 };
 }
 }
