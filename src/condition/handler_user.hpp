@@ -3,12 +3,12 @@
 
 #include <vector>
 #include "../config.hpp"
-#include "condition_handler.hpp"
+#include "base_condition_handler.hpp"
 
 namespace gruut {
 namespace gsce {
 
-class UserHandler : public ConditionHandler {
+class UserHandler : public BaseConditionHandler {
 private:
   std::string m_user_key;
 public:
@@ -54,6 +54,7 @@ public:
     }
     case SecondaryConditionType::ID: {
       std::string user_id_b58 = doc_node.value(); // <id>...</id>
+      vs::trim(user_id_b58);
 
       DataRecord user_id_data;
       if(!datamap.get(m_user_key,user_id_data)){
@@ -86,6 +87,8 @@ public:
 
       std::string service_type = doc_node.attribute("type").value();
       std::string service_code = doc_node.value();
+
+      vs::trim(service_code);
 
       DataRecord service_type_data;
       if(!datamap.get(m_user_key + ".isc_type",service_type_data)){

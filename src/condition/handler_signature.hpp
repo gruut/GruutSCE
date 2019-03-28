@@ -2,12 +2,12 @@
 #define GRUUTSCE_HANDLER_SIGNATURE_HPP
 
 #include "../config.hpp"
-#include "condition_handler.hpp"
+#include "base_condition_handler.hpp"
 
 namespace gruut {
 namespace gsce {
 
-class SignatureHandler : public ConditionHandler {
+class SignatureHandler : public BaseConditionHandler {
 public:
   SignatureHandler() = default;
 

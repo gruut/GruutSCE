@@ -2,12 +2,12 @@
 #define GRUUTSCE_HANDLER_ENDORSER_HPP
 
 #include "../config.hpp"
-#include "condition_handler.hpp"
+#include "base_condition_handler.hpp"
 
 namespace gruut {
 namespace gsce {
 
-class EndorserHandler : public ConditionHandler {
+class EndorserHandler : public BaseConditionHandler {
 public:
   EndorserHandler() = default;
 
@@ -43,6 +43,7 @@ public:
     case SecondaryConditionType::ID: {
 
       std::string endorser_id_b58 = doc_node.value();
+      vs::trim(endorser_id_b58);
 
       DataRecord endorser_id_data;
       if(!datamap.get("$endorsers",endorser_id_data)){

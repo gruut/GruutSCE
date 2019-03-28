@@ -2,7 +2,7 @@
 #define GRUUTSCE_HANDLER_COMPARE_HPP
 
 #include "../config.hpp"
-#include "condition_handler.hpp"
+#include "base_condition_handler.hpp"
 
 namespace gruut {
 namespace gsce {
@@ -21,7 +21,7 @@ enum class CompareType : int {
   UNKNOWN
 };
 
-class CompareHandler : public ConditionHandler {
+class CompareHandler : public BaseConditionHandler {
 public:
   CompareHandler() = default;
 
@@ -61,10 +61,23 @@ public:
       try {
         src_int = std::stoi(src_str);
         ref_int = std::stoi(ref_str);
-        abs_val = std::stoi(doc_node.attribute("abs").value());
       }
       catch (...) {
         return false;
+      }
+
+      std::string abs_str = doc_node.attribute("abs").value();
+      vs::trim(abs_str);
+
+      if(abs_str.empty())
+        abs_val = 0;
+      else {
+        try {
+          abs_val = std::stoi(abs_str);
+        }
+        catch(...) {
+          return false;
+        }
       }
 
       switch (comp_type) {

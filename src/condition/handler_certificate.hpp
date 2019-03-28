@@ -2,12 +2,12 @@
 #define GRUUTSCE_HANDLER_CERTIFICATE_HPP
 
 #include "../config.hpp"
-#include "condition_handler.hpp"
+#include "base_condition_handler.hpp"
 
 namespace gruut {
 namespace gsce {
 
-class CertificateHandler : public ConditionHandler {
+class CertificateHandler : public BaseConditionHandler {
 public:
   CertificateHandler() = default;
 

@@ -2,12 +2,12 @@
 #define GRUUTSCE_HANDLER_TIME_HPP
 
 #include "../config.hpp"
-#include "condition_handler.hpp"
+#include "base_condition_handler.hpp"
 
 namespace gruut {
 namespace gsce {
 
-class TimeHandler : public ConditionHandler {
+class TimeHandler : public BaseConditionHandler {
 public:
   TimeHandler() = default;
 

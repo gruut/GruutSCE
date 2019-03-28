@@ -8,10 +8,13 @@
 #include <cctype>
 #include <locale>
 
+#include <botan-2/botan/base58.h>
+#include <botan-2/botan/base64.h>
+#include <botan-2/botan/exceptn.h>
+#include <botan-2/botan/secmem.h>
+
 #include "date.hpp"
 
-namespace gruut {
-namespace gsce {
 class vs {
 public:
 
@@ -30,21 +33,6 @@ public:
   static inline void trim(std::string &s) {
     ltrim(s);
     rtrim(s);
-  }
-
-  static inline std::string ltrim_copy(std::string s) {
-    ltrim(s);
-    return s;
-  }
-
-  static inline std::string rtrim_copy(std::string s) {
-    rtrim(s);
-    return s;
-  }
-
-  static inline std::string trim_copy(std::string s) {
-    trim(s);
-    return s;
   }
 
   static std::string toLower(const std::string &src) {
@@ -68,8 +56,46 @@ public:
     return static_cast<uint64_t>(time_point.time_since_epoch().count());
   }
 
+  template <typename T>
+  inline static std::string encodeBase64(T &&t) {
+    try {
+      return Botan::base64_encode(std::vector<uint8_t>(begin(t), end(t)));
+    } catch (Botan::Exception &e) {
+      return std::string("");
+    }
+  }
+
+  template <typename T>
+  inline static std::vector<uint8_t> decodeBase64(T &&input) {
+    try {
+      auto s_vector = Botan::base64_decode(input);
+      return std::vector<uint8_t>(s_vector.begin(), s_vector.end());
+    } catch (Botan::Exception &e) {
+    }
+
+    return std::vector<uint8_t>();
+  }
+
+  template <typename T>
+  inline static std::string encodeBase58(T &&t) {
+    try {
+      return Botan::base58_encode(std::vector<uint8_t>(begin(t), end(t)));
+    } catch (Botan::Exception &e) {
+      return std::string("");
+    }
+  }
+
+  template <typename T>
+  inline static std::vector<uint8_t> decodeBase58(T &&input) {
+    try {
+      auto s_vector = Botan::base58_decode(input);
+      return std::vector<uint8_t>(s_vector.begin(), s_vector.end());
+    } catch (Botan::Exception &e) {
+    }
+
+    return std::vector<uint8_t>();
+  }
+
 };
-}
-}
 
 #endif //GRUUTSCE_VS_TOOL_HPP

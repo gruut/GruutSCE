@@ -22,7 +22,7 @@ enum class EvalRuleType : int {
 };
 
 enum class PrimaryConditionType : int {
-  CONDITION,
+  ROOT,
   IF,
   NIF,
   COMPARE,
