@@ -160,6 +160,10 @@ public:
     }
     }
 
+    if(base_condition_type == SecondaryConditionType::NIF) {
+      eval_result = !eval_result;
+    }
+
     return eval_result;
   }
 

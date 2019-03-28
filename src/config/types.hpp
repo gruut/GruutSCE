@@ -39,6 +39,7 @@ enum class PrimaryConditionType : int {
 enum class SecondaryConditionType : int {
   USER,
   RECEIVER,
+  ENDORSER,
   IF,
   NIF,
   ID,
@@ -47,7 +48,6 @@ enum class SecondaryConditionType : int {
   AGE,
   UNKNOWN
 };
-
 
 
 }}
