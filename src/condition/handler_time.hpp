@@ -4,8 +4,7 @@
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 class TimeHandler : public BaseConditionHandler {
 public:
@@ -20,8 +19,8 @@ public:
 
     uint64_t current_timestamp = vs::isotime2timestamp(time_data.value);
 
-    std::string time_after = doc_node.child("after").value();
-    std::string time_before = doc_node.child("before").value();
+    std::string time_after = doc_node.child("after").text().as_string();
+    std::string time_before = doc_node.child("before").text().as_string();
 
     vs::trim(time_after);
     vs::trim(time_before);
@@ -40,7 +39,6 @@ public:
   }
 };
 
-}
 }
 
 #endif //GRUUTSCE_HANDLER_TIME_HPP

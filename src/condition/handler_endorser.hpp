@@ -4,8 +4,7 @@
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 class EndorserHandler : public BaseConditionHandler {
 public:
@@ -42,7 +41,7 @@ public:
     }
     case SecondaryConditionType::ID: {
 
-      std::string endorser_id_b58 = doc_node.value();
+      std::string endorser_id_b58 = doc_node.text().as_string();
       vs::trim(endorser_id_b58);
 
       DataRecord endorser_id_data;
@@ -76,7 +75,6 @@ public:
 
 };
 
-}
 }
 
 #endif //GRUUTSCE_HANDLER_ENDORSER_HPP

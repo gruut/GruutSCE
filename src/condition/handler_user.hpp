@@ -5,8 +5,7 @@
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 class UserHandler : public BaseConditionHandler {
 private:
@@ -53,7 +52,7 @@ public:
       break;
     }
     case SecondaryConditionType::ID: {
-      std::string user_id_b58 = doc_node.value(); // <id>...</id>
+      std::string user_id_b58 = doc_node.text().as_string(); // <id>...</id>
       vs::trim(user_id_b58);
 
       DataRecord user_id_data;
@@ -86,7 +85,7 @@ public:
       // TODO : improve smarter
 
       std::string service_type = doc_node.attribute("type").value();
-      std::string service_code = doc_node.value();
+      std::string service_code = doc_node.text().as_string();
 
       vs::trim(service_code);
 
@@ -172,7 +171,6 @@ public:
 
 };
 
-}
 }
 
 

@@ -2,9 +2,9 @@
 #define GRUUTSCE_BASE_CONDITION_HANDLER_HPP
 
 #include "../config.hpp"
+#include "../data/datamap.hpp"
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 class BaseConditionHandler {
 public:
@@ -74,7 +74,6 @@ protected:
 
 };
 
-}
 }
 
 #endif //GRUUTSCE_BASE_CONDITION_HANDLER_HPP

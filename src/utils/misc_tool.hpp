@@ -66,14 +66,14 @@ public:
   }
 
   template <typename T>
-  inline static std::vector<uint8_t> decodeBase64(T &&input) {
+  inline static std::vector<std::byte> decodeBase64(T &&input) {
     try {
       auto s_vector = Botan::base64_decode(input);
-      return std::vector<uint8_t>(s_vector.begin(), s_vector.end());
+      return std::vector<std::byte>(s_vector.begin(), s_vector.end());
     } catch (Botan::Exception &e) {
     }
 
-    return std::vector<uint8_t>();
+    return std::vector<std::byte>();
   }
 
   template <typename T>
@@ -86,14 +86,29 @@ public:
   }
 
   template <typename T>
-  inline static std::vector<uint8_t> decodeBase58(T &&input) {
+  inline static std::vector<std::byte> decodeBase58(T &&input) {
     try {
       auto s_vector = Botan::base58_decode(input);
-      return std::vector<uint8_t>(s_vector.begin(), s_vector.end());
+      return std::vector<std::byte>(s_vector.begin(), s_vector.end());
     } catch (Botan::Exception &e) {
     }
 
-    return std::vector<uint8_t>();
+    return std::vector<std::byte>();
+  }
+
+  static std::vector<std::string> split (const std::string &s, const std::string &delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+    std::string token;
+    std::vector<std::string> res;
+
+    while ((pos_end = s.find (delimiter, pos_start)) != std::string::npos) {
+      token = s.substr (pos_start, pos_end - pos_start);
+      pos_start = pos_end + delim_len;
+      res.push_back (token);
+    }
+
+    res.push_back (s.substr (pos_start));
+    return res;
   }
 
 };

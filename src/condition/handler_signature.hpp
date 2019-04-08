@@ -4,8 +4,7 @@
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 class SignatureHandler : public BaseConditionHandler {
 public:
@@ -18,7 +17,6 @@ public:
 
 };
 
-}
 }
 
 #endif //GRUUTSCE_HANDLER_SIGNATURE_HPP

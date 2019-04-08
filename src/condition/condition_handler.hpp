@@ -14,8 +14,7 @@
 #include <iostream>
 #include <map>
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 class ConditionHandler : BaseConditionHandler {
 
@@ -94,6 +93,6 @@ public:
 
 };
 
-}}
+}
 
 #endif //GRUUTSCE_CONDITION_HANDLER_HPP

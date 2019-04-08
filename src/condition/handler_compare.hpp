@@ -4,8 +4,7 @@
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut {
-namespace gsce {
+namespace gruut::gsce {
 
 enum class CompareType : int {
   EQ,
@@ -30,6 +29,13 @@ public:
     std::string src_str = doc_node.attribute("src").value();
     std::string ref_str = doc_node.attribute("ref").value();
     CompareType comp_type = getCompareType(doc_node.attribute("type").value());
+
+    vs::trim(src_str);
+    vs::trim(ref_str);
+
+    if(src_str.empty() || ref_str.empty()) {
+      return false;
+    }
 
     if(src_str[0] == '$'){
       DataRecord src_data;
@@ -139,7 +145,6 @@ private:
   }
 
 };
-}
 
 }
 
