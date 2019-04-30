@@ -2,8 +2,7 @@
 #define GRUUTSCE_CONTRACT_RUNNER_HPP
 
 #include "../config.hpp"
-#include "../data/data_collector.hpp"
-#include "../data/temp_data_collector.hpp"
+#include "../data/data_storage.hpp"
 #include "../condition/condition_manager.hpp"
 #include "../handler/input_handler.hpp"
 #include "../handler/get_handler.hpp"
@@ -19,26 +18,24 @@ class ContractRunner {
 
 private:
   pugi::xml_node m_contract_node;
-  TempDataCollector m_temp_data_collector;
+  DataStorage m_tx_data_storage;
   ConditionManager m_condition_manager;
   InputHandler m_input_handler;
   GetHandler m_get_handler;
   SetHandler m_set_handler;
   ElementParser m_element_parser;
-
   TransactionJson m_tx_json;
 
 
 public:
-
   ContractRunner() = default;
 
   void attachReadInterface(std::function<DataRecord(std::string&)> &interface) {
-    m_temp_data_collector.attachReadInterface(interface);
+    m_tx_data_storage.attachReadInterface(interface);
   }
 
   void attachWriteInterface(std::function<void(std::string&, DataRecord&)> &interface){
-    m_temp_data_collector.attachWriteInterface(interface);
+    m_tx_data_storage.attachWriteInterface(interface);
   }
 
   void setContract(pugi::xml_node &contract_node) {
@@ -55,43 +52,43 @@ public:
 
     m_tx_json = tx_agg_json;
 
-    m_temp_data_collector.updateValue("$tx.txid", tx_agg_json["txid"].get<std::string>());
-    m_temp_data_collector.updateValue("$tx.world", tx_agg_json["world"].get<std::string>());
-    m_temp_data_collector.updateValue("$tx.chain", tx_agg_json["chain"].get<std::string>());
-    m_temp_data_collector.updateValue("$tx.time", tx_agg_json["time"].get<std::string>());
-    m_temp_data_collector.updateValue("$time", tx_agg_json["time"].get<std::string>());
+    m_tx_data_storage.updateValue("$tx.txid", tx_agg_json["txid"].get<std::string>());
+    m_tx_data_storage.updateValue("$tx.world", tx_agg_json["world"].get<std::string>());
+    m_tx_data_storage.updateValue("$tx.chain", tx_agg_json["chain"].get<std::string>());
+    m_tx_data_storage.updateValue("$tx.time", tx_agg_json["time"].get<std::string>());
+    m_tx_data_storage.updateValue("$time", tx_agg_json["time"].get<std::string>());
 
     auto cid = tx_agg_json["cid"].get<std::string>();
     std::vector<std::string> cid_components = vs::split(cid,"::");
 
-    m_temp_data_collector.updateValue("$tx.body.cid", cid);
-    m_temp_data_collector.updateValue("$author", cid_components[1]);
-    m_temp_data_collector.updateValue("$chain", cid_components[2]);
-    m_temp_data_collector.updateValue("$world", cid_components[3]);
+    m_tx_data_storage.updateValue("$tx.body.cid", cid);
+    m_tx_data_storage.updateValue("$author", cid_components[1]);
+    m_tx_data_storage.updateValue("$chain", cid_components[2]);
+    m_tx_data_storage.updateValue("$world", cid_components[3]);
 
     auto receiver = tx_agg_json["receiver"].get<std::string>();
 
-    m_temp_data_collector.updateValue("$tx.body.receiver", receiver);
-    m_temp_data_collector.updateValue("$receiver", receiver);
+    m_tx_data_storage.updateValue("$tx.body.receiver", receiver);
+    m_tx_data_storage.updateValue("$receiver", receiver);
 
     auto fee = tx_agg_json["fee"].get<std::string>();
 
-    m_temp_data_collector.updateValue("$tx.body.fee", fee);
-    m_temp_data_collector.updateValue("$fee", fee);
+    m_tx_data_storage.updateValue("$tx.body.fee", fee);
+    m_tx_data_storage.updateValue("$fee", fee);
 
     auto user_id = tx_agg_json["user"]["id"].get<std::string>();
 
-    m_temp_data_collector.updateValue("$tx.user.id", user_id);
-    m_temp_data_collector.updateValue("$tx.user.pk", tx_agg_json["user"]["pk"].get<std::string>());
-    m_temp_data_collector.updateValue("$user", user_id);
+    m_tx_data_storage.updateValue("$tx.user.id", user_id);
+    m_tx_data_storage.updateValue("$tx.user.pk", tx_agg_json["user"]["pk"].get<std::string>());
+    m_tx_data_storage.updateValue("$user", user_id);
 
     nlohmann::json tx_endorsers_json = tx_agg_json["body"]["endorser"];
 
     for(int i = 0 ; i < tx_endorsers_json.size(); ++i){
       std::string id_key = "$tx.endorser[" + to_string(i) + "].id";
       std::string pk_key = "$tx.endorser[" + to_string(i) + "].pk";
-      m_temp_data_collector.updateValue(id_key, tx_endorsers_json[i]["id"].get<std::string>());
-      m_temp_data_collector.updateValue(pk_key, tx_endorsers_json[i]["pk"].get<std::string>());
+      m_tx_data_storage.updateValue(id_key, tx_endorsers_json[i]["id"].get<std::string>());
+      m_tx_data_storage.updateValue(pk_key, tx_endorsers_json[i]["pk"].get<std::string>());
     }
   }
 
@@ -114,7 +111,7 @@ public:
       },
       "queries": [])"_json;
 
-    auto& data_map = m_temp_data_collector.getDatamap();
+    auto& data_map = m_tx_data_storage.getDatamap();
 
     result_query["txid"] = data_map.get("$tx.txid");
     result_query["fee"]["user"] = data_map.get("$fee");
@@ -163,10 +160,10 @@ public:
     result_query["authority"]["self"] = data_map.get("$tx.body.cid");
 
     auto& input_node = m_element_parser.getNode("input");
-    m_input_handler.parseInput(m_tx_json,input_node.first,m_temp_data_collector);
+    m_input_handler.parseInput(m_tx_json,input_node.first,m_tx_data_storage);
 
     auto& get_nodes = m_element_parser.getNodes("get");
-    m_get_handler.parseGet(get_nodes,m_condition_manager,m_temp_data_collector);
+    m_get_handler.parseGet(get_nodes,m_condition_manager,m_tx_data_storage);
 
     // TODO : set_handler
 
