@@ -11,31 +11,75 @@ class ConditionManager {
 
 private:
   ConditionHandler m_condition_handler;
-  std::map<std::string, bool> m_result_cache;
+  std::map<std::string, std::pair<bool, std::vector<uint8_t>>> m_result_cache; // id, {result, < keywords >}
+  std::map<std::string, std::vector<std::string>> m_keyword_map;
 
 public:
   ConditionManager() = default;
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap, bool invalidate = false) {
+  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) {
 
     std::string condition_id = doc_node.attribute("id").value();
-    if(condition_id.empty()) {
+    if(condition_id.empty())
       return true;
+
+    std::vector<uint8_t> hash_kv;
+
+    // TODO : extract keywords
+
+    auto it_map = m_keyword_map.find(condition_id);
+    if(it_map != m_keyword_map.end()) { // we know all keywords for this condition
+      hash_kv = getHashKV(it_map->second,datamap);
     }
+    else { // we don't know any keywords!
+      std::function<void(pugi::xml_node &doc_node,std::vector<std::string> &)> keyword_search;
+      keyword_search = [=,&keyword_search](pugi::xml_node &doc_node,std::vector<std::string> &keywords){
+
+        std::string tag_name = doc_node.name();
+
+        if(tag_name == "compare") {
+          checkAndPush(doc_node, "src", keywords);
+          checkAndPush(doc_node, "ref", keywords);
+        }
+        else if(tag_name == "age") {
+          checkAndPush(doc_node, "after", keywords);
+          checkAndPush(doc_node, "before", keywords);
+        }
+        else if (tag_name == "var") {
+          checkAndPush(doc_node, "id", keywords);
+          checkAndPush(doc_node, "name", keywords);
+        }
+        else {
+          checkAndPush(doc_node, "value", keywords);
+        }
+
+        for(auto &child_node : doc_node) {
+          keyword_search(child_node, keywords);
+        }
+
+      };
+
+      std::vector<std::string> keyword_list;
+      keyword_search(doc_node,keyword_list);
+      hash_kv = getHashKV(keyword_list,datamap);
+
+      m_keyword_map.insert({condition_id, keyword_list});
+    }
+
 
     bool eval_result = false;
 
-    if(!invalidate) {
-      auto it_cache = m_result_cache.find(condition_id);
-      if(it_cache == m_result_cache.end()) {
-        eval_result = m_condition_handler.evalue(doc_node,datamap);
-        m_result_cache.insert({condition_id,eval_result});
-      } else {
-        eval_result = it_cache->second;
-      }
-    } else {
+    auto it_cache = m_result_cache.find(condition_id);
+    if(it_cache == m_result_cache.end()) {
       eval_result = m_condition_handler.evalue(doc_node,datamap);
-      m_result_cache[condition_id] = eval_result; // force update
+      m_result_cache.insert({condition_id,{eval_result, hash_kv}});
+    } else {
+      if(hash_kv == it_cache->second.second) { // no value changed, cache is valid
+        eval_result = it_cache->second.first;
+      } else { // value is changed, cache is invalid -> re-evaluate this condition
+        eval_result = m_condition_handler.evalue(doc_node,datamap);
+        m_result_cache.insert({condition_id,{eval_result, hash_kv}});
+      }
     }
 
     return eval_result;
@@ -61,14 +105,30 @@ public:
     }
 
     auto it_cache = m_result_cache.find(condition_id);
-    if(it_cache == m_result_cache.end()) {
+    if(it_cache == m_result_cache.end()) // no cache
       return true;
+
+    return (is_neg == !it_cache->second.first); // is_neg ? !it_cache->second.first : it_cache->second.first
+  }
+
+private:
+  std::vector<uint8_t> getHashKV(std::vector<std::string> &keywords, Datamap &datamap) {
+
+    std::string kv_string;
+    for(auto &each_kw : keywords) {
+      kv_string.append(datamap.get(each_kw));
     }
 
-    if(is_neg)
-      return !it_cache->second;
-    else
-      return it_cache->second;
+    return Sha256::hash(kv_string);
+  }
+
+  void checkAndPush(pugi::xml_node &doc_node, const std::string &attr_name, std::vector<std::string> &keywords) {
+    std::string attr_value = doc_node.attribute(attr_name.c_str()).value();
+    if(attr_value.empty())
+      return;
+
+    if(attr_value[0] == '$')
+      keywords.push_back(attr_value);
   }
 };
 

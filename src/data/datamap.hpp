@@ -47,20 +47,10 @@ public:
   }
 
   template <typename S = std::string>
-  bool get(S &&key, DataRecord &data) {
-    auto map_it = m_storage.find(key);
-    if(map_it == m_storage.end())
-      return false;
-
-    data = map_it->second;
-    return true;
-  }
-
-  template <typename S = std::string>
   std::string get(S &&key) {
     auto map_it = m_storage.find(key);
     if(map_it == m_storage.end())
-      return std::string("");
+      return {};
 
     return data = map_it->second;
   }

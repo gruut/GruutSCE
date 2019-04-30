@@ -2,11 +2,13 @@
 #define GRUUTSCE_ENGINE_HPP
 
 #include "config.hpp"
+#include "data/data_storage.hpp"
 #include "runner/contract_manager.hpp"
 #include "runner/contract_runner.hpp"
 #include "runner/tx_parallelizer.hpp"
 #include "runner/query_composer.hpp"
 #include "chain/transaction.hpp"
+
 
 namespace gruut::gsce {
 
@@ -18,7 +20,7 @@ private:
 
   ContractManager m_contract_manager;
   QueryComposer m_query_composer;
-  DataCollector m_data_collector;
+  DataStorage m_data_stroage;
 
 public:
   Engine() = default;
@@ -51,26 +53,14 @@ public:
 
     pugi::xml_node contract = m_contract_manager.getContract(tx.getTxid());
 
-    std::function<DataRecord(std::string&)> read_interface;
-    read_interface = [this, &read_interface](std::string &key){
-      return m_data_collector.getVal(key);
-    };
-
-    std::function<void(std::string&, DataRecord &)> write_interface;
-    write_interface = [this, &write_interface](std::string &key, DataRecord &value){
-      m_data_collector.setVal(key,value);
-    };
-
     std::vector<nlohmann::json> result_queries;
 
     ContractRunner contract_runner;
-    contract_runner.attachReadInterface(read_interface);
-    contract_runner.attachWriteInterface(write_interface);
     contract_runner.setContract(contract);
     contract_runner.setTransaction(tx);
     result_queries.emplace_back(contract_runner.run());
 
-    // TODO : generating result json
+    return m_query_composer.compose(result_queries);
 
   }
 
