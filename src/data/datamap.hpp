@@ -37,8 +37,8 @@ public:
     }
   }
 
-  template <typename S = std::string>
-  void set(S &&key, S &&value, bool updatable = false) {
+  template <typename S1 = std::string, typename S2 = std::string>
+  void set(S1 &&key, S2 &&value, bool updatable = false) {
     if(key.empty())
       return;
 
@@ -63,6 +63,10 @@ public:
       return std::string("");
 
     return data = map_it->second;
+  }
+
+  void clear(){
+    m_storage.clear();
   }
 
 

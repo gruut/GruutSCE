@@ -3,7 +3,7 @@
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
-#include "../data/temp_data_collector.hpp"
+#include "../data/data_storage.hpp"
 
 namespace gruut::gsce {
 
@@ -12,7 +12,7 @@ public:
   InputHandler() = default;
 
 
-  void parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, TempDataCollector &data_collector){
+  void parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataStorage &data_collector){
 
     struct InputOption {
       std::string key;
