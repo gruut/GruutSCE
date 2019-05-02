@@ -11,6 +11,7 @@
 #include "utils/misc_tool.hpp"
 #include "utils/bytes_builder.hpp"
 #include "utils/type_converter.hpp"
+#include "utils/sha256.hpp"
 
 namespace gruut::gsce {
 

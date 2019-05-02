@@ -10,6 +10,14 @@ class QueryComposer {
 public:
   QueryComposer() = default;
 
+  nlohmann::json compose(std::vector<nlohmann::json> &result_queries) {
+
+    // TODO : compose result queries
+
+
+    return nlohmann::json();
+  }
+
 };
 
 }
