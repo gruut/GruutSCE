@@ -74,7 +74,9 @@ enum class SecondaryConditionType : int {
 
 std::map<std::string,std::string> GSCE_ERROR_MSG = {
     {"RUN_CONDITION", "condition is not met"},
-    {"RUN_PERIOD", "runnable time period is not met"}
+    {"RUN_PERIOD", "runnable time period is not met"},
+    {"NO_CONTRACT", "corresponding contract does not exist"},
+    {"RUN_UNKNOWN", "unknown error occurred"}
 };
 
 using BlockJson = nlohmann::json;

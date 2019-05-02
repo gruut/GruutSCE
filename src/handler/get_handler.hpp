@@ -60,7 +60,7 @@ public:
         if(!values)
           continue;
 
-        for(auto &[each_name,each_value] : *values) {
+        for(auto &[each_name,each_value] : values.value()) {
           std::string key = "$.";
           key.append(scope).append(".").append(each_name);
           data_storage.updateValue(key, each_value);
