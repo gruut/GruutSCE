@@ -68,7 +68,9 @@ public:
     contract_runner.attachWriteInterface(write_interface);
     contract_runner.setContract(contract);
     contract_runner.setTransaction(tx);
-    result_queries.emplace_back(contract_runner.run());
+    auto res_query = contract_runner.run();
+    if(res_query.has_value())
+      result_queries.emplace_back(res_query.value());
 
     // TODO : generating result json
 

@@ -92,7 +92,7 @@ public:
     }
   }
 
-  nlohmann::json run() {
+  std::optional<nlohmann::json> run() {
 
     nlohmann::json result_query = R"(
       "txid":"",
@@ -165,10 +165,13 @@ public:
     auto& get_nodes = m_element_parser.getNodes("get");
     m_get_handler.parseGet(get_nodes,m_condition_manager,m_tx_data_storage);
 
-    // TODO : set_handler
+    auto& set_nodes = m_element_parser.getNodes("set");
+    auto query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_tx_data_storage);
 
-
-
+    if(!query.has_value())
+      return {};
+    result_query["query"] = query.value();
+    return result_query;
   }
 
 
