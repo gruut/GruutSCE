@@ -30,14 +30,6 @@ private:
 public:
   ContractRunner() = default;
 
-  void attachReadInterface(std::function<DataRecord(std::string&)> &interface) {
-    m_tx_data_storage.attachReadInterface(interface);
-  }
-
-  void attachWriteInterface(std::function<void(std::string&, DataRecord&)> &interface){
-    m_tx_data_storage.attachWriteInterface(interface);
-  }
-
   void setContract(pugi::xml_node &contract_node) {
     m_contract_node = contract_node;
     m_element_parser.setContract(contract_node);
@@ -159,11 +151,27 @@ public:
     result_query["authority"]["receiver"] = data_map.get("$receiver");
     result_query["authority"]["self"] = data_map.get("$tx.body.cid");
 
+    // process input directive
+
     auto& input_node = m_element_parser.getNode("input");
     m_input_handler.parseInput(m_tx_json,input_node.first,m_tx_data_storage);
 
+    // process get directive
+
+    for(auto &each_condition : condition_nodes) {
+      m_condition_manager.evalue(each_condition.first,data_map);
+    }
+
     auto& get_nodes = m_element_parser.getNodes("get");
     m_get_handler.parseGet(get_nodes,m_condition_manager,m_tx_data_storage);
+    
+    // TODO : oracle handler (pending)
+
+    // TODO : script handler (pending)
+    
+    for(auto &each_condition : condition_nodes) {
+      m_condition_manager.evalue(each_condition.first,data_map);
+    }
 
     auto& set_nodes = m_element_parser.getNodes("set");
     auto query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_tx_data_storage);

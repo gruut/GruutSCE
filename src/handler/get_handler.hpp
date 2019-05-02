@@ -42,19 +42,32 @@ public:
         if(name.empty())
           continue;
 
-        std::vector<std::pair<std::string,std::string>> values = data_storage.getVariables(scope, id, name);
+        std::string storage_scope = (scope == "author" || scope == "user") ? "user" : "contract";
+        std::string storage_id = id;
 
-        if(values.empty())
+        if(scope == "author") {
+          storage_id = data_storage.eval("$author");
+        } else if(scope == "user") {
+          if(id.empty())
+            storage_id = data_storage.eval("$user");
+        } else { // scope == "contract"
+          if(id.empty())
+            storage_id = data_storage.eval("$tx.body.cid");
+        }
+
+        auto values = data_storage.fetchDataFromStorage(storage_scope, storage_id, name);
+
+        if(!values)
           continue;
 
-        for(auto &[each_name,each_value] : values) {
+        for(auto &[each_name,each_value] : *values) {
           std::string key = "$.";
           key.append(scope).append(".").append(each_name);
           data_storage.updateValue(key, each_value);
         }
 
         if(!name_as.empty()) {
-          data_storage.updateValue("$." + name_as,values[0].second);
+          data_storage.updateValue("$." + name_as,(*values)[0].second);
         }
       }
 
