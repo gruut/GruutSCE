@@ -4,6 +4,7 @@
 #include "../config.hpp"
 #include "../data/datamap.hpp"
 #include "../data/data_storage.hpp"
+#include <botan-2/botan/x509cert.h>
 
 namespace gruut::gsce {
 
@@ -72,10 +73,27 @@ public:
 
           input_value_groups[input_key].emplace_back(input_value);
 
-          if(input_options[opt_idx].type == "CERT") {
+          if(input_options[opt_idx].type == "PEM") {
+            Botan::DataSource_Memory cert_datasource(input_value);\
+            Botan::X509_Certificate cert(cert_datasource);
+            auto not_after_x509 = cert.not_after();
+            auto not_before_x509 = cert.not_befre();
+            auto not_after_epoch = not_after_x509.time_since_epoch();
+            auto not_before_epoch = not_before_x509.time_since_epoch();
+            std::string not_after_str = to_string(not_after_epoch);
+            std::string not_before_str = to_string(not_before_epoch);
 
-            // TODO : additionally updateValue for Certificate type
+            auto data_key_prefix = "$tx.contract.input[" + to_string(i) + "].";
+            auto short_key_prefix ="$" + to_string(i) + ".";
+            data_collector.updateValue(data_key_prefix + "notafter", not_after_str);
+            data_collector.updateValue(short_key_prefix + "notafter", not_after_str);
+            data_collector.updateValue(data_key_prefix + "notbefore", not_before_str);
+            data_collector.updateValue(short_key_prefix + "notbefore", not_before_str);
 
+            auto sn = cert.serial_number();
+            std::string sn_str(sn.begin(), sn.end());
+            data_collector.updateValue(data_key_prefix + "sn", sn_str);
+            data_collector.updateValue(short_key_prefix + "sn", sn_str);
           }
         }
       }
