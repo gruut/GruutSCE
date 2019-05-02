@@ -58,7 +58,9 @@ public:
     ContractRunner contract_runner;
     contract_runner.setContract(contract);
     contract_runner.setTransaction(tx);
-    result_queries.emplace_back(contract_runner.run());
+    auto res_query = contract_runner.run();
+    if(res_query.has_value())
+      result_queries.emplace_back(res_query.value());
 
     return m_query_composer.compose(result_queries);
 
