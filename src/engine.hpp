@@ -51,16 +51,34 @@ public:
     std::vector<std::string> tx_endorser = {"DavwZ2hoFR68mrvR1CS8Eag3ZEurvPjbyUMLxrbkZA7F","CZec91E32i9NhAWnUpkWsD2dsEc8fJubKWSJnCaPWUjN"};
 */
 
-    pugi::xml_node contract = m_contract_manager.getContract(tx.getTxid());
-
     std::vector<nlohmann::json> result_queries;
 
-    ContractRunner contract_runner;
-    contract_runner.setContract(contract);
-    contract_runner.setTransaction(tx);
-    auto res_query = contract_runner.run();
-    if(res_query.has_value())
-      result_queries.emplace_back(res_query.value());
+    nlohmann::json result_fail = R"(
+      "txid":"",
+      "status":false,
+      "info":""
+    )"_json;
+
+    auto contract = m_contract_manager.getContract(tx.getTxid());
+
+    if(contract) {
+      ContractRunner contract_runner;
+      contract_runner.setContract(contract.value());
+      contract_runner.setTransaction(tx);
+      auto res_query = contract_runner.run();
+      if(res_query.has_value())
+        result_queries.emplace_back(res_query.value());
+      else {
+        result_fail["txid"] = tx.getTxid();
+        result_fail["info"] = GSCE_ERROR_MSG["RUN_UNKNOWN"];
+        result_queries.emplace_back(result_fail);
+      }
+
+    } else {
+      result_fail["txid"] = tx.getTxid();
+      result_fail["info"] = GSCE_ERROR_MSG["NO_CONTRACT"];
+      result_queries.emplace_back(result_fail);
+    }
 
     return m_query_composer.compose(result_queries);
 
