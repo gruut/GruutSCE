@@ -3,7 +3,7 @@
 
 #include <string>
 #include <unordered_map>
-
+#include <optional>
 #include "../config.hpp"
 
 namespace gruut::gsce {
@@ -47,7 +47,7 @@ public:
   }
 
   template <typename S = std::string>
-  std::string get(S &&key) {
+  std::optional<std::string> get(S &&key) {
     auto map_it = m_storage.find(key);
     if(map_it == m_storage.end())
       return {};

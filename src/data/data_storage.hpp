@@ -11,7 +11,6 @@ namespace gruut::gsce {
 class DataStorage {
 private:
   Datamap m_tx_datamap; // set of { keyword : value }
-  Datamap m_datamap;
   std::unordered_map<std::string, nlohmann::json> m_storage_cache;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
@@ -80,17 +79,6 @@ public:
 
     return ret_vec;
 
-  }
-
-
-  template <typename S = std::string>
-  std::string getVal(S &&key){
-    return m_datamap.get(key);
-  }
-
-  template <typename S1 = std::string, typename S2 = std::string>
-  void setVal(S1 && key, S2 && value){
-    m_datamap.set(key,value);
   }
 
   template <typename S = std::string>

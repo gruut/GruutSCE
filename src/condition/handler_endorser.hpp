@@ -45,7 +45,8 @@ public:
       vs::trim(endorser_id_b58);
 
       DataRecord endorser_id_data;
-      if(!datamap.get("$endorsers",endorser_id_data)){
+      auto data = datamap.get("$endorsers");
+      if(!data.has_value()){
         return false;
       }
 
