@@ -19,7 +19,6 @@ enum class VarType : int {
   TEXT,
   MEDIUMTEXT,
   LONGTEXT,
-  BLOB,
   DATETIME,
   DATE,
   BIN,
@@ -28,15 +27,12 @@ enum class VarType : int {
   BASE58,
   BASE64,
   PEM,
-  ENUM,
+  ENUMV,
   ENUMGENDER,
   ENUMALL,
+  CONTRACT,
   XML,
-  GRU,
-  FIAT,
-  COIN,
-  XCOIN,
-  MILE
+  NONE
 };
 
 enum class EvalRuleType : int {
