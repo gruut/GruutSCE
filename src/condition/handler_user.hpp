@@ -55,12 +55,12 @@ public:
       std::string user_id_b58 = doc_node.text().as_string(); // <id>...</id>
       vs::trim(user_id_b58);
 
-      DataRecord user_id_data;
-      if(!datamap.get(m_user_key,user_id_data)){
+      auto data = datamap.get(m_user_key);
+      if(!data.has_value()){
         return false;
       }
 
-      eval_result = (user_id_data.value == user_id_b58);
+      eval_result = (data.value() == user_id_b58);
       break;
     }
     case SecondaryConditionType::LOCATION: {
@@ -71,12 +71,12 @@ public:
       location += " ";
       location += doc_node.attribute("state").value();
 
-      DataRecord location_data;
-      if(!datamap.get(m_user_key + ".location",location_data)){
+      auto data = datamap.get(m_user_key + ".location");
+      if(!data.has_value()){
         return false;
       }
 
-      eval_result = (location_data.value == location);
+      eval_result = (data.value() == location);
       break;
     }
 
@@ -89,17 +89,17 @@ public:
 
       vs::trim(service_code);
 
-      DataRecord service_type_data;
-      if(!datamap.get(m_user_key + ".isc_type",service_type_data)){
+      auto type_data = datamap.get(m_user_key + ".isc_type");
+      if(!type_data.has_value()){
         return false;
       }
 
-      DataRecord service_code_data;
-      if(!datamap.get(m_user_key + ".isc_code",service_code_data)){
+      auto code_data = datamap.get(m_user_key + ".isc_code");
+      if(!code_data.has_value()){
         return false;
       }
 
-      eval_result = (service_type_data.value == service_type && service_code_data.value == service_code);
+      eval_result = (type_data.value() == service_type && code_data.value() == service_code);
       break;
 
     }
@@ -114,12 +114,12 @@ public:
       if(age_after.empty() && age_before.empty())
         return false;
 
-      DataRecord user_birthday;
-      if(!datamap.get(m_user_key + ".birthday", user_birthday)) {
+      auto data = datamap.get(m_user_key + ".birthday");
+      if(!data.has_value()) {
         return false;
       }
 
-      std::istringstream in{user_birthday.value};
+      std::istringstream in{data.value()};
       date::sys_time<std::chrono::milliseconds> birthday_time_point;
       in >> date::parse("%F", birthday_time_point);
 

@@ -38,20 +38,20 @@ public:
     }
 
     if(src_str[0] == '$'){
-      DataRecord src_data;
-      if(!datamap.get(src_str,src_data))
+      auto data = datamap.get(src_str);
+      if(!data.has_value())
         return false;
 
-      src_str = src_data.value;
+      src_str = data.value();
 
     }
 
     if(ref_str[0] == '$'){
-      DataRecord ref_data;
-      if(!datamap.get(ref_str,ref_data))
+      auto data = datamap.get(src_str);
+      if(!data.has_value())
         return false;
 
-      ref_str = ref_data.value;
+      ref_str = data.value();
     }
 
     bool eval_result;

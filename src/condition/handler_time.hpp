@@ -12,12 +12,12 @@ public:
 
   bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
 
-    DataRecord time_data;
-    if(!datamap.get("$time", time_data)) {
+    auto data = datamap.get("$time");
+    if(!data.has_value()) {
       return false;
     }
 
-    uint64_t current_timestamp = vs::isotime2timestamp(time_data.value);
+    uint64_t current_timestamp = vs::isotime2timestamp(data.value());
 
     std::string time_after = doc_node.child("after").text().as_string();
     std::string time_before = doc_node.child("before").text().as_string();
