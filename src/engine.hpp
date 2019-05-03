@@ -61,7 +61,7 @@ public:
 
     auto contract = m_contract_manager.getContract(tx.getTxid());
 
-    if(contract) {
+    if(contract.has_value()) {
       ContractRunner contract_runner;
       contract_runner.setContract(contract.value());
       contract_runner.setTransaction(tx);
@@ -80,8 +80,10 @@ public:
       result_queries.emplace_back(result_fail);
     }
 
-    return m_query_composer.compose(result_queries);
-
+    //TODO: get block informations
+    uint64_t block_hgt = 1;
+    std::string block_id;
+    return m_query_composer.compose(result_queries, block_id, block_hgt);
   }
 
 

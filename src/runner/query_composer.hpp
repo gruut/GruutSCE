@@ -10,16 +10,26 @@ class QueryComposer {
 public:
   QueryComposer() = default;
 
-  nlohmann::json compose(std::vector<nlohmann::json> &result_queries) {
+  nlohmann::json compose(std::vector<nlohmann::json> &result_queries, const std::string &block_id, uint64_t height) {
+    nlohmann::json result;
+    result["block"]["id"] = block_id;
+    result["block"]["height"] = to_string(height);
 
-    // TODO : compose result queries
+    result["results"] = nlohmann::json::array();
 
-
-    return nlohmann::json();
+    for(auto &res : result_queries){
+      if(json::get<bool>(res, "status").value())
+        res.erase("info");
+      else{
+        res.erase("authority");
+        res.erase("fee");
+        res.erase("queries");
+      }
+      result["results"].emplace_back(res);
+    }
+    return result;
   }
-
 };
-
 }
 
 #endif //GRUUTSCE_QUERY_COMPOSER_HPP
