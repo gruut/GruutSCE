@@ -10,12 +10,18 @@ class QueryComposer {
 public:
   QueryComposer() = default;
 
-  nlohmann::json compose(std::vector<nlohmann::json> &result_queries) {
+  nlohmann::json compose(std::vector<nlohmann::json> &result_queries, const std::string &block_id, uint64_t height) {
 
-    // TODO : compose result queries
+    nlohmann::json result;
+    result["block"]["id"] = block_id;
+    result["block"]["height"] = to_string(height);
 
+    result["results"] = nlohmann::json::array();
 
-    return nlohmann::json();
+    for(auto &res : result_queries){
+      result["results"].emplace_back(res);
+    }
+    return result;
   }
 
 };
