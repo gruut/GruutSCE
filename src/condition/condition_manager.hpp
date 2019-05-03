@@ -116,7 +116,7 @@ private:
 
     std::string kv_string;
     for(auto &each_kw : keywords) {
-      kv_string.append(datamap.get(each_kw));
+      kv_string.append(datamap.get(each_kw).value_or(""));
     }
 
     return Sha256::hash(kv_string);

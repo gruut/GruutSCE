@@ -105,8 +105,8 @@ public:
 
     auto& data_map = m_tx_data_storage.getDatamap();
 
-    result_query["txid"] = data_map.get("$tx.txid");
-    result_query["fee"]["user"] = data_map.get("$fee");
+    result_query["txid"] = data_map.get("$tx.txid").value_or("");
+    result_query["fee"]["user"] = data_map.get("$fee").value_or("");
 
     auto& head_node = m_element_parser.getNode("head");
     auto& condition_nodes = m_element_parser.getNodes("condition");
@@ -121,7 +121,7 @@ public:
       for (auto &each_condition : condition_nodes) {
         std::string each_id = each_condition.first.attribute("id").value();
         if(each_id == condition_id){
-          m_condition_manager.evalue(each_condition.first,data_map,true);
+          m_condition_manager.evalue(each_condition.first,data_map);
           break;
         }
       }
@@ -145,11 +145,10 @@ public:
     for(auto &each_condition : condition_nodes) {
       m_condition_manager.evalue(each_condition.first,data_map);
     }
-
-    result_query["authority"]["author"] = data_map.get("$author");
-    result_query["authority"]["user"] = data_map.get("$user");
-    result_query["authority"]["receiver"] = data_map.get("$receiver");
-    result_query["authority"]["self"] = data_map.get("$tx.body.cid");
+    result_query["authority"]["author"] = data_map.get("$author").value_or("");
+    result_query["authority"]["user"] = data_map.get("$user").value_or("");
+    result_query["authority"]["receiver"] = data_map.get("$receiver").value_or("");
+    result_query["authority"]["self"] = data_map.get("$tx.body.cid").value_or("");
 
     // process input directive
 
