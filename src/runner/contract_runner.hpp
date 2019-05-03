@@ -84,6 +84,12 @@ public:
     }
   }
 
+  void readUserAttributes(){
+
+    // TODO : read user attributes of "user", "receiver", "author", "endorsers"
+
+  }
+
   std::optional<nlohmann::json> run() {
 
     nlohmann::json result_query = R"(

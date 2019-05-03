@@ -65,6 +65,8 @@ public:
       ContractRunner contract_runner;
       contract_runner.setContract(contract.value());
       contract_runner.setTransaction(tx);
+      contract_runner.readUserAttributes();
+
       auto res_query = contract_runner.run();
       if(res_query.has_value())
         result_queries.emplace_back(res_query.value());
