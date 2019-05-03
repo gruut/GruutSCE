@@ -8,12 +8,13 @@
 #include <optional>
 #include <regex>
 #include <cctype>
+#include <unordered_map>
 
 namespace gruut::gsce {
 
 const auto REGEX_BASE64 = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
 
-enum class SetType {
+enum class SetType : int{
   USER_JOIN,
   USER_CERT,
   V_CREATE,
@@ -30,6 +31,16 @@ enum class SetType {
   NONE
 };
 
+const std::unordered_map<std::string, SetType> SetTypeMap {
+  {"user.cert", SetType::USER_JOIN}, {"user.cert", SetType::USER_CERT},
+      {"v.create", SetType::V_CREATE}, {"v.incinerate", SetType::V_INCINERATE},
+      {"v.transfer", SetType::V_TRANSFER}, {"scope.user", SetType::SCOPE_USER},
+      {"scope.contract", SetType::SCOPE_CONTRACT}, {"contract.new", SetType::CONTRACT_NEW},
+      {"contract.disable", SetType::CONTRACT_DISABLE},
+      {"item.trade", SetType::ITEM_TRADE}, {"v.trande", SetType::V_TRADE},
+      {"run.query", SetType::RUN_QUERY}, {"run.contract", SetType::RUN_CONTRACT},
+};
+
 class SetHandler {
 public:
   SetHandler() = default;
@@ -40,7 +51,8 @@ public:
       if(set_node.empty() || condition_manager.getEvalResultById(id))
         continue;
       std::string type_str = set_node.attribute("type").value();
-      auto set_type = getSetType(type_str);
+      auto it = SetTypeMap.find(type_str);
+      auto set_type = (it == SetTypeMap.end() ? SetType::NONE : it->second);
       optional<nlohmann::json> contents = handle(set_type, set_node, data_collector);
       if(!contents.has_value())
         continue;
@@ -51,37 +63,6 @@ public:
     return query;
   }
 private:
-  SetType getSetType(const string &type_str){
-    if(type_str == "user.join")
-      return SetType::USER_JOIN;
-    else if(type_str == "user.cert")
-      return SetType::USER_CERT;
-    else if(type_str == "v.create")
-      return SetType::V_CREATE;
-    else if(type_str == "v.incinerate")
-      return SetType::V_INCINERATE;
-    else if(type_str == "v.transfer")
-      return SetType::V_TRANSFER;
-    else if(type_str == "scope.user")
-      return SetType::SCOPE_USER;
-    else if(type_str == "scope.contract")
-      return SetType::SCOPE_CONTRACT;
-    else if(type_str == "contract.new")
-      return SetType::CONTRACT_NEW;
-    else if(type_str == "contract.disable")
-      return SetType::CONTRACT_DISABLE;
-    else if(type_str == "item.trade")
-      return SetType::ITEM_TRADE;
-    else if(type_str == "v.trande")
-      return SetType::V_TRADE;
-    else if(type_str == "run.query")
-      return SetType::RUN_QUERY;
-    else if(type_str == "run.contract")
-      return SetType::RUN_CONTRACT;
-    else
-      return SetType::NONE;
-  }
-
   std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataStorage &data_collector) {
     nlohmann::json contents;
     auto option_nodes = set_node.select_nodes("/option");
