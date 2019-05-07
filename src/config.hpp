@@ -9,10 +9,9 @@
 
 #include "utils/json.hpp"
 #include "utils/misc_tool.hpp"
-#include "utils/bytes_builder.hpp"
-#include "utils/type_converter.hpp"
-#include "utils/sha256.hpp"
-
+#include "utils/gruut-utils/src/sha256.hpp"
+#include "utils/gruut-utils/src/type_converter.hpp"
+#include "utils/gruut-utils/src/bytes_builder.hpp"
 namespace gruut::gsce {
 
 constexpr int NUM_GSCE_THREAD = 4;
