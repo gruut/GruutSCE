@@ -41,9 +41,15 @@ public:
   }
 
   template <typename S = std::string>
-  std::optional<std::vector<DataAttribute>> getUserAttribute(S && user_id) {
-    if(user_id.empty())
+  std::optional<std::vector<DataAttribute>> getUserAttribute(S && user_id_) {
+    if(user_id_.empty())
       return std::nullopt;
+
+    std::string user_id = user_id_;
+
+    if(user_id[0] == '$') {
+      user_id = eval(user_id);
+    }
 
     nlohmann::json query = {
         {"type","user.info.get"},

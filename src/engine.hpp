@@ -29,27 +29,9 @@ public:
 
   nlohmann::json procBlock(Block &block) {
 
-
     // TODO : Block to Transaction object;
 
     Transaction tx;
-
-/*
-    std::string tx_time = "1555484718";
-    std::string tx_seed = "zmHvId0vfgmux7tD0IoM/Q=="; // 128-bit
-    std::string tx_body_cid = "VALUE-TRANSFER::82nknGvtyt8jxnkfgWSdGh6PJGhEj7pFGKKiuRov4nNm::TSTCHAIN::GRUUTNET";
-    std::string tx_body_receiver = "J2xQ5uTkVDoENSgQAaeGzyibJjMe8AT9XdaoqbM9k6C6";
-    std::string tx_body_fee_author = "10";
-    std::string tx_body_fee_user = "100";
-    std::vector<std::string> tx_body_input = {
-        "1000", // amount
-        "KRW", // unit
-        "", // pid
-        "" // condition
-    };
-    std::string tx_user = "82nknGvtyt8jxnkfgWSdGh6PJGhEj7pFGKKiuRov4nNm";
-    std::vector<std::string> tx_endorser = {"DavwZ2hoFR68mrvR1CS8Eag3ZEurvPjbyUMLxrbkZA7F","CZec91E32i9NhAWnUpkWsD2dsEc8fJubKWSJnCaPWUjN"};
-*/
 
     std::vector<nlohmann::json> result_queries;
 
