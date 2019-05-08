@@ -22,7 +22,7 @@ public:
         res.erase("info");
       else{
         res.erase("authority");
-        res.erase("fee");
+        //res.erase("fee");
         res.erase("queries");
       }
       result["results"].emplace_back(res);

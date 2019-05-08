@@ -9,6 +9,7 @@
 #include "../handler/set_handler.hpp"
 #include "../chain/transaction.hpp"
 #include "element_parser.hpp"
+#include "../handler/fee_handler.hpp"
 
 namespace gruut::gsce {
 
@@ -23,13 +24,14 @@ private:
   SetHandler m_set_handler;
   ElementParser m_element_parser;
   TransactionJson m_tx_json;
+  FeeHandler m_fee_handler;
 
 
 public:
   ContractRunner() = default;
 
   void setContract(pugi::xml_node &contract_node) {
-    m_contract_node = contract_node;
+    m_contract_node = contract_node; // for future use
     m_element_parser.setContract(contract_node);
   }
 
@@ -142,8 +144,7 @@ public:
 
     auto& data_map = m_tx_data_storage.getDatamap();
 
-    result_query["txid"] = data_map.get("$tx.txid").value_or("");
-    result_query["fee"]["user"] = data_map.get("$fee").value_or("");
+    result_query["txid"] = m_tx_data_storage.eval("$tx.txid");
 
     auto& head_node = m_element_parser.getNode("head");
     auto& condition_nodes = m_element_parser.getNodes("condition");
@@ -182,10 +183,12 @@ public:
     for(auto &each_condition : condition_nodes) {
       m_condition_manager.evalue(each_condition.first,data_map);
     }
-    result_query["authority"]["author"] = data_map.get("$author").value_or("");
-    result_query["authority"]["user"] = data_map.get("$user").value_or("");
-    result_query["authority"]["receiver"] = data_map.get("$receiver").value_or("");
-    result_query["authority"]["self"] = data_map.get("$tx.body.cid").value_or("");
+    result_query["authority"]["author"] = m_tx_data_storage.eval("$author");
+    result_query["authority"]["user"] = m_tx_data_storage.eval("$user");
+    result_query["authority"]["receiver"] = m_tx_data_storage.eval("$receiver");
+    result_query["authority"]["self"] = m_tx_data_storage.eval("$tx.body.cid");
+
+    // TODO : result_query["authority"]["friend"]
 
     // process input directive
 
@@ -202,7 +205,6 @@ public:
     m_get_handler.parseGet(get_nodes,m_condition_manager,m_tx_data_storage);
     
     // TODO : oracle handler (pending)
-
     // TODO : script handler (pending)
     
     for(auto &each_condition : condition_nodes) {
@@ -213,8 +215,16 @@ public:
     auto query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_tx_data_storage);
 
     if(!query.has_value())
-      return {};
+      return std::nullopt;
+
     result_query["query"] = query.value();
+
+    auto &fee_nodes = m_element_parser.getNodes("fee");
+    auto [pay_from_user, pay_from_author] = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_tx_data_storage);
+
+    result_query["fee"]["user"] = std::to_string(pay_from_user);
+    result_query["fee"]["author"] = std::to_string(pay_from_author);
+
     return result_query;
   }
 
