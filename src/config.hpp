@@ -12,6 +12,8 @@
 #include "utils/gruut-utils/src/sha256.hpp"
 #include "utils/gruut-utils/src/type_converter.hpp"
 #include "utils/gruut-utils/src/bytes_builder.hpp"
+#include "utils/gruut-utils/src/ecdsa.hpp"
+#include "utils/gruut-utils/src/ags.hpp"
 namespace gruut::gsce {
 
 constexpr int NUM_GSCE_THREAD = 4;

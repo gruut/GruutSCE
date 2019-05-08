@@ -38,7 +38,7 @@ const std::unordered_map<std::string, SetType> SetTypeMap {
       {"scope.contract", SetType::SCOPE_CONTRACT}, {"contract.new", SetType::CONTRACT_NEW},
       {"contract.disable", SetType::CONTRACT_DISABLE},
       {"item.trade", SetType::ITEM_TRADE}, {"v.trande", SetType::V_TRADE},
-      {"run.query", SetType::RUN_QUERY}, {"run.contract", SetType::RUN_CONTRACT},
+      {"run.query", SetType::RUN_QUERY}, {"run.contract", SetType::RUN_CONTRACT}
 };
 
 class SetHandler {

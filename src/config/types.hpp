@@ -5,9 +5,24 @@
 // Instead, you can include this file by including config.hpp
 
 #include <string>
+#include <unordered_map>
 #include <json.hpp>
 
 namespace gruut::gsce {
+
+enum class EnumV : int {
+  GRU = 0,
+  FIAT = 1,
+  COIN = 2,
+  XCOIN = 3,
+  MILE = 4
+};
+
+enum class EnumGender : int {
+  MALE = 90,
+  FEMALE = 91,
+  OTHER = 92
+};
 
 enum class VarType : int {
   INT,
@@ -33,6 +48,30 @@ enum class VarType : int {
   CONTRACT,
   XML,
   NONE
+};
+
+const std::unordered_map<std::string, VarType> VarTypeMap {
+    {"INT", VarType::INT},
+    {"PINT", VarType::PINT},
+    {"NINT", VarType::NINT},
+    {"FLOAT", VarType::FLOAT},
+    {"BOOL", VarType::BOOL},
+    {"TINYTEXT", VarType::TINYTEXT},
+    {"TEXT", VarType::TEXT},
+    {"MEDIUMTEXT", VarType::LONGTEXT},
+    {"DATETIME", VarType::DATETIME},
+    {"DATE", VarType::DATE},
+    {"BIN", VarType::BIN},
+    {"DEC", VarType::DEC},
+    {"HEX", VarType::HEX},
+    {"BASE58", VarType::BASE58},
+    {"BASE64", VarType::BASE64},
+    {"PEM", VarType::PEM},
+    {"ENUMV", VarType::ENUMV},
+    {"ENUMGENDER", VarType::ENUMGENDER},
+    {"ENUMALL", VarType::ENUMALL},
+    {"CONTRACT", VarType::CONTRACT},
+    {"XML", VarType::XML}
 };
 
 enum class EvalRuleType : int {

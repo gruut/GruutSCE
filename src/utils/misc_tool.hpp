@@ -55,6 +55,13 @@ public:
 
     return static_cast<uint64_t>(time_point.time_since_epoch().count());
   }
+  static uint64_t  simpletime2timestamp(const std::string &simple_time) {
+    std::istringstream in{simple_time};
+    date::sys_time<std::chrono::milliseconds> time_point;
+    in >> date::parse("%F", time_point);
+
+    return static_cast<uint64_t>(time_point.time_since_epoch().count());
+  }
 
   template <typename T>
   inline static std::string encodeBase64(T &&t) {
