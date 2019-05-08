@@ -25,31 +25,6 @@ const auto BASE64_REGEX = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9
 const auto BASE58_REGEX = "^[A-HJ-NP-Za-km-z1-9]*$";
 const auto BIN_REGEX = "^[0-1]*$";
 
-const std::unordered_map<std::string, VarType> VarTypeMap{
-    {"INT", VarType::INT},
-    {"PINT", VarType::PINT},
-    {"NINT", VarType::NINT},
-    {"FLOAT", VarType::FLOAT},
-    {"BOOL", VarType::BOOL},
-    {"TINYTEXT", VarType::TINYTEXT},
-    {"TEXT", VarType::TEXT},
-    {"MEDIUMTEXT", VarType::MEDIUMTEXT},
-    {"LONGTEXT", VarType::LONGTEXT},
-    {"DATETIME", VarType::DATETIME},
-    {"DATE", VarType::DATE},
-    {"BIN", VarType::BIN},
-    {"DEC", VarType::DEC},
-    {"HEX", VarType::HEX},
-    {"BASE58", VarType::BASE58},
-    {"BASE64", VarType::BASE64},
-    {"ENUMV", VarType::ENUMV},
-    {"ENUMGENDER", VarType::ENUMGENDER},
-    {"ENUMALL", VarType::ENUMALL},
-    {"PEM", VarType::PEM},
-    {"CONTRACT", VarType::CONTRACT},
-    {"XML", VarType::XML}
-};
-
 class InputHandler {
 public:
   InputHandler() = default;
