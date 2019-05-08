@@ -14,10 +14,9 @@ public:
   SignatureHandler() = default;
 
   bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
-    auto signature_node = doc_node.child("signature");
-    auto sig_node = signature_node.child("sig");
-    auto pk_node = signature_node.child("pk");
-    auto text_node = signature_node.child("text");
+    auto sig_node = doc_node.child("sig");
+    auto pk_node = doc_node.child("pk");
+    auto text_node = doc_node.child("text");
     if(sig_node.empty() || pk_node.empty() || text_node.empty())
       return false;
 

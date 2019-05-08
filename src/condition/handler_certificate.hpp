@@ -11,9 +11,8 @@ public:
   CertificateHandler() = default;
 
   bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
-    auto cert_node = doc_node.child("certificate");
-    auto pk_node = cert_node.child("pk");
-    auto by_node = cert_node.child("by");
+    auto pk_node = doc_node.child("pk");
+    auto by_node = doc_node.child("by");
 
     if(pk_node.empty() || by_node.empty())
       return false;
