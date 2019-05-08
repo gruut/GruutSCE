@@ -55,19 +55,19 @@ public:
             storage_id = data_storage.eval("$tx.body.cid");
         }
 
-        auto values = data_storage.fetchDataFromStorage(storage_scope, storage_id, name);
+        auto values = data_storage.getScopeVariables(storage_scope, storage_id, name);
 
         if(!values)
           continue;
 
-        for(auto &[each_name,each_value] : values.value()) {
+        for(auto &each_attr : values.value()) {
           std::string key = "$.";
-          key.append(scope).append(".").append(each_name);
-          data_storage.updateValue(key, each_value);
+          key.append(scope).append(".").append(each_attr.name);
+          data_storage.updateValue(key, each_attr.value);
         }
 
         if(!name_as.empty()) {
-          data_storage.updateValue("$." + name_as,(*values)[0].second);
+          data_storage.updateValue("$." + name_as,(*values)[0].value);
         }
       }
 

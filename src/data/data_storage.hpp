@@ -8,6 +8,14 @@
 
 namespace gruut::gsce {
 
+struct DataAttribute {
+  std::string name;
+  std::string value;
+  DataAttribute() = default;
+  DataAttribute(std::string &name_, std::string &value_) : name (name_), value (value_) {}
+};
+
+
 class DataStorage {
 private:
   Datamap m_tx_datamap; // set of { keyword : value }
@@ -32,53 +40,46 @@ public:
     m_tx_datamap.set(key,value, updatable);
   }
 
-  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
-  std::optional<std::vector<std::pair<std::string,std::string>>> fetchDataFromStorage(S1 &&scope, S2 &&id, S3 &&name){
-
-    if(scope.empty() || id.empty() || name.empty())
+  template <typename S = std::string>
+  std::optional<std::vector<DataAttribute>> getUserAttribute(S && user_id_) {
+    if(user_id_.empty())
       return std::nullopt;
 
-    nlohmann::json query;
+    std::string user_id = user_id_;
 
-    if(scope == "user") {
-      query["type"] = "user.scope.get";
-      query["where"]["uid"] = id;
-    } else if (scope == "contract"){
-      query["type"] = "contract.scope.get";
-      query["where"]["cid"] = id;
-    } else {
-      return std::nullopt;
+    if(user_id[0] == '$') {
+      user_id = eval(user_id);
     }
 
-    std::string query_key = TypeConverter::toString(nlohmann::json::to_cbor(query));
-
-    nlohmann::json query_result;
-
-    auto it_cache = m_storage_cache.find(query_key);
-    if(it_cache != m_storage_cache.end()) {
-      query_result = (*it_cache).second;
-    } else {
-      query_result = m_read_storage_interface(query);
-      m_storage_cache[query_key] = query_result;
-    }
-
-    std::vector<std::pair<std::string,std::string>> ret_vec;
-
-    if(name == "*") {
-      for(auto &each_row : query_result) {
-        if(each_row["tag"].get<std::string>().empty())
-          ret_vec.emplace_back(std::make_pair(each_row["name"].get<std::string>(),each_row["name"].get<std::string>()));
-      }
-    } else {
-      for(auto &each_row : query_result) {
-        if(each_row["name"].get<std::string>() == name && each_row["tag"].get<std::string>().empty()) {
-          ret_vec.emplace_back(std::make_pair(name, each_row["name"].get<std::string>()));
+    nlohmann::json query = {
+        {"type","user.info.get"},
+        {"where",
+          {"uid",user_id}
         }
-      }
+    };
+
+    return queryIfAndReturn(query);
+  }
+
+  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
+  std::optional<std::vector<DataAttribute>> getScopeVariables(S1 &&scope, S2 &&id, S3 &&name){
+
+    if(scope.empty() || id.empty() || name.empty() || !(scope == "user" || scope == "contract"))
+      return std::nullopt;
+
+    nlohmann::json query = {
+        {"type", scope == "user" ? "user.info.get" : "contract.scope.get"},
+        {"where",
+          {"uid", id},
+          {"notag", true}
+        }
+    };
+
+    if(!name.empty() && name != "*") {
+      query["where"]["name"] = name;
     }
 
-    return ret_vec;
-
+    return queryIfAndReturn(query);
   }
 
   template <typename S = std::string>
@@ -106,6 +107,38 @@ public:
 
   Datamap& getDatamap() {
     return m_tx_datamap;
+  }
+
+private:
+
+  std::optional<std::vector<DataAttribute>> queryIfAndReturn(nlohmann::json &query) {
+    std::string query_key = TypeConverter::toString(nlohmann::json::to_cbor(query));
+
+    nlohmann::json query_result;
+
+    auto it_cache = m_storage_cache.find(query_key);
+    if(it_cache != m_storage_cache.end()) {
+      query_result = (*it_cache).second;
+    } else {
+      query_result = m_read_storage_interface(query);
+      m_storage_cache[query_key] = query_result;
+    }
+
+    auto query_result_name = json::get<nlohmann::json>(query_result,"name");
+    auto query_result_data = json::get<nlohmann::json>(query_result,"data");
+
+    if(!query_result_name || !query_result_data)
+      return std::nullopt;
+
+    std::vector<DataAttribute> ret_vec;
+
+    for(auto &each_row : query_result_data.value()) {
+      for(int i = 0; i < each_row.size(); ++i) {
+        ret_vec.emplace_back(query_result_name.value()[i].get<std::string>(),each_row[i].get<std::string>());
+      }
+    }
+
+    return ret_vec;
   }
 
 };
