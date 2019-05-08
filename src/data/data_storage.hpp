@@ -40,6 +40,24 @@ public:
     m_tx_datamap.set(key,value, updatable);
   }
 
+  std::optional<std::vector<DataAttribute>> getWorld() {
+    nlohmann::json query = {
+        {"type","world.get"},
+        {"where",{}}
+    };
+
+    return queryIfAndReturn(query);
+  }
+
+  std::optional<std::vector<DataAttribute>> getChain() {
+    nlohmann::json query = {
+        {"type","chain.get"},
+        {"where",{}}
+    };
+
+    return queryIfAndReturn(query);
+  }
+
   template <typename S = std::string>
   std::optional<std::vector<DataAttribute>> getUserAttribute(S && user_id_) {
     if(user_id_.empty())

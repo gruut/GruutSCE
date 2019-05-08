@@ -30,6 +30,19 @@ private:
 public:
   ContractRunner() = default;
 
+  bool setWorldChain() {
+
+    auto world_attr = m_tx_data_storage.getWorld();
+    auto chain_attr = m_tx_data_storage.getChain();
+
+    if(!world_attr || !chain_attr){
+      return false;
+    }
+
+    attrToMap(world_attr, "$world");
+    attrToMap(chain_attr, "$chain");
+  }
+
   void setContract(pugi::xml_node &contract_node) {
     m_contract_node = contract_node; // for future use
     m_element_parser.setContract(contract_node);
@@ -102,9 +115,9 @@ public:
     auto receiver_attr = m_tx_data_storage.getUserAttribute("$receiver");
     auto author_attr = m_tx_data_storage.getUserAttribute("$author");
 
-    userAttr2Map(user_attr,"$user");
-    userAttr2Map(receiver_attr,"$receiver");
-    userAttr2Map(author_attr,"$author");
+    attrToMap(user_attr, "$user");
+    attrToMap(receiver_attr, "$receiver");
+    attrToMap(author_attr, "$author");
 
     /*
     int num_endorser;
@@ -118,7 +131,7 @@ public:
     for(int i = 0; i < num_endorser; ++i) {
       std::string prefix = "$tx.endorser[" + to_string(i) + "]";
       auto endorser_attr = m_tx_data_storage.getUserAttribute(prefix + ".id");
-      userAttr2Map(endorser_attr, prefix);
+      attrToMap(endorser_attr, prefix);
     }
     */
   }
@@ -232,7 +245,7 @@ public:
 private:
 
   template <typename S = std::string>
-  void userAttr2Map(std::optional<std::vector<DataAttribute>> &values, S&&prefix){
+  void attrToMap(std::optional<std::vector<DataAttribute>> &values, S &&prefix){
     if(!values)
       return;
 

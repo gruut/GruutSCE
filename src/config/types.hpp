@@ -111,7 +111,9 @@ std::map<std::string,std::string> GSCE_ERROR_MSG = {
     {"RUN_CONDITION", "condition is not met"},
     {"RUN_PERIOD", "runnable time period is not met"},
     {"NO_CONTRACT", "corresponding contract does not exist"},
-    {"RUN_UNKNOWN", "unknown error occurred"}
+    {"RUN_UNKNOWN", "unknown error occurred"},
+    {"CONFIG_WORLD", "error on configuration of world and chain"},
+    {"NO_USER", "error on reading user attributes"},
 };
 
 using BlockJson = nlohmann::json;

@@ -45,17 +45,31 @@ public:
 
     if(contract.has_value()) {
       ContractRunner contract_runner;
-      contract_runner.setContract(contract.value());
-      contract_runner.setTransaction(tx);
-      contract_runner.readUserAttributes();
-
-      auto res_query = contract_runner.run();
-      if(res_query.has_value())
-        result_queries.emplace_back(res_query.value());
-      else {
+      if(!contract_runner.setWorldChain()){
         result_fail["txid"] = tx.getTxid();
-        result_fail["info"] = GSCE_ERROR_MSG["RUN_UNKNOWN"];
+        result_fail["info"] = GSCE_ERROR_MSG["CONFIG_WORLD"];
         result_queries.emplace_back(result_fail);
+
+      } else {
+
+        contract_runner.setContract(contract.value());
+        contract_runner.setTransaction(tx);
+
+        if (!contract_runner.readUserAttributes()) {
+          result_fail["txid"] = tx.getTxid();
+          result_fail["info"] = GSCE_ERROR_MSG["NO_USER"];
+          result_queries.emplace_back(result_fail);
+        }
+
+        auto res_query = contract_runner.run();
+        if (res_query.has_value())
+          result_queries.emplace_back(res_query.value());
+        else {
+          result_fail["txid"] = tx.getTxid();
+          result_fail["info"] = GSCE_ERROR_MSG["RUN_UNKNOWN"];
+          result_queries.emplace_back(result_fail);
+        }
+
       }
 
     } else {
