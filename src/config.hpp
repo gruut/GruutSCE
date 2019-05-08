@@ -1,6 +1,15 @@
 #ifndef GRUUTSCE_CONFIG_HPP
 #define GRUUTSCE_CONFIG_HPP
 
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <algorithm>
+#include <optional>
+#include <regex>
+#include <cctype>
+#include <unordered_map>
+
 // common include files
 #include <pugixml.hpp>
 #include <json.hpp>
@@ -14,6 +23,7 @@
 #include "utils/gruut-utils/src/bytes_builder.hpp"
 #include "utils/gruut-utils/src/ecdsa.hpp"
 #include "utils/gruut-utils/src/ags.hpp"
+
 namespace gruut::gsce {
 
 constexpr int NUM_GSCE_THREAD = 4;
