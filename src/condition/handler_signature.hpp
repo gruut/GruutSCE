@@ -14,6 +14,8 @@ public:
   SignatureHandler() = default;
 
   bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
+    auto signature_type = doc_node.attribute("type").value(); // GAMMA / ECDSA / .... default = GAMMA
+
     auto sig_node = doc_node.child("sig");
     auto pk_node = doc_node.child("pk");
     auto text_node = doc_node.child("text");
@@ -21,12 +23,12 @@ public:
       return false;
 
     std::string sig_val = sig_node.attribute("value").value();
-    std::string sig_type = sig_node.attribute("type").value();
+    std::string sig_contents_type = sig_node.attribute("type").value();
     if(sig_val.empty() || sig_val[0] != '$')
       return false;
 
     std::string pk_val = sig_node.attribute("value").value();
-    std::string pk_type = sig_node.attribute("type").value();
+    std::string pk_type = sig_node.attribute("type").value(); // PEM / ENCODED-PK ...
     if(pk_val.empty())
       return false;
     else if(pk_val[0] == '$') {
@@ -53,7 +55,7 @@ public:
       }
       appendData(val_type, val_value, bytes_builder);
     }
-    return verifySig(sig_type, sig_val, pk_type, pk_val, bytes_builder.getString());
+    return verifySig(signature_type, sig_val, pk_type, pk_val, bytes_builder.getString());
   }
 private:
   void appendData(const std::string &type, const std::string &data, BytesBuilder &bytes_builder){
@@ -169,14 +171,14 @@ private:
       break;
     }
   }
-  bool verifySig(const std::string &sig_type, std::string &signature, const string &pk_type, const string &pk_or_pem, const std::string &msg) {
+  bool verifySig(const std::string &signature_type, const std::string &signature, const string &pk_type, const string &pk_or_pem, const std::string &msg) {
     if(pk_type == "PEM"){
-      if(sig_type.empty() || sig_type == "GAMMA"){
+      if(signature_type.empty() || signature_type == "GAMMA"){
         AGS ags;
         auto pub_key = ags.getPublicKeyFromPem(pk_or_pem); // currently, `getPublicKeyFromPem` function is private member. it should be public one.
         return ags.verify(pub_key, msg, signature);
       }
-      else if(sig_type == "ECDSA") {
+      else if(signature_type == "ECDSA") {
         std::vector<uint8_t> sig_vec(signature.begin(), signature.end());
         return ECDSA::doVerify(pk_or_pem, msg, sig_vec);
       }
@@ -185,14 +187,26 @@ private:
       }
     }
     else {
-      if(sig_type.empty() || sig_type =="GAMMA"){
+      if(signature_type.empty() || signature_type =="GAMMA"){
         AGS ags;
         return ags.verify(pk_or_pem, msg, signature);
       }
-      else if(sig_type == "ECDSA") {
-        //TODO : verify ECDSA signature using public key
-      }
-      else { //TODO: need `RSA` verification
+      else if(signature_type == "ECDSA") {
+      try{
+          std::vector<uint8_t> vec_x(pk_or_pem.begin() + 1, pk_or_pem.begin() + 33);
+          std::vector<uint8_t> vec_y(pk_or_pem.begin() + 33, pk_or_pem.end());
+          auto point_x = Botan::BigInt::decode(vec_x);
+          auto point_y = Botan::BigInt::decode(vec_y);
+          Botan::EC_Group group_domain("secp256k1");
+
+          Botan::ECDSA_PublicKey public_key(group_domain, group_domain.point(point_x, point_y));
+          std::vector<uint8_t> msg_vec(msg.begin(), msg.end());
+          std::vector<uint8_t> sig_vec(signature.begin(), signature.end());
+          return ECDSA::doVerify(public_key, msg_vec, sig_vec);
+        } catch(Botan::Exception &exception){
+          return false;
+        }
+      } else { //TODO: need `RSA` verification
         return false;
       }
     }
