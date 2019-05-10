@@ -19,7 +19,10 @@ struct DataAttribute {
 class DataStorage {
 private:
   Datamap m_tx_datamap; // set of { keyword : value }
-  std::unordered_map<std::string, nlohmann::json> m_storage_cache;
+  std::unordered_map<std::string, nlohmann::json> m_query_cache;
+
+  std::unordered_map<std::string, nlohmann::json> m_user_scope_table;
+  std::unordered_map<std::string, nlohmann::json> m_contract_scope_table;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
   std::function<void(nlohmann::json&, nlohmann::json&)> m_write_storage_interface;
@@ -59,7 +62,7 @@ public:
   }
 
   template <typename S = std::string>
-  std::optional<std::vector<DataAttribute>> getUserAttribute(S && user_id_) {
+  std::optional<std::vector<DataAttribute>> getUserInfo(S &&user_id_) {
     if(user_id_.empty())
       return std::nullopt;
 
@@ -134,12 +137,12 @@ private:
 
     nlohmann::json query_result;
 
-    auto it_cache = m_storage_cache.find(query_key);
-    if(it_cache != m_storage_cache.end()) {
+    auto it_cache = m_query_cache.find(query_key);
+    if(it_cache != m_query_cache.end()) {
       query_result = (*it_cache).second;
     } else {
       query_result = m_read_storage_interface(query);
-      m_storage_cache[query_key] = query_result;
+      m_query_cache[query_key] = query_result;
     }
 
     auto query_result_name = json::get<nlohmann::json>(query_result,"name");

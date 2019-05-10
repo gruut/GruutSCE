@@ -111,9 +111,9 @@ public:
 
   void readUserAttributes(){
 
-    auto user_attr = m_tx_data_storage.getUserAttribute("$user");
-    auto receiver_attr = m_tx_data_storage.getUserAttribute("$receiver");
-    auto author_attr = m_tx_data_storage.getUserAttribute("$author");
+    auto user_attr = m_tx_data_storage.getUserInfo("$user");
+    auto receiver_attr = m_tx_data_storage.getUserInfo("$receiver");
+    auto author_attr = m_tx_data_storage.getUserInfo("$author");
 
     attrToMap(user_attr, "$user");
     attrToMap(receiver_attr, "$receiver");
@@ -130,7 +130,7 @@ public:
 
     for(int i = 0; i < num_endorser; ++i) {
       std::string prefix = "$tx.endorser[" + to_string(i) + "]";
-      auto endorser_attr = m_tx_data_storage.getUserAttribute(prefix + ".id");
+      auto endorser_attr = m_tx_data_storage.getUserInfo(prefix + ".id");
       attrToMap(endorser_attr, prefix);
     }
     */
