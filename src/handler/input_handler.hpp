@@ -94,7 +94,7 @@ public:
             Botan::DataSource_Memory cert_datasource(input_value);
             Botan::X509_Certificate cert(cert_datasource);
             auto not_after_x509 = cert.not_after();
-            auto not_before_x509 = cert.not_befre();
+            auto not_before_x509 = cert.not_before();
             auto not_after_epoch = not_after_x509.time_since_epoch();
             auto not_before_epoch = not_before_x509.time_since_epoch();
             std::string not_after_str = to_string(not_after_epoch);
