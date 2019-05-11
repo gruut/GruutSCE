@@ -7,6 +7,8 @@
 #ifndef GRUUTSCE_RCC_QP_HPP
 #define GRUUTSCE_RCC_QP_HPP
 
+#define USE_BOTAN_HASH 1
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <inttypes.h>
@@ -22,65 +24,71 @@
 #include <random>
 #include <cstring>
 
+#ifdef USE_BOTAN_HASH
 #include <botan-2/botan/hash.h>
+#else
+#endif
 
 namespace gruut {
 
-constexpr int HASH_TABLE_SIZE = (1 << 20);
-constexpr int CACHE_SIZE = (1 << 17);
+constexpr int HASH_TABLE_SIZE = 1048576; // 0x100000;
+constexpr int CACHE_SIZE = 131072; // ‬(1 << 17);
 constexpr int JUMP_THRESHOLD = 100;	// hashtable jump JUMP_THRESHOLD
 constexpr int VIRTUAL_VECTOER_SIZE = 8;
-constexpr int LC_COUNTER_SINGLEFR_IDXSIZE = 3*1024*1024/4;			// single layer Flow Regulator를 사용할 때 변수
-constexpr int LC_COUNTER_DOUBLEFRE_IDXSIZE = 3*1024*1024/4*6;		// double layer Flow Regulator를 사용할 때 변수
+constexpr int LC_COUNTER_SINGLEFR_IDXSIZE = 786432; // 3*1024*1024/4;			// single layer Flow Regulator를 사용할 때 변수
+constexpr int LC_COUNTER_DOUBLEFRE_IDXSIZE = 4718592; // 3*1024*1024/4*6;		// double layer Flow Regulator를 사용할 때 변수
 
-typedef struct input_array_entry {
+struct input_array_entry {
   uint64_t hv;
   std::shared_ptr<input_array_entry> next;
-} input_array_entry;
+  input_array_entry() : hv(0) {}
+};
 
-typedef  struct lru_entry {
+struct lru_entry {
   uint64_t hash_value;
   std::shared_ptr<lru_entry> prev;
   std::shared_ptr<lru_entry> next;
-} lru_entry;
+  lru_entry() : hash_value(0){}
+};
 
-typedef struct entry_t {
+struct entry_t {
   uint64_t hash_value;
-  float total_counter;
   uint64_t timestamp;
-} entry_t;
+  float total_counter;
+  entry_t() : hash_value(0), timestamp(0), total_counter(0.0){}
+};
 
-typedef struct {
+struct hashtable_t {
   uint32_t usage;
   uint32_t size;
   uint64_t insert;
   uint64_t total_jump;
   uint64_t eviction;
   std::vector<entry_t> table;
-} hashtable_t;
+  hashtable_t() : usage(0), size(0), insert(0), total_jump(0), eviction(0){}
+};
 
-typedef struct {
-  uint32_t vector_size;
-  uint32_t memory_FRlimit;
-  uint32_t memory_singleRCClimit;
-  uint32_t memory_usage;
+struct rcc32_t {
+  uint32_t memory_fr_limit;
   std::vector<uint32_t> rcounter;
   hashtable_t htable;
-} rcc32_t;
+  rcc32_t() : memory_fr_limit(0){}
+};
 
 
-typedef struct chain_entry {
+struct chain_entry {
   uint64_t hv;
   std::shared_ptr<chain_entry> next;
-} chain_entry;
+  chain_entry() : hv(0){}
+};
 
-typedef struct chain_hash_table
-{
+struct chain_hash_table {
   uint64_t usage;
   uint64_t insert;
   uint64_t evict;
   std::vector<std::shared_ptr<chain_entry>> htable;
-} chain_hash_table;
+  chain_hash_table() : usage(0), insert(0), evict(0){}
+};
 
 class RCCQP {
 private:
@@ -92,36 +100,39 @@ private:
   std::shared_ptr<input_array_entry> input_array_head;
   std::shared_ptr<input_array_entry> input_array_tail;
   std::mt19937 prng;
+
 public:
-  RCCQP(){
+  RCCQP() : rcc_qp_flag(0){
     std::random_device rand_device;
     prng.seed(rand_device());
+  }
+
+  ~RCCQP(){
+    chainClear();
   }
 
   int test() {
     uint64_t hv;
 
-    input_array_init();
-
-    chain_init();
+    reset();
 
     rcc_qp_flag = 0;
-    lru_init();
-    rcc_create(1);
+    lruInit();
+    rccCreate(1);
 
     scanf("%" PRIu64, &hv);
     while (hv != 0) {
-      input_array_insert(hv);
+      inputArrayInsert(hv);
       hv = 0;
       scanf("%" PRIu64, &hv);
     }
 
-    hv = input_array_delete();
+    hv = inputArrayDelete();
     while (hv != 0)
     {
-      if (chain_search(hv)){
+      if (chainSearch(hv)){
         hv = 0;
-        hv = input_array_delete();
+        hv = inputArrayDelete();
 
         if (rcc_qp_flag == 1)
           rcc_qp_flag = 0;
@@ -129,11 +140,11 @@ public:
       }
 
       if (rcc_qp_flag == 1){
-        chain_insert(hv);
+        chainInsert(hv);
         rcc_qp_flag = 0;
       }
       hv = 0;
-      hv = input_array_delete();
+      hv = inputArrayDelete();
     }
 
     return 0;
@@ -141,65 +152,71 @@ public:
 
 private:
 
-  void input_array_init()
-  {
+  void reset(){
+    inputArrayInit();
+    chainInit();
+  }
+
+  void inputArrayInit(){
     input_array_head = nullptr;
     input_array_tail = nullptr;
   }
 
-  void input_array_insert(uint64_t hv)
-  {
-    std::shared_ptr<input_array_entry> newEntry(new input_array_entry);
-    newEntry->hv = hv;
-    newEntry->next = nullptr;
-
-    if (input_array_head == nullptr) {
-      input_array_head = newEntry;
-      input_array_tail = newEntry;
-    }
-    else {
-      input_array_tail->next = newEntry;
-      input_array_tail = newEntry;
+  void chainClear(){
+    if(hash_table != nullptr) {
+      for(int i = 0; i < hash_table->htable.size(); ++i) {
+        hash_table->htable[i] = nullptr;
+      }
     }
   }
 
-  uint64_t input_array_delete()
-  {
-    if (input_array_head == nullptr)
-    {
-      return 0;
+  void inputArrayInsert(uint64_t hv){
+    std::shared_ptr<input_array_entry> new_entry(new input_array_entry);
+    new_entry->hv = hv;
+    new_entry->next = nullptr;
+
+    if (input_array_head == nullptr) {
+      input_array_head = new_entry;
+      input_array_tail = new_entry;
     }
+    else {
+      input_array_tail->next = new_entry;
+      input_array_tail = new_entry;
+    }
+  }
+
+  uint64_t inputArrayDelete(){
+    if (input_array_head == nullptr)
+      return 0;
 
     std::shared_ptr<input_array_entry> tmp = input_array_head;
 
-    if (input_array_head->next == nullptr) {
+    if (input_array_head->next == nullptr)
       input_array_head = nullptr;
-    }
-    else {
+    else
       input_array_head = input_array_head->next;
-    }
 
     return tmp->hv;
   }
 
+  void chainInit() {
 
-  void chain_init() {
+    chainClear();
 
     hash_table.reset(new chain_hash_table);
     hash_table->htable.resize(HASH_TABLE_SIZE);
 
-    for (uint32_t i = 0; i < HASH_TABLE_SIZE; ++i) {
+    for (uint32_t i = 0; i < HASH_TABLE_SIZE; ++i)
       hash_table->htable[i] = nullptr;
-    }
+
     hash_table->evict = 0;
     hash_table->insert = 0;
     hash_table->usage = 0;
   }
 
-  bool chain_search(uint64_t hv)
-  {
-    lru_update(hv);
-    singleFR_encode(hv);
+  bool chainSearch(uint64_t hv){
+    lruUpdate(hv);
+    singleFREncode(hv);
     uint32_t idx = hv % HASH_TABLE_SIZE;
 
     std::shared_ptr<chain_entry> ptr = hash_table->htable[idx];
@@ -220,17 +237,15 @@ private:
     return false;
   }
 
-  void chain_insert(uint64_t hv)
-  {
+  void chainInsert(uint64_t hv){
     if (hash_table->usage < CACHE_SIZE){
       ++hash_table->usage;
     }
     else{
       uint64_t evict_hv = 0;
-      evict_hv = lru_evict();
-      chain_delete(evict_hv);
+      evict_hv = lruEvict();
+      chainDelete(evict_hv);
     }
-
 
     uint32_t idx = hv % HASH_TABLE_SIZE;
     std::shared_ptr<chain_entry> temp(new chain_entry);
@@ -240,38 +255,29 @@ private:
 
     ++hash_table->insert;
 
-    lru_insert(hv);
+    lruInsert(hv);
   }
 
-  void chain_delete(uint64_t hv)
-  {
+  void chainDelete(uint64_t hv){
     uint32_t idx = hv % HASH_TABLE_SIZE;
     std::shared_ptr<chain_entry> temp, ptr;
 
     ptr = hash_table->htable[idx];
     if (ptr == nullptr)
-    {
       return;
-    }
 
-    if (ptr->hv == hv)
-    {
+    if (ptr->hv == hv){
       if (ptr->next != nullptr)
-      {
         hash_table->htable[idx] = ptr->next;
-      }
       else
-      {
         hash_table->htable[idx] = nullptr;
-      }
+
       ++(hash_table->evict);
       return;
     }
 
-    while (ptr->next != nullptr)
-    {
-      if (ptr->next->hv == hv)
-      {
+    while (ptr->next != nullptr){
+      if (ptr->next->hv == hv){
         temp = ptr->next;
         ptr->next = temp->next;
         ++(hash_table->evict);
@@ -283,27 +289,25 @@ private:
   }
 
 
-  void lru_init() {
+  void lruInit() {
     lru_head = nullptr;
     lru_tail = nullptr;
   }
 
-  void lru_insert(uint64_t hv) {
-    std::shared_ptr<lru_entry> newEntry(new lru_entry);
-    newEntry->hash_value = hv;
+  void lruInsert(uint64_t hv) {
+    std::shared_ptr<lru_entry> new_entry(new lru_entry);
+    new_entry->hash_value = hv;
 
-    if (lru_head == nullptr) {
-      lru_tail = newEntry;
-    }
-    else {
-      lru_head->prev = newEntry;
-    }
+    if (lru_head == nullptr)
+      lru_tail = new_entry;
+    else
+      lru_head->prev = new_entry;
 
-    newEntry->next = lru_head;
-    lru_head = newEntry;
+    new_entry->next = lru_head;
+    lru_head = new_entry;
   }
 
-  uint64_t lru_evict() {
+  uint64_t lruEvict() {
     std::shared_ptr<lru_entry> tmp = lru_tail;
 
     if (lru_head == nullptr)
@@ -319,11 +323,10 @@ private:
     return tmp->hash_value;
   }
 
-  void lru_update(uint64_t hv) {
+  void lruUpdate(uint64_t hv) {
 
-    if (lru_head == nullptr) {
+    if (lru_head == nullptr)
       return;
-    }
 
     std::shared_ptr<lru_entry> current = lru_head;
     while (current->hash_value != hv) {
@@ -343,11 +346,11 @@ private:
     else
       current->next->prev = current->prev;
 
-    lru_insert(hv);
+    lruInsert(hv);
   }
 
 
-  void rcc_create(int layer) {
+  void rccCreate(int layer) {
     rcc.reset(new rcc32_t);
 
     if (layer == 1)
@@ -369,21 +372,21 @@ private:
     rcc->htable.total_jump = 0;
 
     if (layer == 1)
-      rcc->memory_FRlimit = LC_COUNTER_SINGLEFR_IDXSIZE;
+      rcc->memory_fr_limit = LC_COUNTER_SINGLEFR_IDXSIZE;
     else if (layer == 2)
-      rcc->memory_FRlimit = LC_COUNTER_DOUBLEFRE_IDXSIZE / 6;
+      rcc->memory_fr_limit = LC_COUNTER_DOUBLEFRE_IDXSIZE / 6;
 
-    rcc->memory_usage = 0;
-    rcc->vector_size = VIRTUAL_VECTOER_SIZE;
+    //rcc->memory_usage = 0;
+    //rcc->vector_size = VIRTUAL_VECTOER_SIZE;
   }
 
-  uint32_t get_mz(uint32_t word, uint32_t vector) {
-    float i = (32 - VIRTUAL_VECTOER_SIZE) - (number_of_set_bits(word) - number_of_set_bits(vector & word));
+  inline uint32_t getMz(uint32_t word, uint32_t vector) {
+    float i = (32 - VIRTUAL_VECTOER_SIZE) - (getNumbSetBits(word) - getNumbSetBits(vector & word));
     return (uint32_t)(i / ((32 / VIRTUAL_VECTOER_SIZE) - 1));
   }
 
-  float get_khat(float zeros, float mzeros) {
-        float Vs = (zeros / (VIRTUAL_VECTOER_SIZE - 1));
+  float getKhat(float zeros, float mzeros) {
+    float Vs = (zeros / (VIRTUAL_VECTOER_SIZE - 1));
     float Vm = ((mzeros) / (VIRTUAL_VECTOER_SIZE));
     float cs = log(1.0 - 1.0 / (VIRTUAL_VECTOER_SIZE));			  // constant for vs
     float k2 = -(VIRTUAL_VECTOER_SIZE - 1)*log(Vs);
@@ -393,8 +396,7 @@ private:
     return khat;
   }
 
-  int get_bitmask_of_d_index(int vector, int D)
-  {
+  inline int getBitmaskDIndex(int vector, int D){
     if (D < 0)
       return 0;
 
@@ -404,8 +406,7 @@ private:
     return vector & -vector;    // a word that contains the D's bit in the virtual vector
   }
 
-  int number_of_set_bits(uint32_t i)
-  {
+  inline int getNumbSetBits(uint32_t i){
     i = i - ((i >> 1) & 0x55555555);
     i = (i & 0x33333333) + ((i >> 2) & 0x33333333);
     return (((i + (i >> 4)) & 0x0F0F0F0F) * 0x01010101) >> 24;
@@ -413,22 +414,18 @@ private:
 
 /* Insert a hash_value-value pair into a hash table. */
 
-  void ht_set_4(hashtable_t &hashtable, uint64_t hash_value, float est)
-  {
+  void htSet4(hashtable_t &hashtable, uint64_t hash_value, float est){
     ++(hashtable.insert);
     uint32_t loc = 0;
-    int64_t qp = -1;
-    int expired_loc = -1;
     uint32_t min = -1;
+    int expired_loc = -1;
     int hsize = hashtable.size;
 
-    for (qp = 0; qp < JUMP_THRESHOLD; ++qp)
-    {
+    for (int64_t qp = 0; qp < JUMP_THRESHOLD; ++qp) {
       // prepare set to another place
       loc = (hash_value + (qp + qp*qp) / 2) % hsize; // hash_value + 0.5i+ 0.5i^2
       entry_t &me = hashtable.table[loc];
-      if (me.hash_value == 0)
-      {
+      if (me.hash_value == 0){
         me.hash_value = hash_value;
         me.total_counter = est;
 
@@ -436,8 +433,7 @@ private:
         ++(hashtable.usage);
         return;
       }
-      else if (me.hash_value == hash_value)
-      {
+      else if (me.hash_value == hash_value){
         me.total_counter += est;
 
         hashtable.total_jump += (qp + 1);
@@ -457,18 +453,15 @@ private:
   }
 
 /* single layer Flow Regulator에 입력 */
-  void singleFR_encode(uint64_t hv)
-  {
-    float est;
-    uint64_t temp, rehash;
-    uint32_t composed_word, zeros, mzeros, bit_mask, test, vector, last_vector, A_index;
-    int i, left, right;
+  void singleFREncode(uint64_t hv){
+    int left = -1;
+    int right = 59;
+    uint32_t last_vector = 0;
+    uint32_t vector = 0;
+    uint64_t rehash = hv;
+    int i = 0;
 
-    left = -1, right = 59;
-    last_vector = 0;
-    vector = 0;
-    rehash = hv;
-    i = 0;
+    uint64_t temp;
     while (i < VIRTUAL_VECTOER_SIZE){
       ++left;
       temp = rehash;
@@ -485,38 +478,38 @@ private:
       }
     }
 
-    A_index = (hv % (rcc->memory_FRlimit));
+    uint32_t A_index = (hv % (rcc->memory_fr_limit));
 
     std::uniform_int_distribution<> rand_dist(0,VIRTUAL_VECTOER_SIZE-1);
 
     //set random bit
     i = rand_dist(prng);
-    composed_word = rcc->rcounter[A_index] | get_bitmask_of_d_index(vector, i);
-    zeros = VIRTUAL_VECTOER_SIZE - number_of_set_bits(vector & composed_word);
+    uint32_t composed_word = rcc->rcounter[A_index] | getBitmaskDIndex(vector, i);
+    uint32_t zeros = VIRTUAL_VECTOER_SIZE - getNumbSetBits(vector & composed_word);
 
     if (zeros < ((double)VIRTUAL_VECTOER_SIZE * 0.3)) {
-      mzeros = get_mz(composed_word, vector);
+      uint32_t mzeros = getMz(composed_word, vector);
       zeros = 2;
       if (mzeros <= 3)
-      {
         mzeros = VIRTUAL_VECTOER_SIZE;
-      }
 
-      while (zeros < mzeros)
-      {
+      uint32_t bit_mask, test;
+
+      while (zeros < mzeros){
         i = rand_dist(prng);
-        bit_mask = get_bitmask_of_d_index(vector, i);
+        bit_mask = getBitmaskDIndex(vector, i);
         test = bit_mask & composed_word;
         if (test == bit_mask){
           composed_word ^= bit_mask;
           ++zeros;
         }
       }
+
       rcc->rcounter[A_index] = composed_word;
-      est = get_khat(2, mzeros) + 1;
+      float est = getKhat(2, mzeros) + 1;
 
       rcc_qp_flag = 1;
-      ht_set_4(rcc->htable, hv, est);
+      htSet4(rcc->htable, hv, est);
     }
     rcc->rcounter[A_index] = composed_word;
   }
@@ -533,14 +526,17 @@ private:
       msg_int >>= 8;
     }
 
+    uint64_t ret_val;
+
+#ifdef USE_BOTAN_HASH
     unique_ptr<Botan::HashFunction> hash_function(Botan::HashFunction::create("SHA-256"));
     hash_function->update(msg_bytes);
 
     std::vector<uint8_t> hash_result = hash_function->final_stdvec();
-
-    uint64_t ret_val;
-
     std::memcpy(&ret_val, hash_result.data(), sizeof(uint64_t));
+#else
+
+#endif
 
     return ret_val;
   }
