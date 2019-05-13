@@ -15,14 +15,57 @@ struct DataAttribute {
   DataAttribute(std::string &name_, std::string &value_) : name (name_), value (value_) {}
 };
 
+struct UserScopeRecord {
+  std::string var_name;
+  std::string var_value;
+  uint8_t var_type;
+  std::string var_owner;
+  uint64_t up_time;
+  uint64_t up_block;
+  std::string tag;
+  std::string pid;
+};
+
+struct ContractScopeRecord {
+  std::string contract_id;
+  std::string var_name;
+  std::string var_value;
+  uint8_t var_type;
+  std::string var_info;
+  uint64_t up_time;
+  uint64_t up_block;
+  std::string pid;
+};
+
+struct UserAttributeRecord {
+  std::string uid;
+  std::string register_day;
+  std::string register_code;
+  uint8_t gender;
+  std::string isc_type;
+  std::string isc_code;
+  std::string location;
+  int age_limit;
+  std::string sigma;
+};
+
+struct UserCertRecord {
+  std::string uid;
+  std::string sn;
+  uint64_t nvbefore;
+  uint64_t nvafter;
+  std::string x509;
+};
 
 class DataStorage {
 private:
   Datamap m_tx_datamap; // set of { keyword : value }
   std::unordered_map<std::string, nlohmann::json> m_query_cache;
 
-  std::unordered_map<std::string, nlohmann::json> m_user_scope_table;
-  std::unordered_map<std::string, nlohmann::json> m_contract_scope_table;
+  std::unordered_map<std::string, UserScopeRecord> m_user_scope_table;
+  std::unordered_map<std::string, ContractScopeRecord> m_contract_scope_table;
+  std::unordered_map<std::string, UserAttributeRecord> m_user_attr_table;
+  std::unordered_map<std::string, UserCertRecord> m_user_cert_table;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
   std::function<void(nlohmann::json&, nlohmann::json&)> m_write_storage_interface;
@@ -88,6 +131,27 @@ public:
     if(scope.empty() || id.empty() || name.empty() || !(scope == "user" || scope == "contract"))
       return std::nullopt;
 
+    std::string scope_key = scope + id + name;
+
+    if(scope == "user") {
+
+      auto it_tbl = m_user_scope_table.find(scope_key);
+      if(it_tbl != m_user_scope_table.end()) {
+
+      }
+
+    } else { // contract
+
+      auto it_tbl = m_contract_scope_table.find(scope_key);
+      if(it_tbl != m_contract_scope_table.end()) {
+
+      }
+
+    }
+
+
+    // God! NOT IN SCOPE CACHE!
+
     nlohmann::json query = {
         {"type", scope == "user" ? "user.info.get" : "contract.scope.get"},
         {"where",
@@ -100,7 +164,12 @@ public:
       query["where"]["name"] = name;
     }
 
-    return queryIfAndReturn(query);
+    auto result = queryIfAndReturn(query);
+
+    // TODO : result to cache
+
+    return result;
+
   }
 
   template <typename S = std::string>
