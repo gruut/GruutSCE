@@ -60,14 +60,33 @@ public:
         if(!values)
           continue;
 
-        for(auto &each_attr : values.value()) {
-          std::string key = "$.";
-          key.append(scope).append(".").append(each_attr.name);
-          data_storage.updateValue(key, each_attr.value);
+        if(id.empty() || id == storage_id) {
+          for (auto &each_attr : values.value()) {
+            std::string key = "$";
+            key.append(scope).append(".").append(each_attr.name);
+            data_storage.updateValue(key, each_attr.value);
+          }
+        }
+
+        if(!id.empty() && id != storage_id && !id_as.empty()) {
+          for (auto &each_attr : values.value()) {
+            std::string key = "$.";
+            key.append(id_as).append(".").append(each_attr.name);
+            data_storage.updateValue(key, each_attr.value);
+          }
         }
 
         if(!name_as.empty()) {
-          data_storage.updateValue("$." + name_as,(*values)[0].value);
+
+          if(values.value().size() == 1) {
+            data_storage.updateValue("$." + name_as, (*values)[0].value);
+          } else {
+            for (auto &each_attr : values.value()) {
+              std::string key = "$.";
+              key.append(name_as).append(".").append(each_attr.name);
+              data_storage.updateValue(key, each_attr.value);
+            }
+          }
         }
       }
 
