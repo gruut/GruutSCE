@@ -17,7 +17,7 @@ class ContractRunner {
 
 private:
   pugi::xml_node m_contract_node;
-  DataManager m_tx_data_storage;
+  DataManager m_data_manager;
   ConditionManager m_condition_manager;
   InputHandler m_input_handler;
   GetHandler m_get_handler;
@@ -32,8 +32,8 @@ public:
 
   bool setWorldChain() {
 
-    auto world_attr = m_tx_data_storage.getWorld();
-    auto chain_attr = m_tx_data_storage.getChain();
+    auto world_attr = m_data_manager.getWorld();
+    auto chain_attr = m_data_manager.getChain();
 
     if(world_attr.empty() || chain_attr.empty()){
       return false;
@@ -73,58 +73,64 @@ public:
 
     auto user_pk = json::get<std::string>(tx_agg_json["user"],"pk");
 
-    m_tx_data_storage.updateValue("$tx.txid", txid.value());
-    m_tx_data_storage.updateValue("$tx.world", world.value());
-    m_tx_data_storage.updateValue("$tx.chain",chain.value());
+    m_data_manager.updateValue("$tx.txid", txid.value());
+    m_data_manager.updateValue("$tx.world", world.value());
+    m_data_manager.updateValue("$tx.chain",chain.value());
 
-    m_tx_data_storage.updateValue("$tx.time", time.value());
-    m_tx_data_storage.updateValue("$time", time.value());
+    m_data_manager.updateValue("$tx.time", time.value());
+    m_data_manager.updateValue("$time", time.value());
 
     std::vector<std::string> cid_components = vs::split(cid.value(),"::");
 
-    m_tx_data_storage.updateValue("$tx.body.cid", cid.value());
-    m_tx_data_storage.updateValue("$author", cid_components[1]);
-    m_tx_data_storage.updateValue("$chain", cid_components[2]);
-    m_tx_data_storage.updateValue("$world", cid_components[3]);
-    m_tx_data_storage.updateValue("$tx.body.receiver", receiver.value());
-    m_tx_data_storage.updateValue("$receiver", receiver.value());
+    m_data_manager.updateValue("$tx.body.cid", cid.value());
+    m_data_manager.updateValue("$author", cid_components[1]);
+    m_data_manager.updateValue("$chain", cid_components[2]);
+    m_data_manager.updateValue("$world", cid_components[3]);
+    m_data_manager.updateValue("$tx.body.receiver", receiver.value());
+    m_data_manager.updateValue("$receiver", receiver.value());
 
-    m_tx_data_storage.updateValue("$tx.body.fee", fee.value());
-    m_tx_data_storage.updateValue("$fee", fee.value());
+    m_data_manager.updateValue("$tx.body.fee", fee.value());
+    m_data_manager.updateValue("$fee", fee.value());
 
-    m_tx_data_storage.updateValue("$tx.user.id", user_id.value());
-    m_tx_data_storage.updateValue("$user", user_id.value());
+    m_data_manager.updateValue("$tx.user.id", user_id.value());
+    m_data_manager.updateValue("$user", user_id.value());
 
-    m_tx_data_storage.updateValue("$tx.user.pk", user_pk.value());
+    m_data_manager.updateValue("$tx.user.pk", user_pk.value());
 
     nlohmann::json tx_endorsers_json = m_tx_json["body"]["endorser"];
 
     for(int i = 0 ; i < tx_endorsers_json.size(); ++i){
       std::string id_key = "$tx.endorser[" + to_string(i) + "].id";
       std::string pk_key = "$tx.endorser[" + to_string(i) + "].pk";
-      m_tx_data_storage.updateValue(id_key, json::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
-      m_tx_data_storage.updateValue(pk_key, json::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
+      m_data_manager.updateValue(id_key, json::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
+      m_data_manager.updateValue(pk_key, json::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
     }
 
-    m_tx_data_storage.updateValue("$tx.endorser.count", std::to_string(tx_endorsers_json.size()));
+    m_data_manager.updateValue("$tx.endorser.count", std::to_string(tx_endorsers_json.size()));
 
     return true;
   }
 
-  void readUserAttributes(){
+  bool readUserAttributes(){
 
-    auto user_attr = m_tx_data_storage.getUserInfo("$user");
-    auto receiver_attr = m_tx_data_storage.getUserInfo("$receiver");
-    auto author_attr = m_tx_data_storage.getUserInfo("$author");
+    auto user_attr = m_data_manager.getUserInfo("$user");
+    auto receiver_attr = m_data_manager.getUserInfo("$receiver");
+    auto author_attr = m_data_manager.getUserInfo("$author");
+
+    if(user_attr.empty() || receiver_attr.empty() || author_attr.empty())
+      return false;
 
     attrToMap(user_attr, "$user");
     attrToMap(receiver_attr, "$receiver");
     attrToMap(author_attr, "$author");
 
+    return true;
+
+
     /*
     int num_endorser;
     try{
-      num_endorser = std::stoi(m_tx_data_storage.eval("$tx.endorser.count"));
+      num_endorser = std::stoi(m_data_manager.eval("$tx.endorser.count"));
     }
     catch(...){
       num_endorser = 0;
@@ -132,7 +138,7 @@ public:
 
     for(int i = 0; i < num_endorser; ++i) {
       std::string prefix = "$tx.endorser[" + to_string(i) + "]";
-      auto endorser_attr = m_tx_data_storage.getUserInfo(prefix + ".id");
+      auto endorser_attr = m_data_manager.getUserInfo(prefix + ".id");
       attrToMap(endorser_attr, prefix);
     }
     */
@@ -157,9 +163,9 @@ public:
       },
       "queries": [])"_json;
 
-    auto& data_map = m_tx_data_storage.getDatamap();
+    auto& data_map = m_data_manager.getDatamap();
 
-    result_query["txid"] = m_tx_data_storage.eval("$tx.txid");
+    result_query["txid"] = m_data_manager.eval("$tx.txid");
 
     auto& head_node = m_element_parser.getNode("head");
     auto& condition_nodes = m_element_parser.getNodes("condition");
@@ -198,17 +204,17 @@ public:
     for(auto &each_condition : condition_nodes) {
       m_condition_manager.evalue(each_condition.first,data_map);
     }
-    result_query["authority"]["author"] = m_tx_data_storage.eval("$author");
-    result_query["authority"]["user"] = m_tx_data_storage.eval("$user");
-    result_query["authority"]["receiver"] = m_tx_data_storage.eval("$receiver");
-    result_query["authority"]["self"] = m_tx_data_storage.eval("$tx.body.cid");
+    result_query["authority"]["author"] = m_data_manager.eval("$author");
+    result_query["authority"]["user"] = m_data_manager.eval("$user");
+    result_query["authority"]["receiver"] = m_data_manager.eval("$receiver");
+    result_query["authority"]["self"] = m_data_manager.eval("$tx.body.cid");
 
     // TODO : result_query["authority"]["friend"]
 
     // process input directive
 
     auto& input_node = m_element_parser.getNode("input");
-    if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_tx_data_storage)){
+    if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_data_manager)){
       result_query["status"] = false;
       result_query["info"] = GSCE_ERROR_MSG["RUN_INPUT"];
       return result_query;
@@ -221,28 +227,37 @@ public:
     }
 
     auto& get_nodes = m_element_parser.getNodes("get");
-    m_get_handler.parseGet(get_nodes,m_condition_manager,m_tx_data_storage);
+    m_get_handler.parseGet(get_nodes,m_condition_manager,m_data_manager);
     
     // TODO : oracle handler (pending)
     // TODO : script handler (pending)
+
+    // no more change values here
     
     for(auto &each_condition : condition_nodes) {
       m_condition_manager.evalue(each_condition.first,data_map);
     }
 
+    // process fee directive
+
+    auto &fee_nodes = m_element_parser.getNodes("fee");
+    auto [pay_from_user, pay_from_author] = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_data_manager);
+
+    result_query["fee"]["user"] = std::to_string(pay_from_user);
+    result_query["fee"]["author"] = std::to_string(pay_from_author);
+
+    // TODO : check user and author key-currency account
+
+
+    // process set directive
+
     auto& set_nodes = m_element_parser.getNodes("set");
-    auto query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_tx_data_storage);
+    auto query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
 
     if(!query.has_value())
       return std::nullopt;
 
     result_query["query"] = query.value();
-
-    auto &fee_nodes = m_element_parser.getNodes("fee");
-    auto [pay_from_user, pay_from_author] = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_tx_data_storage);
-
-    result_query["fee"]["user"] = std::to_string(pay_from_user);
-    result_query["fee"]["author"] = std::to_string(pay_from_author);
 
     return result_query;
   }
@@ -258,7 +273,7 @@ private:
     for(auto &each_attr : attr_list) {
       std::string key = prefix;
       key.append(".").append(each_attr.name);
-      m_tx_data_storage.updateValue(key, each_attr.value);
+      m_data_manager.updateValue(key, each_attr.value);
     }
 
   }

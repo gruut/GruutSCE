@@ -126,6 +126,31 @@ public:
     return queryIfUserAttrAndParseData(query, user_id);
   }
 
+  template <typename S1 = std::string, typename S2 = std::string>
+  std::vector<DataAttribute> getUserKeyCurrency(S1 &&user_id_) {
+    if(user_id_.empty())
+      return {};
+
+    std::string user_id = user_id_;
+
+    if(user_id[0] == '$') {
+      user_id = eval(user_id);
+    }
+
+    nlohmann::json query = {
+        {"type", "user.scope.get"},
+        {"where",
+         {"uid", user_id},
+         {"name", "KEYC"},
+         {"type", "KEYC"},
+         {"notag", true}
+        }
+    };
+
+    //return queryIfUserScopeAndParseData(query, user_id);
+
+  }
+
   template <typename S = std::string>
   std::vector<DataAttribute> getUserCert(S &&user_id_) {
     if(user_id_.empty())

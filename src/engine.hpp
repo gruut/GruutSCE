@@ -20,7 +20,7 @@ private:
 
   ContractManager m_contract_manager;
   QueryComposer m_query_composer;
-  DataManager m_data_stroage;
+  DataManager m_data_manager;
 
 public:
   Engine() = default;
