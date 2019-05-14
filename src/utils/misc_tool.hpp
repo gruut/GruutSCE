@@ -118,6 +118,21 @@ public:
     return res;
   }
 
+  template <typename T>
+  static T str2num (const std::string &s) {
+    T ret_val = 0;
+    if(!s.empty()) {
+      try{
+        ret_val = std::stoi(s);
+      }
+      catch (...){
+
+      }
+    }
+
+    return ret_val;
+  }
+
 };
 
 #endif //GRUUTSCE_VS_TOOL_HPP
