@@ -1,10 +1,10 @@
-#ifndef GRUUTSCE_HANDLER_CERTIFICATE_HPP
-#define GRUUTSCE_HANDLER_CERTIFICATE_HPP
+#ifndef VERONN_SCE_HANDLER_CERTIFICATE_HPP
+#define VERONN_SCE_HANDLER_CERTIFICATE_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class CertificateHandler : public BaseConditionHandler {
 public:
@@ -59,4 +59,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_HANDLER_CERTIFICATE_HPP
+#endif

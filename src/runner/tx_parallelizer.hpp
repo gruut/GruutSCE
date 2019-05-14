@@ -1,9 +1,9 @@
-#ifndef GRUUTSCE_TX_PARALLELIZER_HPP
-#define GRUUTSCE_TX_PARALLELIZER_HPP
+#ifndef VERONN_SCE_TX_PARALLELIZER_HPP
+#define VERONN_SCE_TX_PARALLELIZER_HPP
 
 #include "../config.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class TxParallelizer {
 
@@ -124,4 +124,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_TX_PARALLELIZER_HPP
+#endif

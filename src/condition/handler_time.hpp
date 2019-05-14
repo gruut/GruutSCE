@@ -1,10 +1,10 @@
-#ifndef GRUUTSCE_HANDLER_TIME_HPP
-#define GRUUTSCE_HANDLER_TIME_HPP
+#ifndef VERONN_SCE_HANDLER_TIME_HPP
+#define VERONN_SCE_HANDLER_TIME_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class TimeHandler : public BaseConditionHandler {
 public:
@@ -41,4 +41,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_HANDLER_TIME_HPP
+#endif

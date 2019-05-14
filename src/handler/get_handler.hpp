@@ -1,13 +1,12 @@
-
-#ifndef GRUUTSCE_GET_HANDLER_HPP
-#define GRUUTSCE_GET_HANDLER_HPP
+#ifndef VERONN_SCE_GET_HANDLER_HPP
+#define VERONN_SCE_GET_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
 #include "../data/data_storage.hpp"
 #include "../condition/condition_manager.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class GetHandler {
 public:
@@ -98,4 +97,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_GET_HANDLER_HPP
+#endif

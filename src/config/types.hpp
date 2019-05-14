@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_TYPES_HPP
-#define GRUUTSCE_TYPES_HPP
+#ifndef VERONN_SCE_TYPES_HPP
+#define VERONN_SCE_TYPES_HPP
 
 // Please, do not include this file directly.
 // Instead, you can include this file by including config.hpp
@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <json.hpp>
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 enum class EnumV : int {
   GRU = 0,
@@ -121,7 +121,7 @@ using TransactionJson = nlohmann::json;
 
 }
 
-namespace gruut {
+namespace veronn {
 
 using string = std::string;
 using bytes = std::vector<uint8_t>;
@@ -135,4 +135,4 @@ using base64_type = std::string;
 
 }
 
-#endif //GRUUTSCE_TYPES_HPP
+#endif

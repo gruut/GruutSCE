@@ -43,6 +43,7 @@ cmake-build-release/
 cmake-build-debug-wsl/
 cmake-build-debug-remote-host/
 cmake-build-gruut-dev/
+cmake-build-veronn-dev/
 Makefile
 output.txt
 build

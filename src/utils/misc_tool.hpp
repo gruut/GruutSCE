@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_VS_TOOL_HPP
-#define GRUUTSCE_VS_TOOL_HPP
+#ifndef VERONN_SCE_VS_TOOL_HPP
+#define VERONN_SCE_VS_TOOL_HPP
 
 #include <string>
 #include <algorithm>

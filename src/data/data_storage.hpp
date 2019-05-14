@@ -1,12 +1,12 @@
-#ifndef GRUUTSCE_DATA_STORAGE_HPP
-#define GRUUTSCE_DATA_STORAGE_HPP
+#ifndef VERONN_SCE_DATA_STORAGE_HPP
+#define VERONN_SCE_DATA_STORAGE_HPP
 
 #include <string>
 
 #include "../config.hpp"
 #include "datamap.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 struct DataAttribute {
   std::string name;
@@ -458,4 +458,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_DATA_STORAGE_HPP
+#endif

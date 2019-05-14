@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_INPUT_HANDLER_HPP
-#define GRUUTSCE_INPUT_HANDLER_HPP
+#ifndef VERONN_SCE_INPUT_HANDLER_HPP
+#define VERONN_SCE_INPUT_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <regex>
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 constexpr int INT_LENGTH = 17;
 constexpr long long MAX_INT = 9007199254740991;
@@ -285,4 +285,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_INPUT_HANDLER_HPP
+#endif

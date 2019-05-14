@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_HANDLER_SIGNATURE_HPP
-#define GRUUTSCE_HANDLER_SIGNATURE_HPP
+#ifndef VERONN_SCE_HANDLER_SIGNATURE_HPP
+#define VERONN_SCE_HANDLER_SIGNATURE_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
@@ -7,7 +7,7 @@
 #include <cstring>
 #include <array>
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class SignatureHandler : public BaseConditionHandler {
 public:
@@ -213,4 +213,4 @@ private:
   }
 };
 
-#endif //GRUUTSCE_HANDLER_SIGNATURE_HPP
+#endif

@@ -1,9 +1,9 @@
-#ifndef GRUUTSCE_ELEMENT_PARSER_HPP
-#define GRUUTSCE_ELEMENT_PARSER_HPP
+#ifndef VERONN_SCE_ELEMENT_PARSER_HPP
+#define VERONN_SCE_ELEMENT_PARSER_HPP
 
 #include "../config.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class ElementParser {
 private:
@@ -104,4 +104,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_ELEMENT_PARSER_HPP
+#endif

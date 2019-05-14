@@ -1,9 +1,9 @@
-#ifndef GRUUTSCE_CONTRACT_MANAGER_HPP
-#define GRUUTSCE_CONTRACT_MANAGER_HPP
+#ifndef VERONN_SCE_CONTRACT_MANAGER_HPP
+#define VERONN_SCE_CONTRACT_MANAGER_HPP
 
 #include "../config.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 using namespace nlohmann;
 
@@ -77,4 +77,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_CONTRACT_MANAGER_HPP
+#endif

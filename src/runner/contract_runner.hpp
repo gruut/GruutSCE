@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_CONTRACT_RUNNER_HPP
-#define GRUUTSCE_CONTRACT_RUNNER_HPP
+#ifndef VERONN_SCE_CONTRACT_RUNNER_HPP
+#define VERONN_SCE_CONTRACT_RUNNER_HPP
 
 #include "../config.hpp"
 #include "../data/data_storage.hpp"
@@ -11,7 +11,7 @@
 #include "element_parser.hpp"
 #include "../handler/fee_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class ContractRunner {
 
@@ -265,4 +265,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_CONTRACT_RUNNER_HPP
+#endif

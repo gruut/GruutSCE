@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_CONFIG_HPP
-#define GRUUTSCE_CONFIG_HPP
+#ifndef VERONN_SCE_CONFIG_HPP
+#define VERONN_SCE_CONFIG_HPP
 
 #include <string>
 #include <vector>
@@ -24,7 +24,7 @@
 #include "utils/gruut-utils/src/ecdsa.hpp"
 #include "utils/gruut-utils/src/ags.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 constexpr int NUM_GSCE_THREAD = 4;
 

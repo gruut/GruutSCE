@@ -1,11 +1,11 @@
-#ifndef GRUUTSCE_FEE_HANDLER_HPP
-#define GRUUTSCE_FEE_HANDLER_HPP
+#ifndef VERONN_SCE_FEE_HANDLER_HPP
+#define VERONN_SCE_FEE_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/data_storage.hpp"
 #include "../condition/condition_manager.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class FeeHandler {
 public:
@@ -60,4 +60,4 @@ public:
 };
 }
 
-#endif //GRUUTSCE_FEE_HANDLER_HPP
+#endif

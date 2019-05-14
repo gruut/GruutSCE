@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_ENGINE_HPP
-#define GRUUTSCE_ENGINE_HPP
+#ifndef VERONN_SCE_ENGINE_HPP
+#define VERONN_SCE_ENGINE_HPP
 
 #include "config.hpp"
 #include "data/data_storage.hpp"
@@ -10,7 +10,7 @@
 #include "chain/transaction.hpp"
 
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 
 class Block;

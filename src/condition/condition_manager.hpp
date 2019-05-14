@@ -1,11 +1,11 @@
-#ifndef GRUUTSCE_CONDITION_MANAGER_HPP
-#define GRUUTSCE_CONDITION_MANAGER_HPP
+#ifndef VERONN_SCE_CONDITION_MANAGER_HPP
+#define VERONN_SCE_CONDITION_MANAGER_HPP
 
 #include <string>
 #include "../config.hpp"
 #include "condition_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class ConditionManager {
 
@@ -134,4 +134,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_CONDITION_MANAGER_HPP
+#endif

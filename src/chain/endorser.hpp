@@ -1,9 +1,9 @@
-#ifndef GRUUT_PUBLIC_MERGER_ENDORSER_HPP
-#define GRUUT_PUBLIC_MERGER_ENDORSER_HPP
+#ifndef VERONN_PUBLIC_MERGER_ENDORSER_HPP
+#define VERONN_PUBLIC_MERGER_ENDORSER_HPP
 
 #include "../config.hpp"
 
-namespace gruut {
+namespace veronn {
 class Endorser {
 public:
   base58_type endorser_id;
@@ -16,6 +16,6 @@ public:
   Endorser(base58_type &endorser_id_, std::string &endorser_pk_, base64_type &endorser_signature_)
       : endorser_id(endorser_id_), endorser_pk(endorser_pk_), endorser_signature(endorser_signature_) {}
 };
-} // namespace gruut
+} // namespace veronn
 
-#endif // GRUUT_PUBLIC_MERGER_ENDORSER_HPP
+#endif

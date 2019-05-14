@@ -1,5 +1,5 @@
-#ifndef GRUUTSCE_CONDITION_HANDLER_HPP
-#define GRUUTSCE_CONDITION_HANDLER_HPP
+#ifndef VERONN_SCE_CONDITION_HANDLER_HPP
+#define VERONN_SCE_CONDITION_HANDLER_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
@@ -14,7 +14,7 @@
 #include <iostream>
 #include <map>
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class ConditionHandler : BaseConditionHandler {
 
@@ -95,4 +95,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_CONDITION_HANDLER_HPP
+#endif

@@ -1,10 +1,10 @@
-#ifndef GRUUTSCE_HANDLER_COMPARE_HPP
-#define GRUUTSCE_HANDLER_COMPARE_HPP
+#ifndef VERONN_SCE_HANDLER_COMPARE_HPP
+#define VERONN_SCE_HANDLER_COMPARE_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 enum class CompareType : int {
   EQ,
@@ -148,4 +148,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_HANDLER_COMPARE_HPP
+#endif

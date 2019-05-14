@@ -29,7 +29,7 @@
 #else
 #endif
 
-namespace gruut {
+namespace veronn {
 
 constexpr int HASH_TABLE_SIZE = 1048576; // 0x100000;
 constexpr int CACHE_SIZE = 131072; // ‬(1 << 17);

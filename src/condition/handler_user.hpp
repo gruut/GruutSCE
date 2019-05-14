@@ -1,11 +1,11 @@
-#ifndef GRUUTSCE_HANDLER_USER_HPP
-#define GRUUTSCE_HANDLER_USER_HPP
+#ifndef VERONN_SCE_HANDLER_USER_HPP
+#define VERONN_SCE_HANDLER_USER_HPP
 
 #include <vector>
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class UserHandler : public BaseConditionHandler {
 private:
@@ -174,4 +174,4 @@ public:
 }
 
 
-#endif //GRUUTSCE_HANDLER_USER_HPP
+#endif

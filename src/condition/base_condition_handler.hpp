@@ -1,10 +1,10 @@
-#ifndef GRUUTSCE_BASE_CONDITION_HANDLER_HPP
-#define GRUUTSCE_BASE_CONDITION_HANDLER_HPP
+#ifndef VERONN_SCE_BASE_CONDITION_HANDLER_HPP
+#define VERONN_SCE_BASE_CONDITION_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class BaseConditionHandler {
 public:
@@ -76,4 +76,4 @@ protected:
 
 }
 
-#endif //GRUUTSCE_BASE_CONDITION_HANDLER_HPP
+#endif

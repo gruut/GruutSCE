@@ -1,10 +1,10 @@
-#ifndef GRUUTSCE_HANDLER_ENDORSER_HPP
-#define GRUUTSCE_HANDLER_ENDORSER_HPP
+#ifndef VERONN_SCE_HANDLER_ENDORSER_HPP
+#define VERONN_SCE_HANDLER_ENDORSER_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class EndorserHandler : public BaseConditionHandler {
 public:
@@ -78,4 +78,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_HANDLER_ENDORSER_HPP
+#endif

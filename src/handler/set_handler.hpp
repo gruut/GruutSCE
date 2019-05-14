@@ -1,11 +1,11 @@
-#ifndef GRUUTSCE_SET_HANDLER_HPP
-#define GRUUTSCE_SET_HANDLER_HPP
+#ifndef VERONN_SCE_SET_HANDLER_HPP
+#define VERONN_SCE_SET_HANDLER_HPP
 
 #include "../data/datamap.hpp"
 #include "../data/data_storage.hpp"
 #include "../condition/condition_manager.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 const auto REGEX_BASE64 = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
 
@@ -271,4 +271,4 @@ private:
 
 }
 
-#endif //GRUUTSCE_SET_HANDLER_HPP
+#endif

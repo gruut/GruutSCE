@@ -1,5 +1,5 @@
-#ifndef GRUUT_PUBLIC_MERGER_TRANSACTION_HPP
-#define GRUUT_PUBLIC_MERGER_TRANSACTION_HPP
+#ifndef VERONN_PUBLIC_MERGER_TRANSACTION_HPP
+#define VERONN_PUBLIC_MERGER_TRANSACTION_HPP
 
 #include "../config.hpp"
 #include "endorser.hpp"
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace gruut {
+namespace veronn {
 
 class Transaction {
 private:
@@ -40,7 +40,7 @@ public:
     m_tx_json = tx_json;
 
     m_txid = json::get<string>(tx_json, "txid").value();
-    m_tx_time = static_cast<gruut::timestamp_t>(stoll(json::get<string>(tx_json, "time").value()));
+    m_tx_time = static_cast<veronn::timestamp_t>(stoll(json::get<string>(tx_json, "time").value()));
     m_seed = json::get<string>(tx_json, "txid").value();
 
     m_contract_id = json::get<string>(tx_json["body"], "cid").value(); // 현재 cid 관련 내용은 message에 없음
@@ -120,5 +120,5 @@ public:
     return m_tx_endorsers;
   }
 };
-} // namespace gruut
+} // namespace veronn
 #endif

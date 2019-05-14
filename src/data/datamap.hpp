@@ -1,12 +1,12 @@
-#ifndef GRUUTSCE_DATAMAP_HPP
-#define GRUUTSCE_DATAMAP_HPP
+#ifndef VERONN_SCE_DATAMAP_HPP
+#define VERONN_SCE_DATAMAP_HPP
 
 #include <string>
 #include <unordered_map>
 #include <optional>
 #include "../config.hpp"
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 struct DataRecord {
   std::string value;
@@ -64,4 +64,4 @@ public:
 
 }
 
-#endif //GRUUTSCE_DATAMAP_HPP
+#endif

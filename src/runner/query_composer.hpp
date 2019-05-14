@@ -1,10 +1,10 @@
-#ifndef GRUUTSCE_QUERY_COMPOSER_HPP
-#define GRUUTSCE_QUERY_COMPOSER_HPP
+#ifndef VERONN_SCE_QUERY_COMPOSER_HPP
+#define VERONN_SCE_QUERY_COMPOSER_HPP
 
 #include "../config.hpp"
 
 
-namespace gruut::gsce {
+namespace veronn::vsce {
 
 class QueryComposer {
 public:
@@ -32,4 +32,4 @@ public:
 };
 }
 
-#endif //GRUUTSCE_QUERY_COMPOSER_HPP
+#endif
