@@ -1,2 +1,2 @@
-# GruutSCE
-Gruut StandardContract Engine
+# Veronn-SCE
+Veronn StandardContract Engine
