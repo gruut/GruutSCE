@@ -62,10 +62,12 @@ private:
   Datamap m_tx_datamap; // set of { keyword : value }
   std::unordered_map<std::string, nlohmann::json> m_query_cache;
 
-  std::unordered_map<std::string, UserScopeRecord> m_user_scope_table;
-  std::unordered_map<std::string, ContractScopeRecord> m_contract_scope_table;
-  std::unordered_map<std::string, UserAttributeRecord> m_user_attr_table;
-  std::unordered_map<std::string, UserCertRecord> m_user_cert_table;
+  // TODO : replace cache tables to real cache
+
+  std::map<std::string, UserScopeRecord> m_user_scope_table;
+  std::map<std::string, ContractScopeRecord> m_contract_scope_table;
+  std::map<std::string, UserAttributeRecord> m_user_attr_table;
+  std::map<std::string, UserCertRecord> m_user_cert_table;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
   std::function<void(nlohmann::json&, nlohmann::json&)> m_write_storage_interface;
@@ -92,7 +94,7 @@ public:
         {"where",{}}
     };
 
-    return queryIfAndReturn(query);
+    return queryIfAndParseData(query);
   }
 
   std::optional<std::vector<DataAttribute>> getChain() {
@@ -101,7 +103,7 @@ public:
         {"where",{}}
     };
 
-    return queryIfAndReturn(query);
+    return queryIfAndParseData(query);
   }
 
   template <typename S = std::string>
@@ -122,7 +124,7 @@ public:
         }
     };
 
-    return queryIfAndReturn(query);
+    return queryIfAndParseData(query);
   }
 
   template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
@@ -131,45 +133,60 @@ public:
     if(scope.empty() || id.empty() || name.empty() || !(scope == "user" || scope == "contract"))
       return std::nullopt;
 
-    std::string scope_key = scope + id + name;
+    std::vector<DataAttribute> ret_vec;
 
-    if(scope == "user") {
-
-      auto it_tbl = m_user_scope_table.find(scope_key);
-      if(it_tbl != m_user_scope_table.end()) {
-
+    if(name != "*") {
+      std::string scope_key = scope + id + name;
+      if (scope == "user") {
+        auto it_tbl = m_user_scope_table.find(scope_key);
+        if (it_tbl != m_user_scope_table.end()) {
+          ret_vec.emplace_back(name,it_tbl->second.var_value);
+        }
+      } else { // contract
+        auto it_tbl = m_contract_scope_table.find(scope_key);
+        if (it_tbl != m_contract_scope_table.end()) {
+          ret_vec.emplace_back(name,it_tbl->second.var_value);
+        }
       }
 
-    } else { // contract
-
-      auto it_tbl = m_contract_scope_table.find(scope_key);
-      if(it_tbl != m_contract_scope_table.end()) {
-
+    } else {
+      if (scope == "user") {
+        for (auto &each_row : m_user_scope_table) {
+          if(each_row.second.var_owner == id) {
+            ret_vec.emplace_back(each_row.second.var_name,each_row.second.var_value);
+          }
+        }
+      } else {
+        for (auto &each_row : m_contract_scope_table) {
+          if(each_row.second.contract_id == id) {
+            ret_vec.emplace_back(each_row.second.var_name,each_row.second.var_value);
+          }
+        }
       }
-
     }
 
+    if(!ret_vec.empty())
+      return ret_vec;
 
-    // God! NOT IN SCOPE CACHE!
+
+    // NOT IN SCOPE CACHE TABLE!
 
     nlohmann::json query = {
-        {"type", scope == "user" ? "user.info.get" : "contract.scope.get"},
+        {"type", scope == "user" ? "user.scope.get" : "contract.scope.get"},
         {"where",
           {"uid", id},
           {"notag", true}
         }
     };
 
-    if(!name.empty() && name != "*") {
+    if(!name.empty() && name != "*")
       query["where"]["name"] = name;
+
+    if(scope == "user") {
+      return queryUserScopeIfAndParseData(query, id);
+    } else {
+      return queryContractScopeIfAndParseData(query, id);
     }
-
-    auto result = queryIfAndReturn(query);
-
-    // TODO : result to cache
-
-    return result;
-
   }
 
   template <typename S = std::string>
@@ -201,9 +218,118 @@ public:
 
 private:
 
-  std::optional<std::vector<DataAttribute>> queryIfAndReturn(nlohmann::json &query) {
-    std::string query_key = TypeConverter::toString(nlohmann::json::to_cbor(query));
+  std::optional<std::vector<DataAttribute>> queryIfAndParseData(nlohmann::json &query) {
+    auto query_result = queryAndCache(query);
 
+    if(!query_result)
+      return std::nullopt;
+
+    std::vector<DataAttribute> ret_vec;
+
+    for(auto &each_row : query_result.value().second) {
+      for(int i = 0; i < each_row.size(); ++i) { // last row will be selected
+        ret_vec.emplace_back( query_result.value().first[i].get<std::string>(),each_row[i].get<std::string>());
+      }
+    }
+
+    return ret_vec;
+  }
+
+  std::optional<std::vector<DataAttribute>> queryUserScopeIfAndParseData(nlohmann::json &query, const std::string &id){
+    auto query_result = queryAndCache(query);
+
+    if(!query_result)
+      return std::nullopt;
+
+    std::vector<DataAttribute> ret_vec;
+
+    std::vector<std::string> data_name;
+    for (auto &each_name : query_result.value().first)
+      data_name.push_back(each_name.get<std::string>());
+
+    for(auto &each_row : query_result.value().second) {
+
+        UserScopeRecord buf_record;
+
+        for (int i = 0; i < data_name.size(); ++i) {
+          if (data_name[i] == "var_name")
+            buf_record.var_name = each_row[i].get<std::string>();
+          else if (data_name[i] == "var_value")
+            buf_record.var_value = each_row[i].get<std::string>();
+          else if (data_name[i] == "var_type")
+            buf_record.var_type = vs::str2num<uint8_t>(each_row[i].get<std::string>());
+          else if (data_name[i] == "var_owner")
+            buf_record.var_owner = each_row[i].get<std::string>();
+          else if (data_name[i] == "up_time")
+            buf_record.up_time = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+          else if (data_name[i] == "up_block")
+            buf_record.up_block = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+          else if (data_name[i] == "tag")
+            buf_record.tag = each_row[i].get<std::string>();
+          else if (data_name[i] == "pid")
+            buf_record.pid = each_row[i].get<std::string>();
+        }
+
+        if(buf_record.var_name.empty())
+          continue;
+
+        std::string scope_key = "user" + id + buf_record.var_name;
+        m_user_scope_table[scope_key] = buf_record;
+
+        ret_vec.emplace_back(buf_record.var_name,buf_record.var_value);
+      }
+
+    return ret_vec;
+  }
+
+  std::optional<std::vector<DataAttribute>> queryContractScopeIfAndParseData(nlohmann::json &query, const std::string &id){
+
+    auto query_result = queryAndCache(query);
+
+    if(!query_result)
+      return std::nullopt;
+
+    std::vector<DataAttribute> ret_vec;
+
+    std::vector<std::string> data_name;
+    for (auto &each_name : query_result.value().first)
+      data_name.push_back(each_name.get<std::string>());
+
+    for(auto &each_row : query_result.value().second) {
+
+      ContractScopeRecord buf_record;
+
+      for (int i = 0; i < data_name.size(); ++i) {
+        if (data_name[i] == "var_name")
+          buf_record.var_name = each_row[i].get<std::string>();
+        else if (data_name[i] == "var_value")
+          buf_record.var_value = each_row[i].get<std::string>();
+        else if (data_name[i] == "var_type")
+          buf_record.var_type = vs::str2num<uint8_t>(each_row[i].get<std::string>());
+        else if (data_name[i] == "contract_id")
+          buf_record.contract_id = each_row[i].get<std::string>();
+        else if (data_name[i] == "up_time")
+          buf_record.up_time = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+        else if (data_name[i] == "up_block")
+          buf_record.up_block = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+        else if (data_name[i] == "pid")
+          buf_record.pid = each_row[i].get<std::string>();
+      }
+
+      if(buf_record.var_name.empty())
+        continue;
+
+      std::string scope_key = "user" + id + buf_record.var_name;
+      m_contract_scope_table[scope_key] = buf_record;
+
+      ret_vec.emplace_back(buf_record.var_name,buf_record.var_value);
+    }
+
+    return ret_vec;
+  }
+
+  std::optional<std::pair<nlohmann::json,nlohmann::json>> queryAndCache(nlohmann::json &query) {
+    std::string query_key = TypeConverter::toString(nlohmann::json::to_cbor(query));
     nlohmann::json query_result;
 
     auto it_cache = m_query_cache.find(query_key);
@@ -220,15 +346,7 @@ private:
     if(!query_result_name || !query_result_data)
       return std::nullopt;
 
-    std::vector<DataAttribute> ret_vec;
-
-    for(auto &each_row : query_result_data.value()) {
-      for(int i = 0; i < each_row.size(); ++i) {
-        ret_vec.emplace_back(query_result_name.value()[i].get<std::string>(),each_row[i].get<std::string>());
-      }
-    }
-
-    return ret_vec;
+    return std::make_pair(query_result_name.value(), query_result_data.value());
   }
 
 };
