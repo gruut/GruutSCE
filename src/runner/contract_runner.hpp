@@ -2,7 +2,7 @@
 #define VERONN_SCE_CONTRACT_RUNNER_HPP
 
 #include "../config.hpp"
-#include "../data/data_storage.hpp"
+#include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 #include "../handler/input_handler.hpp"
 #include "../handler/get_handler.hpp"
@@ -17,7 +17,7 @@ class ContractRunner {
 
 private:
   pugi::xml_node m_contract_node;
-  DataStorage m_tx_data_storage;
+  DataManager m_tx_data_storage;
   ConditionManager m_condition_manager;
   InputHandler m_input_handler;
   GetHandler m_get_handler;

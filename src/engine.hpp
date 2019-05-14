@@ -2,7 +2,7 @@
 #define VERONN_SCE_ENGINE_HPP
 
 #include "config.hpp"
-#include "data/data_storage.hpp"
+#include "data/data_manager.hpp"
 #include "runner/contract_manager.hpp"
 #include "runner/contract_runner.hpp"
 #include "runner/tx_parallelizer.hpp"
@@ -20,7 +20,7 @@ private:
 
   ContractManager m_contract_manager;
   QueryComposer m_query_composer;
-  DataStorage m_data_stroage;
+  DataManager m_data_stroage;
 
 public:
   Engine() = default;

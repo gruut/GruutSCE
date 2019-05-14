@@ -2,7 +2,7 @@
 #define VERONN_SCE_SET_HANDLER_HPP
 
 #include "../data/datamap.hpp"
-#include "../data/data_storage.hpp"
+#include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 
 namespace veronn::vsce {
@@ -40,7 +40,7 @@ class SetHandler {
 public:
   SetHandler() = default;
 
-  std::optional<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataStorage &data_collector){
+  std::optional<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_collector){
     nlohmann::json query = nlohmann::json::array();
     for(auto &[set_node, id] : set_nodes){
       if(set_node.empty() || condition_manager.getEvalResultById(id))
@@ -58,7 +58,7 @@ public:
     return query;
   }
 private:
-  std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataStorage &data_collector) {
+  std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataManager &data_collector) {
     nlohmann::json contents;
     auto option_nodes = set_node.select_nodes("/option");
     switch (set_type) {

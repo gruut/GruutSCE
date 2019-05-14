@@ -3,7 +3,7 @@
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
-#include "../data/data_storage.hpp"
+#include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 
 namespace veronn::vsce {
@@ -12,7 +12,7 @@ class GetHandler {
 public:
   GetHandler() = default;
 
-  void parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &get_nodes, ConditionManager &condition_manager, DataStorage &data_storage){
+  void parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &get_nodes, ConditionManager &condition_manager, DataManager &data_storage){
     if(get_nodes.empty())
       return;
 

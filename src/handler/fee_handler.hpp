@@ -2,7 +2,7 @@
 #define VERONN_SCE_FEE_HANDLER_HPP
 
 #include "../config.hpp"
-#include "../data/data_storage.hpp"
+#include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 
 namespace veronn::vsce {
@@ -11,7 +11,7 @@ class FeeHandler {
 public:
   FeeHandler() = default;
 
-  std::pair<int,int> parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &fee_nodes, ConditionManager &condition_manager, DataStorage &data_storage) {
+  std::pair<int,int> parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_storage) {
     if(fee_nodes.empty())
       return {0,0};
 

@@ -56,7 +56,7 @@ struct UserCertRecord {
   std::string x509;
 };
 
-class DataStorage {
+class DataManager {
 private:
   Datamap m_tx_datamap; // set of { keyword : value }
   std::unordered_map<std::string, nlohmann::json> m_query_cache;
@@ -72,7 +72,7 @@ private:
   std::function<void(nlohmann::json&, nlohmann::json&)> m_write_storage_interface;
 
 public:
-  DataStorage() = default;
+  DataManager() = default;
 
   void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> read_storage_interface){
     m_read_storage_interface = std::move(read_storage_interface);

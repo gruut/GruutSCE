@@ -3,7 +3,7 @@
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
-#include "../data/data_storage.hpp"
+#include "../data/data_manager.hpp"
 #include <botan-2/botan/x509cert.h>
 #include <unordered_map>
 #include <cctype>
@@ -30,7 +30,7 @@ public:
   InputHandler() = default;
 
 
-  void parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataStorage &data_collector){
+  void parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
 
     struct InputOption {
       std::string key;
