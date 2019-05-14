@@ -123,7 +123,7 @@ public:
     T ret_val = 0;
     if(!s.empty()) {
       try{
-        ret_val = std::stoi(s);
+        ret_val = (T) std::stoll(s);
       }
       catch (...){
 

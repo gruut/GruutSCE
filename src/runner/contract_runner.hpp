@@ -208,7 +208,11 @@ public:
     // process input directive
 
     auto& input_node = m_element_parser.getNode("input");
-    m_input_handler.parseInput(m_tx_json,input_node.first,m_tx_data_storage);
+    if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_tx_data_storage)){
+      result_query["status"] = false;
+      result_query["info"] = GSCE_ERROR_MSG["RUN_INPUT"];
+      return result_query;
+    }
 
     // process get directive
 

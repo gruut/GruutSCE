@@ -30,7 +30,7 @@ public:
   InputHandler() = default;
 
 
-  void parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
+  bool parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
 
     struct InputOption {
       std::string key;
@@ -41,8 +41,15 @@ public:
       }
     };
 
-    std::string allow_multi_str = input_node.attribute("allow-multi").value();
-    bool is_allow_multi = (vs::toLower(allow_multi_str) == "true");
+    if(input_json.empty())
+      return false;
+
+    std::string max_str = input_node.attribute("max").value();
+    int num_max = vs::str2num<int>(max_str);
+    num_max = (input_json.size() < num_max) ? input_json.size() : num_max;
+
+    if(num_max > 10)
+      return false;
 
     pugi::xpath_node_set option_nodes = input_node.select_nodes("/option");
 
@@ -58,10 +65,7 @@ public:
       input_options.emplace_back(option_name,option_type,option_validation); // TODO : check work well
     }
 
-    for(int i = 0; i < input_json.size(); ++i) {
-
-      if(!is_allow_multi && i >= 1)
-        break;
+    for(int i = 0; i < num_max; ++i) {
 
       for(auto &each_input : input_json[i]) {
         for(auto &each_item : each_input.items()) {
@@ -121,6 +125,8 @@ public:
       std::string data_value = nlohmann::json(it_map.second).dump();
       data_collector.updateValue(data_key,data_value);
     }
+
+    return true;
   }
 
 private:
