@@ -26,15 +26,23 @@ enum class SetType : int{
   NONE
 };
 
+// clang-format off
 const std::unordered_map<std::string, SetType> SetTypeMap {
-  {"user.cert", SetType::USER_JOIN}, {"user.cert", SetType::USER_CERT},
-      {"v.create", SetType::V_CREATE}, {"v.incinerate", SetType::V_INCINERATE},
-      {"v.transfer", SetType::V_TRANSFER}, {"scope.user", SetType::SCOPE_USER},
-      {"scope.contract", SetType::SCOPE_CONTRACT}, {"contract.new", SetType::CONTRACT_NEW},
-      {"contract.disable", SetType::CONTRACT_DISABLE},
-      {"item.trade", SetType::ITEM_TRADE}, {"v.trande", SetType::V_TRADE},
-      {"run.query", SetType::RUN_QUERY}, {"run.contract", SetType::RUN_CONTRACT}
+  {"user.cert", SetType::USER_JOIN},
+  {"user.cert", SetType::USER_CERT},
+  {"v.create", SetType::V_CREATE},
+  {"v.incinerate", SetType::V_INCINERATE},
+  {"v.transfer", SetType::V_TRANSFER},
+  {"scope.user", SetType::SCOPE_USER},
+  {"scope.contract", SetType::SCOPE_CONTRACT},
+  {"contract.new", SetType::CONTRACT_NEW},
+  {"contract.disable", SetType::CONTRACT_DISABLE},
+  {"item.trade", SetType::ITEM_TRADE},
+  {"v.trade", SetType::V_TRADE},
+  {"run.query", SetType::RUN_QUERY},
+  {"run.contract", SetType::RUN_CONTRACT}
 };
+// clang-format on
 
 class SetHandler {
 public:

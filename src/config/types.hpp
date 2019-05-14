@@ -51,6 +51,7 @@ enum class VarType : int {
 };
 
 const std::unordered_map<std::string, VarType> VarTypeMap {
+    {"", VarType::TEXT},
     {"INT", VarType::INT},
     {"PINT", VarType::PINT},
     {"NINT", VarType::NINT},

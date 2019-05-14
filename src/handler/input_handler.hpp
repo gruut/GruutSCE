@@ -25,21 +25,21 @@ const auto BASE64_REGEX = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9
 const auto BASE58_REGEX = "^[A-HJ-NP-Za-km-z1-9]*$";
 const auto BIN_REGEX = "^[0-1]*$";
 
+struct InputOption {
+  std::string key;
+  std::string validation;
+  std::string type;
+  InputOption(std::string key_, std::string validation_, std::string type_)
+      : key(std::move(key_)), validation(std::move(validation_)), type(std::move(type_)) {
+  }
+};
+
 class InputHandler {
 public:
   InputHandler() = default;
 
 
   void parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
-
-    struct InputOption {
-      std::string key;
-      std::string validation;
-      std::string type;
-      InputOption(std::string key_, std::string validation_, std::string type_)
-        : key(std::move(key_)), validation(std::move(validation_)), type(std::move(type_)) {
-      }
-    };
 
     std::string allow_multi_str = input_node.attribute("allow-multi").value();
     bool is_allow_multi = (vs::toLower(allow_multi_str) == "true");
