@@ -35,12 +35,14 @@ public:
     auto world_attr = m_tx_data_storage.getWorld();
     auto chain_attr = m_tx_data_storage.getChain();
 
-    if(!world_attr || !chain_attr){
+    if(world_attr.empty() || chain_attr.empty()){
       return false;
     }
 
     attrToMap(world_attr, "$world");
     attrToMap(chain_attr, "$chain");
+
+    return true;
   }
 
   void setContract(pugi::xml_node &contract_node) {
@@ -245,11 +247,11 @@ public:
 private:
 
   template <typename S = std::string>
-  void attrToMap(std::optional<std::vector<DataAttribute>> &values, S &&prefix){
-    if(!values)
+  void attrToMap(std::vector<DataAttribute> &attr_list, S &&prefix){
+    if(attr_list.empty())
       return;
 
-    for(auto &each_attr : values.value()) {
+    for(auto &each_attr : attr_list) {
       std::string key = prefix;
       key.append(".").append(each_attr.name);
       m_tx_data_storage.updateValue(key, each_attr.value);
