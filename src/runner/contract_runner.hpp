@@ -187,7 +187,7 @@ public:
 
       if (!m_condition_manager.getEvalResultById(head_node.second)) {
         result_query["status"] = false;
-        result_query["info"] = GSCE_ERROR_MSG["RUN_CONDITION"];
+        result_query["info"] = VSCE_ERROR_MSG["RUN_CONDITION"];
         return result_query;
       }
     }
@@ -195,7 +195,7 @@ public:
     TimeHandler contract_time_handler;
     if(!contract_time_handler.evalue(head_node.first,data_map)) {
       result_query["status"] = false;
-      result_query["info"] = GSCE_ERROR_MSG["RUN_PERIOD"];
+      result_query["info"] = VSCE_ERROR_MSG["RUN_PERIOD"];
       return result_query;
     }
 
@@ -216,7 +216,7 @@ public:
     auto& input_node = m_element_parser.getNode("input");
     if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_data_manager)){
       result_query["status"] = false;
-      result_query["info"] = GSCE_ERROR_MSG["RUN_INPUT"];
+      result_query["info"] = VSCE_ERROR_MSG["RUN_INPUT"];
       return result_query;
     }
 
@@ -243,21 +243,53 @@ public:
     auto &fee_nodes = m_element_parser.getNodes("fee");
     auto [pay_from_user, pay_from_author] = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_data_manager);
 
+    if(pay_from_user > 0 && m_data_manager.getUserKeyCurrency("$user") < pay_from_user) {
+      result_query["status"] = false;
+      result_query["info"] = VSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (user)";
+      return result_query;
+    }
+
+    if(pay_from_author > 0 && m_data_manager.getUserKeyCurrency("$author") < pay_from_author) {
+      result_query["status"] = false;
+      result_query["info"] = VSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (author)";
+      return result_query;
+    }
+
     result_query["fee"]["user"] = std::to_string(pay_from_user);
     result_query["fee"]["author"] = std::to_string(pay_from_author);
-
-    // TODO : check user and author key-currency account
-
 
     // process set directive
 
     auto& set_nodes = m_element_parser.getNodes("set");
-    auto query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
+    auto set_query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
 
-    if(!query.has_value())
+    if(!set_query)
       return std::nullopt;
 
-    result_query["query"] = query.value();
+    // TODO : set result validation
+
+    nlohmann::json valid_set_query = nlohmann::json::array();
+
+    for(auto &each_set_query : set_query.value()) {
+
+      std::string set_type_str = json::get<std::string>(each_set_query,"type").value_or("");
+
+      if(set_type_str.empty())
+        continue;
+
+      auto it = SET_TYPE_MAP.find(set_type_str);
+      auto set_type = (it == SET_TYPE_MAP.end() ? SetType::NONE : it->second);
+
+      if(set_type == SetType::NONE)
+        continue;
+
+
+
+      valid_set_query.emplace_back(each_set_query);
+    }
+
+
+    result_query["query"] = valid_set_query;
 
     return result_query;
   }

@@ -59,9 +59,9 @@ public:
   }
 private:
   void appendData(const std::string &type, const std::string &data, BytesBuilder &bytes_builder){
-    auto it = VarTypeMap.find(type);
+    auto it = INPUT_OPTION_TYPE_MAP.find(type);
     VarType var_type;
-    var_type = it != VarTypeMap.end() ? it->second : VarType::NONE;
+    var_type = it != INPUT_OPTION_TYPE_MAP.end() ? it->second : VarType::NONE;
 
     switch(var_type){
     case VarType::INT:

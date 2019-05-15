@@ -41,6 +41,12 @@ public:
     return dst;
   }
 
+  static std::string toUpper(const std::string &src) {
+    std::string dst("",src.size());
+    std::transform(src.begin(), src.end(), dst.begin(), ::toupper);
+    return dst;
+  }
+
   static uint64_t isotime2timestamp(const std::string &iso_time) {
     std::istringstream in{iso_time};
     date::sys_time<std::chrono::milliseconds> time_point;

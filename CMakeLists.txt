@@ -36,9 +36,9 @@ file(GLOB HEADER_FILES
     "include/*/*.hpp"
     )
 
-add_executable(GruutSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})
-target_include_directories(GruutSCE PRIVATE include/ /usr/local/include)
-target_link_libraries(GruutSCE
+add_executable(VSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(VSCE PRIVATE include/ /usr/local/include)
+target_link_libraries(VSCE
     PRIVATE
     ${Boost_LIBRARIES}
     ${BOTAN_LIBS}
