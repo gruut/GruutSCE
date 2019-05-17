@@ -35,13 +35,13 @@ public:
     rtrim(s);
   }
 
-  static std::string toLower(const std::string &src) {
+  static std::string toLower(std::string_view src) {
     std::string dst("",src.size());
     std::transform(src.begin(), src.end(), dst.begin(), ::tolower);
     return dst;
   }
 
-  static std::string toUpper(const std::string &src) {
+  static std::string toUpper(std::string_view src) {
     std::string dst("",src.size());
     std::transform(src.begin(), src.end(), dst.begin(), ::toupper);
     return dst;
@@ -51,8 +51,8 @@ public:
     std::istringstream in{iso_time};
     date::sys_time<std::chrono::milliseconds> time_point;
     in >> date::parse("%FT%TZ", time_point);
-    if (in.fail())
-    {
+
+    if (in.fail()) {
       in.clear();
       in.exceptions(std::ios::failbit);
       in.str(iso_time);
@@ -73,8 +73,8 @@ public:
   inline static std::string encodeBase64(T &&t) {
     try {
       return Botan::base64_encode(std::vector<uint8_t>(begin(t), end(t)));
-    } catch (Botan::Exception &e) {
-      return std::string("");
+    } catch (...) {
+      return {};
     }
   }
 
@@ -83,18 +83,17 @@ public:
     try {
       auto s_vector = Botan::base64_decode(input);
       return std::vector<std::byte>(s_vector.begin(), s_vector.end());
-    } catch (Botan::Exception &e) {
+    } catch (...) {
+      return {};
     }
-
-    return std::vector<std::byte>();
   }
 
   template <typename T>
   inline static std::string encodeBase58(T &&t) {
     try {
       return Botan::base58_encode(std::vector<uint8_t>(begin(t), end(t)));
-    } catch (Botan::Exception &e) {
-      return std::string("");
+    } catch (...) {
+      return {};
     }
   }
 
@@ -103,40 +102,52 @@ public:
     try {
       auto s_vector = Botan::base58_decode(input);
       return std::vector<std::byte>(s_vector.begin(), s_vector.end());
-    } catch (Botan::Exception &e) {
+    } catch (...) {
+      return {};
     }
-
-    return std::vector<std::byte>();
   }
 
-  static std::vector<std::string> split (const std::string &s, const std::string &delimiter) {
+  template <typename S1 = std::string, typename S2 = std::string>
+  static std::vector<std::string> split (S1 &&str, S2 &&delimiter) {
     size_t pos_start = 0, pos_end, delim_len = delimiter.length();
     std::string token;
     std::vector<std::string> res;
 
-    while ((pos_end = s.find (delimiter, pos_start)) != std::string::npos) {
-      token = s.substr (pos_start, pos_end - pos_start);
+    while ((pos_end = str.find (delimiter, pos_start)) != std::string::npos) {
+      token = str.substr (pos_start, pos_end - pos_start);
       pos_start = pos_end + delim_len;
-      res.push_back (token);
+      res.emplace_back(token);
     }
 
-    res.push_back (s.substr (pos_start));
+    res.emplace_back(str.substr(pos_start));
     return res;
   }
 
-  template <typename T>
-  static T str2num (const std::string &s) {
+  template <typename T, typename S = std::string>
+  static T str2num (S &&s) {
     T ret_val = 0;
     if(!s.empty()) {
       try{
         ret_val = (T) std::stoll(s);
       }
       catch (...){
-
       }
     }
 
     return ret_val;
+  }
+
+  static bool isDigit(std::string_view data) {
+    return std::all_of(data.begin(), data.end(), ::isdigit);
+  }
+
+  static bool inArray(std::string_view data, const std::vector<std::string_view> &array) {
+    for(auto &item : array) {
+      if(item == data)
+        return true;
+    }
+
+    return false;
   }
 
 };

@@ -27,7 +27,7 @@ public:
         auto var_node = var_path.node();
         std::string scope = var_node.attribute("scope").value();
 
-        if(!(scope == "author" || scope == "user" || scope == "contract"))
+        if(!vs::inArray(scope,{"author","user","contract"}))
           continue;
 
         std::string id = var_node.attribute("id").value();
@@ -54,13 +54,13 @@ public:
             storage_id = data_storage.eval("$tx.body.cid");
         }
 
-        auto values = data_storage.getScopeVariables(storage_scope, storage_id, name);
+        auto scope_values = data_storage.getScopeVariables(storage_scope, storage_id, name);
 
-        if(!values)
+        if(scope_values.empty())
           continue;
 
         if(id.empty() || id == storage_id) {
-          for (auto &each_attr : values.value()) {
+          for (auto &each_attr : scope_values) {
             std::string key = "$";
             key.append(scope).append(".").append(each_attr.name);
             data_storage.updateValue(key, each_attr.value);
@@ -68,7 +68,7 @@ public:
         }
 
         if(!id.empty() && id != storage_id && !id_as.empty()) {
-          for (auto &each_attr : values.value()) {
+          for (auto &each_attr : scope_values) {
             std::string key = "$.";
             key.append(id_as).append(".").append(each_attr.name);
             data_storage.updateValue(key, each_attr.value);
@@ -77,10 +77,10 @@ public:
 
         if(!name_as.empty()) {
 
-          if(values.value().size() == 1) {
-            data_storage.updateValue("$." + name_as, (*values)[0].value);
+          if(scope_values.size() == 1) {
+            data_storage.updateValue("$." + name_as, scope_values[0].value);
           } else {
-            for (auto &each_attr : values.value()) {
+            for (auto &each_attr : scope_values) {
               std::string key = "$.";
               key.append(name_as).append(".").append(each_attr.name);
               data_storage.updateValue(key, each_attr.value);
