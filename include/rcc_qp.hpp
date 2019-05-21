@@ -55,6 +55,7 @@ struct entry_t {
   uint64_t hash_value;
   uint64_t timestamp;
   float total_counter;
+  std::string data;
   entry_t() : hash_value(0), timestamp(0), total_counter(0.0){}
 };
 
@@ -94,7 +95,7 @@ class RCCQP {
 private:
   std::shared_ptr<chain_hash_table> hash_table;
   std::shared_ptr<rcc32_t> rcc;
-  int rcc_qp_flag;
+  bool rcc_qp_flag;
   std::shared_ptr<lru_entry> lru_head;
   std::shared_ptr<lru_entry> lru_tail;
   std::shared_ptr<input_array_entry> input_array_head;
@@ -102,7 +103,7 @@ private:
   std::mt19937 prng;
 
 public:
-  RCCQP() : rcc_qp_flag(0){
+  RCCQP() : rcc_qp_flag(false){
     std::random_device rand_device;
     prng.seed(rand_device());
   }
@@ -116,7 +117,7 @@ public:
 
     reset();
 
-    rcc_qp_flag = 0;
+    rcc_qp_flag = false;
     lruInit();
     rccCreate(1);
 
@@ -131,19 +132,18 @@ public:
     while (hv != 0)
     {
       if (chainSearch(hv)){
-        hv = 0;
         hv = inputArrayDelete();
 
-        if (rcc_qp_flag == 1)
-          rcc_qp_flag = 0;
+        if (rcc_qp_flag)
+          rcc_qp_flag = false;
         continue;
       }
 
-      if (rcc_qp_flag == 1){
+      if (rcc_qp_flag){
         chainInsert(hv);
-        rcc_qp_flag = 0;
+        rcc_qp_flag = false;
       }
-      hv = 0;
+
       hv = inputArrayDelete();
     }
 
@@ -189,14 +189,14 @@ private:
     if (input_array_head == nullptr)
       return 0;
 
-    std::shared_ptr<input_array_entry> tmp = input_array_head;
+    uint64_t ret_val = input_array_head->hv;
 
     if (input_array_head->next == nullptr)
       input_array_head = nullptr;
     else
       input_array_head = input_array_head->next;
 
-    return tmp->hv;
+    return ret_val;
   }
 
   void chainInit() {
@@ -414,29 +414,29 @@ private:
 
 /* Insert a hash_value-value pair into a hash table. */
 
-  void htSet4(hashtable_t &hashtable, uint64_t hash_value, float est){
-    ++(hashtable.insert);
+  void htSet4(uint64_t hash_value, float est){
+    ++(rcc->htable.insert);
     uint32_t loc = 0;
     uint32_t min = -1;
     int expired_loc = -1;
-    int hsize = hashtable.size;
+    int hsize = rcc->htable.size;
 
     for (int64_t qp = 0; qp < JUMP_THRESHOLD; ++qp) {
       // prepare set to another place
       loc = (hash_value + (qp + qp*qp) / 2) % hsize; // hash_value + 0.5i+ 0.5i^2
-      entry_t &me = hashtable.table[loc];
+      entry_t &me = rcc->htable.table[loc];
       if (me.hash_value == 0){
         me.hash_value = hash_value;
         me.total_counter = est;
 
-        hashtable.total_jump += (qp + 1);
-        ++(hashtable.usage);
+        rcc->htable.total_jump += (qp + 1);
+        ++(rcc->htable.usage);
         return;
       }
       else if (me.hash_value == hash_value){
         me.total_counter += est;
 
-        hashtable.total_jump += (qp + 1);
+        rcc->htable.total_jump += (qp + 1);
         return;
       }
         // eviction target search
@@ -446,10 +446,10 @@ private:
       }
     }
 
-    hashtable.total_jump += JUMP_THRESHOLD;
-    hashtable.eviction++;
-    hashtable.table[expired_loc].hash_value = hash_value;  // expired
-    hashtable.table[expired_loc].total_counter = est;  // expired
+    rcc->htable.total_jump += JUMP_THRESHOLD;
+    rcc->htable.eviction++;
+    rcc->htable.table[expired_loc].hash_value = hash_value;  // expired
+    rcc->htable.table[expired_loc].total_counter = est;  // expired
   }
 
 /* single layer Flow Regulator에 입력 */
@@ -508,8 +508,8 @@ private:
       rcc->rcounter[A_index] = composed_word;
       float est = getKhat(2, mzeros) + 1;
 
-      rcc_qp_flag = 1;
-      htSet4(rcc->htable, hv, est);
+      rcc_qp_flag = true;
+      htSet4(hv, est);
     }
     rcc->rcounter[A_index] = composed_word;
   }

@@ -197,6 +197,31 @@ public:
   }
 
   template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
+  std::optional<UserScopeRecord> getUserScopeRecordByPid(S1 &&id, S2 &&name, S3 &&pid) {
+
+    std::vector<DataAttribute> ret_vec;
+
+    std::string scope_key = id + name;
+
+    auto ret_record = findUserScopeTableByPid(id,name,pid);
+
+    if(ret_record)
+      return ret_record;
+
+    nlohmann::json query = {
+        {"type", "user.scope.get"},
+        {"where",
+         {"uid", id},
+         {"pid", pid}
+        }
+    };
+
+    queryIfUserScopeAndParseData(query, id); // try to cache - ignore return value;
+
+    return findUserScopeTableByPid(id,name,pid);
+  }
+
+  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
   std::vector<DataAttribute> getScopeVariables(S1 &&scope, S2 &&id, S3 &&name){
 
     if(scope.empty() || id.empty() || name.empty() || !(scope == "user" || scope == "contract"))
@@ -294,6 +319,24 @@ public:
   }
 
 private:
+
+  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
+  std::optional<UserScopeRecord> findUserScopeTableByPid(S1 &&id, S2 &&name, S3 &&pid){
+
+    std::string scope_key = id + name;
+
+    auto it_tbl = m_user_scope_table.find(scope_key);
+    if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
+      for(auto &each_row : it_tbl->second) {
+        if(each_row.pid == pid) {
+          return each_row;
+        }
+      }
+    }
+
+    return std::nullopt;
+  }
+
 
   std::vector<DataAttribute> queryIfAndParseData(nlohmann::json &query) {
     auto [result_name,result_data] = queryAndCache(query);

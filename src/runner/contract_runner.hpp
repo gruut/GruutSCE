@@ -263,14 +263,14 @@ public:
     auto& set_nodes = m_element_parser.getNodes("set");
     auto set_query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
 
-    if(!set_query)
+    if(set_query.empty())
       return std::nullopt;
 
     // TODO : set result validation
 
     nlohmann::json valid_set_query = nlohmann::json::array();
 
-    for(auto &each_set_query : set_query.value()) {
+    for(auto &each_set_query : set_query) {
 
       std::string set_type_str = json::get<std::string>(each_set_query,"type").value_or("");
 

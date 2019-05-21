@@ -48,8 +48,8 @@ class SetHandler {
 public:
   SetHandler() = default;
 
-  std::optional<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
-    nlohmann::json set_query = nlohmann::json::array();
+  std::vector<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
+    std::vector<nlohmann::json> set_query;
 
     for(auto &[set_node, id] : set_nodes){
       if(set_node.empty() || !condition_manager.getEvalResultById(id))
@@ -70,8 +70,6 @@ public:
         set_query.emplace_back(contents.value());
       }
     }
-    if(set_query.empty())
-      return std::nullopt;
 
     return set_query;
   }
@@ -80,22 +78,29 @@ private:
 
   std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataManager &data_manager) {
 
+    // 1) parsing node attributes
+
     nlohmann::json contents;
 
+    std::string from_att;
+    std::string for_att;
+
     if(set_type == SetType::SCOPE_USER) {
-      std::string for_att = set_node.attribute("for").value();
+      for_att = set_node.attribute("for").value();
       if (for_att.empty() || !vs::inArray(for_att,{"user","author"}))
         return std::nullopt;
 
       contents["for"] = for_att;
     }
     else if(set_type == SetType::V_TRANSFER) {
-      std::string from_att = set_node.attribute("from").value();
+      from_att = set_node.attribute("from").value();
       if (from_att.empty() || !vs::inArray(from_att,{"user","author","contract"}))
         return std::nullopt;
 
       contents["from"] = from_att;
     }
+
+    // 2) parsing all option entries
 
     auto option_nodes = set_node.select_nodes("/option");
 
@@ -212,7 +217,10 @@ private:
       break;
 
       case SetType::V_TRANSFER: {
-          //TODO : need something for checking tag, pid condition
+          if (option_name == "tag" && !data.empty()) {
+            // TODO : check data must be xml
+          }
+
       }
       break;
 
@@ -247,6 +255,58 @@ private:
       if(!data.empty())
         contents[option_name] = data;
     }
+
+    // after parsing all option entries
+    // TODO : check missing feild
+
+    switch(set_type) {
+    case SetType::SCOPE_USER: {
+
+      std::string id = data_manager.eval("$" + for_att);
+      std::string pid = json::get<std::string>(contents,"pid").value_or("");
+      std::string name = json::get<std::string>(contents,"unit").value_or("");
+
+      if(!pid.empty()) {
+        auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
+
+        if (!record)
+          return std::nullopt;
+
+        if(!record.value().tag.empty()) {
+
+          // TODO : check updtable condition by tag handler
+
+        }
+      }
+    }
+    break;
+
+    case SetType::V_TRANSFER: {
+
+      if (from_att == "user" || from_att == "author") {
+        std::string id = data_manager.eval("$" + from_att);
+        std::string pid = json::get<std::string>(contents, "pid").value_or("");
+        std::string name = json::get<std::string>(contents, "name").value_or("");
+
+        if (!pid.empty()) {
+          auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
+
+          if (!record)
+            return std::nullopt;
+
+          if (!record.value().tag.empty()) {
+            // TODO : check updtable condition by tag handler
+          }
+        }
+      }
+    }
+    break;
+
+    default:
+      break;
+    }
+
+
 
     return contents;
   }
