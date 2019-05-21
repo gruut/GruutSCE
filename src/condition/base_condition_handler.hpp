@@ -13,14 +13,14 @@ public:
   virtual bool evalue(pugi::xml_node &doc_node, Datamap &datamap);
 
 protected:
-  EvalRuleType getEvalRule(const std::string &eval_str) {
+  EvalRuleType getEvalRule(std::string_view eval_str) {
     if(eval_str.empty() || vs::toLower(eval_str) != "and")
       return EvalRuleType::OR;
 
     return EvalRuleType::AND;
   }
 
-  PrimaryConditionType getPrimaryConditionType(const std::string &condition_tag) {
+  PrimaryConditionType getPrimaryConditionType(std::string_view condition_tag) {
     if(condition_tag.empty())
       return PrimaryConditionType::UNKNOWN;
 
@@ -49,7 +49,7 @@ protected:
     return it_map->second;
   }
 
-  SecondaryConditionType getSecondaryConditionType(const std::string &condition_tag) {
+  SecondaryConditionType getSecondaryConditionType(std::string_view condition_tag) {
     if(condition_tag.empty())
       return SecondaryConditionType::UNKNOWN;
 

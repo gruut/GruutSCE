@@ -18,7 +18,7 @@ struct DataAttribute {
 struct UserScopeRecord {
   std::string var_name;
   std::string var_value;
-  uint8_t var_type;
+  EnumAll var_type;
   std::string var_owner;
   uint64_t up_time;
   uint64_t up_block;
@@ -30,7 +30,7 @@ struct ContractScopeRecord {
   std::string contract_id;
   std::string var_name;
   std::string var_value;
-  uint8_t var_type;
+  EnumAll var_type;
   std::string var_info;
   uint64_t up_time;
   uint64_t up_block;
@@ -41,7 +41,7 @@ struct UserAttributeRecord {
   std::string uid;
   std::string register_day;
   std::string register_code;
-  uint8_t gender;
+  EnumGender gender;
   std::string isc_type;
   std::string isc_code;
   std::string location;
@@ -126,6 +126,55 @@ public:
     return queryIfUserAttrAndParseData(query, user_id);
   }
 
+  template <typename S1 = std::string, typename S2 = std::string>
+  int64_t getUserKeyCurrency(S1 &&user_id_) {
+    if(user_id_.empty())
+      return {};
+
+    std::string user_id = user_id_;
+
+    if(user_id[0] == '$') {
+      user_id = eval(user_id);
+    }
+
+    std::vector<DataAttribute> ret_vec;
+
+    int64_t keyc_amount = 0;
+
+    std::string scope_key = user_id + "KEYC";
+    auto it_tbl = m_user_scope_table.find(scope_key);
+    if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
+      for(auto &each_row : it_tbl->second) {
+        if(each_row.tag.empty() && each_row.var_type == EnumAll::KEYC && each_row.var_name == "KEYC") {
+          keyc_amount = vs::str2num<int64_t>(each_row.var_value);
+          break;
+        }
+      }
+    }
+
+    if(!ret_vec.empty())
+      return keyc_amount;
+
+    nlohmann::json query = {
+        {"type", "user.scope.get"},
+        {"where",
+         {"uid", user_id},
+         {"name", "KEYC"},
+         {"type", "KEYC"},
+         {"notag", true}
+        }
+    };
+
+    auto result = queryIfUserScopeAndParseData(query, user_id);
+
+    if(!result.empty() && result[0].name == "KEYC"){
+      keyc_amount = vs::str2num<int64_t>(result[0].value);
+    }
+
+    return keyc_amount;
+
+  }
+
   template <typename S = std::string>
   std::vector<DataAttribute> getUserCert(S &&user_id_) {
     if(user_id_.empty())
@@ -145,6 +194,31 @@ public:
     };
 
     return queryIfUserCertAndParseData(query, user_id);
+  }
+
+  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
+  std::optional<UserScopeRecord> getUserScopeRecordByPid(S1 &&id, S2 &&name, S3 &&pid) {
+
+    std::vector<DataAttribute> ret_vec;
+
+    std::string scope_key = id + name;
+
+    auto ret_record = findUserScopeTableByPid(id,name,pid);
+
+    if(ret_record)
+      return ret_record;
+
+    nlohmann::json query = {
+        {"type", "user.scope.get"},
+        {"where",
+         {"uid", id},
+         {"pid", pid}
+        }
+    };
+
+    queryIfUserScopeAndParseData(query, id); // try to cache - ignore return value;
+
+    return findUserScopeTableByPid(id,name,pid);
   }
 
   template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
@@ -246,6 +320,24 @@ public:
 
 private:
 
+  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
+  std::optional<UserScopeRecord> findUserScopeTableByPid(S1 &&id, S2 &&name, S3 &&pid){
+
+    std::string scope_key = id + name;
+
+    auto it_tbl = m_user_scope_table.find(scope_key);
+    if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
+      for(auto &each_row : it_tbl->second) {
+        if(each_row.pid == pid) {
+          return each_row;
+        }
+      }
+    }
+
+    return std::nullopt;
+  }
+
+
   std::vector<DataAttribute> queryIfAndParseData(nlohmann::json &query) {
     auto [result_name,result_data] = queryAndCache(query);
 
@@ -314,7 +406,7 @@ private:
         else if (result_name[i] == "register_code")
           buf_record.register_code = result_data[0][i].get<std::string>();
         else if (result_name[i] == "gender")
-          buf_record.gender = vs::str2num<uint8_t>(result_data[0][i].get<std::string>());
+          buf_record.gender = static_cast<EnumGender>(vs::str2num<uint8_t>(result_data[0][i].get<std::string>()));
         else if (result_name[i] == "isc_type")
           buf_record.isc_type = result_data[0][i].get<std::string>();
         else if (result_name[i] == "isc_code")
@@ -353,7 +445,7 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = each_row[i].get<std::string>();
           else if (result_name[i] == "var_type")
-            buf_record.var_type = vs::str2num<uint8_t>(each_row[i].get<std::string>());
+            buf_record.var_type = static_cast<EnumAll>(vs::str2num<uint8_t>(each_row[i].get<std::string>()));
           else if (result_name[i] == "var_owner")
             buf_record.var_owner = each_row[i].get<std::string>();
           else if (result_name[i] == "up_time")
@@ -405,7 +497,7 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = each_row[i].get<std::string>();
           else if (result_name[i] == "var_type")
-            buf_record.var_type = vs::str2num<uint8_t>(each_row[i].get<std::string>());
+            buf_record.var_type = static_cast<EnumAll>(vs::str2num<uint8_t>(each_row[i].get<std::string>()));
           else if (result_name[i] == "contract_id")
             buf_record.contract_id = each_row[i].get<std::string>();
           else if (result_name[i] == "up_time")

@@ -25,21 +25,21 @@ const auto BASE64_REGEX = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9
 const auto BASE58_REGEX = "^[A-HJ-NP-Za-km-z1-9]*$";
 const auto BIN_REGEX = "^[0-1]*$";
 
+struct InputOption {
+  std::string key;
+  std::string validation;
+  std::string type;
+  InputOption(std::string key_, std::string validation_, std::string type_)
+      : key(std::move(key_)), validation(std::move(validation_)), type(std::move(type_)) {
+  }
+};
+
 class InputHandler {
 public:
   InputHandler() = default;
 
 
   bool parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
-
-    struct InputOption {
-      std::string key;
-      std::string validation;
-      std::string type;
-      InputOption(std::string key_, std::string validation_, std::string type_)
-        : key(std::move(key_)), validation(std::move(validation_)), type(std::move(type_)) {
-      }
-    };
 
     if(input_json.empty())
       return false;
@@ -132,11 +132,11 @@ public:
 private:
   template <typename S = std::string>
   bool isValidValue(S &&value, S &&type, S &&validation){
-    auto it = VarTypeMap.find(type);
-    auto var_type = (it == VarTypeMap.end() ? VarType::NONE : it->second);
+    auto it = INPUT_OPTION_TYPE_MAP.find(type);
+    auto var_type = (it == INPUT_OPTION_TYPE_MAP.end() ? EnumAll::TEXT : it->second); // default is TEXT
     try {
       switch (var_type) {
-      case VarType::INT: {
+      case EnumAll::INT: {
         if (value.length() > INT_LENGTH)
           return false;
         auto val = std::stoll(value);
@@ -144,7 +144,7 @@ private:
           return false;
         break;
       }
-      case VarType::PINT: {
+      case EnumAll::PINT: {
         if (value.length() > INT_LENGTH)
           return false;
         auto val = std::stoll(value);
@@ -152,7 +152,7 @@ private:
           return false;
         break;
       }
-      case VarType::NINT: {
+      case EnumAll::NINT: {
         if (value.length() > INT_LENGTH)
           return false;
         auto val = std::stoll(value);
@@ -160,11 +160,11 @@ private:
           return false;
         break;
       }
-      case VarType::FLOAT: {
+      case EnumAll::FLOAT: {
         std::stod(value);
         break;
       }
-      case VarType::BOOL: {
+      case EnumAll::BOOL: {
         std::regex rgx(BOOL_REGEX);
         if (regex_match(value, rgx))
           return true;
@@ -173,76 +173,76 @@ private:
           return false;
         break;
       }
-      case VarType::TINYTEXT: {
+      case EnumAll::TINYTEXT: {
         if(value.length() > TINYTEXT_LEN)
           return false;
         break;
       }
-      case VarType::TEXT: {
+      case EnumAll::TEXT: {
         if(value.length() > TEXT_LEN)
           return false;
         break;
       }
-      case VarType::MEDIUMTEXT: {
+      case EnumAll::MEDIUMTEXT: {
         if(value.length() > MEDIUMTEXT_LEN)
           return false;
         break;
       }
-      case VarType::DATE: {
+      case EnumAll::DATE: {
         std::regex rgx(DATE_REGEX);
         if(!std::regex_match(value, rgx))
           return false;
         break;
       }
-      case VarType::DATETIME: {
+      case EnumAll::DATETIME: {
         std::regex rgx(DATE_TIME_REGEX);
         if(!std::regex_match(value, rgx))
           return false;
         break;
       }
-      case VarType::BIN: {
+      case EnumAll::BIN: {
         std::regex rgx(BIN_REGEX);
         if(!std::regex_match(value, rgx))
           return false;
         break;
       }
-      case VarType::DEC: {
+      case EnumAll::DEC: {
         if(!std::all_of(value.begin(), value.end(), ::isdigit))
           return false;
         break;
       }
-      case VarType::HEX: {
+      case EnumAll::HEX: {
         if(!std::all_of(value.begin(), value.end(), ::isxdigit))
           return false;
         break;
       }
-      case VarType::BASE58: {
+      case EnumAll::BASE58: {
         std::regex rgx(BASE58_REGEX);
         if(!std::regex_match(value, rgx))
           return false;
         break;
       }
-      case VarType::BASE64: {
+      case EnumAll::BASE64: {
         std::regex rgx(BASE64_REGEX);
         if(!std::regex_match(value, rgx))
           return false;
         break;
       }
-      case VarType::ENUMV: {
+      case EnumAll::ENUMV: {
         if(!(value == "GRU" || value == "FIAT" || value == "COIN" || value == "XCOIN"))
           return false;
         break;
       }
-      case VarType::ENUMGENDER: {
+      case EnumAll::ENUMGENDER: {
         if(!(value == "MALE" || value == "FEMALE" || value == "OTHER"))
           return false;
         break;
       }
-      case VarType::ENUMALL: {
+      case EnumAll::ENUMALL: {
         //TODO : handle `ENUMALL` type
         break;
       }
-      case VarType::PEM: {
+      case EnumAll::PEM: {
         string begin_str = "-----BEGIN CERTIFICATE-----";
         string end_str = "-----END CERTIFICATE-----";
         auto found1 = value.find(begin_str);
@@ -257,15 +257,18 @@ private:
           return false;
         break;
       }
-      case VarType::XML:
-      case VarType::CONTRACT: {
+      case EnumAll::XML:
+      case EnumAll::CONTRACT: {
         pugi::xml_document doc;
         pugi::xml_parse_result result = doc.load_string(value.data());
         if(!result)
           return false;
-        if(var_type == VarType::XML)
+        if(var_type == EnumAll::XML)
           break;
         else{
+
+          // TODO : enhance contract checking
+
           std::string check_begin = "<contract";
           std::string check_end = "</contract>";
           auto begin_str = value.substr(0, check_begin.length());

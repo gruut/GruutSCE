@@ -62,29 +62,12 @@ public:
       eval_result = (src_str != ref_str);
     } else {
 
-      int src_int, ref_int, abs_val;
-
-      try {
-        src_int = std::stoi(src_str);
-        ref_int = std::stoi(ref_str);
-      }
-      catch (...) {
-        return false;
-      }
-
       std::string abs_str = doc_node.attribute("abs").value();
       vs::trim(abs_str);
 
-      if(abs_str.empty())
-        abs_val = 0;
-      else {
-        try {
-          abs_val = std::stoi(abs_str);
-        }
-        catch(...) {
-          return false;
-        }
-      }
+      int src_int = vs::str2num<int>(src_str);
+      int ref_int = vs::str2num<int>(ref_str);
+      int abs_val = vs::str2num<int>(abs_str);
 
       switch (comp_type) {
       case CompareType::GE:
@@ -120,7 +103,7 @@ public:
   }
 
 private:
-  CompareType getCompareType(const std::string &type_str){
+  CompareType getCompareType(std::string_view type_str){
     std::string type_str_lower = vs::toLower(type_str);
 
     static std::map<std::string, CompareType> tag_to_type_map = {

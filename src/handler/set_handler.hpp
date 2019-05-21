@@ -9,7 +9,7 @@ namespace veronn::vsce {
 
 const auto REGEX_BASE64 = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
 
-enum class SetType : int{
+enum class SetType : int {
   USER_JOIN,
   USER_CERT,
   V_CREATE,
@@ -19,254 +19,298 @@ enum class SetType : int{
   SCOPE_CONTRACT,
   CONTRACT_NEW,
   CONTRACT_DISABLE,
-  ITEM_TRADE,
-  V_TRADE,
+  TRADE_ITEM,
+  TRADE_V,
   RUN_QUERY,
   RUN_CONTRACT,
   NONE
 };
 
-const std::unordered_map<std::string, SetType> SetTypeMap {
-  {"user.cert", SetType::USER_JOIN}, {"user.cert", SetType::USER_CERT},
-      {"v.create", SetType::V_CREATE}, {"v.incinerate", SetType::V_INCINERATE},
-      {"v.transfer", SetType::V_TRANSFER}, {"scope.user", SetType::SCOPE_USER},
-      {"scope.contract", SetType::SCOPE_CONTRACT}, {"contract.new", SetType::CONTRACT_NEW},
-      {"contract.disable", SetType::CONTRACT_DISABLE},
-      {"item.trade", SetType::ITEM_TRADE}, {"v.trande", SetType::V_TRADE},
-      {"run.query", SetType::RUN_QUERY}, {"run.contract", SetType::RUN_CONTRACT}
+// clang-format off
+const std::map<std::string, SetType> SET_TYPE_MAP {
+  {"user.cert", SetType::USER_JOIN},
+  {"user.cert", SetType::USER_CERT},
+  {"v.create", SetType::V_CREATE},
+  {"v.incinerate", SetType::V_INCINERATE},
+  {"v.transfer", SetType::V_TRANSFER},
+  {"scope.user", SetType::SCOPE_USER},
+  {"scope.contract", SetType::SCOPE_CONTRACT},
+  {"contract.new", SetType::CONTRACT_NEW},
+  {"contract.disable", SetType::CONTRACT_DISABLE},
+  {"trade.item", SetType::TRADE_ITEM},
+  {"trade.v", SetType::TRADE_V},
+  {"run.query", SetType::RUN_QUERY},
+  {"run.contract", SetType::RUN_CONTRACT}
 };
+// clang-format on
 
 class SetHandler {
 public:
   SetHandler() = default;
 
-  std::optional<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_collector){
-    nlohmann::json query = nlohmann::json::array();
+  std::vector<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
+    std::vector<nlohmann::json> set_query;
+
     for(auto &[set_node, id] : set_nodes){
-      if(set_node.empty() || condition_manager.getEvalResultById(id))
+      if(set_node.empty() || !condition_manager.getEvalResultById(id))
         continue;
+
       std::string type_str = set_node.attribute("type").value();
-      auto it = SetTypeMap.find(type_str);
-      auto set_type = (it == SetTypeMap.end() ? SetType::NONE : it->second);
-      optional<nlohmann::json> contents = handle(set_type, set_node, data_collector);
-      if(!contents.has_value())
-        continue;
-      query.emplace_back(contents);
-    }
-    if(query.empty())
-      return {};
-    return query;
-  }
-private:
-  std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataManager &data_collector) {
-    nlohmann::json contents;
-    auto option_nodes = set_node.select_nodes("/option");
-    switch (set_type) {
-    case SetType::USER_JOIN:{
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        if (option_name == "gender") {
-          if (data.empty() || (data != "MALE" && data!="FEMALE" && data != "OTHER"))
-            return {};
-        }
-        else if(option_name == "regi_day") {
-          if(!data.empty()) {
-            if(!std::all_of(data.begin(), data.end(), ::isdigit))
-              return {};
-          }
-        }
-        contents[option_name] = data;
+
+      auto it = SET_TYPE_MAP.find(type_str);
+      auto set_type = (it == SET_TYPE_MAP.end() ? SetType::NONE : it->second);
+
+      if(set_type != SetType::NONE) {
+
+        auto contents = handle(set_type, set_node, data_manager);
+
+        if (!contents)
+          continue;
+
+        set_query.emplace_back(contents.value());
       }
-      if(contents["gender"] == "other"){
-        auto regi_code = json::get<std::string>(contents, "regi_code");
-        if(!regi_code.has_value())
-          return {};
-        if(regi_code.value().empty())
-          return {};
+    }
+
+    return set_query;
+  }
+
+private:
+
+  std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataManager &data_manager) {
+
+    // 1) parsing node attributes
+
+    nlohmann::json contents;
+
+    std::string from_att;
+    std::string for_att;
+
+    if(set_type == SetType::SCOPE_USER) {
+      for_att = set_node.attribute("for").value();
+      if (for_att.empty() || !vs::inArray(for_att,{"user","author"}))
+        return std::nullopt;
+
+      contents["for"] = for_att;
+    }
+    else if(set_type == SetType::V_TRANSFER) {
+      from_att = set_node.attribute("from").value();
+      if (from_att.empty() || !vs::inArray(from_att,{"user","author","contract"}))
+        return std::nullopt;
+
+      contents["from"] = from_att;
+    }
+
+    // 2) parsing all option entries
+
+    auto option_nodes = set_node.select_nodes("/option");
+
+    for (auto &each_node : option_nodes) {
+
+      auto option_node = each_node.node();
+
+      std::string option_name = option_node.attribute("name").value();
+      std::string option_value = option_node.attribute("value").value();
+      std::string data = data_manager.eval(option_value);
+
+      option_name = vs::toUpper(option_name);
+
+      if (option_name.empty() || data.empty())
+        continue;
+
+      switch (set_type) {
+
+      case SetType::USER_JOIN: {
+        if (option_name == "gender") {
+          data = vs::toUpper(data);
+          if (!vs::inArray(data,{"MALE","FEMALE","OTHER"}))
+            data.clear(); // for company or something other cases
+        }
+
+        if (option_name == "register_day") {
+          // TODO : fix to YYYY-MM-DD format
+          if (!vs::isDigit(data))
+            data.clear();
+        }
       }
       break;
-    }
-    case SetType::USER_CERT:{
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        if (option_name == "notbefore" || option_name == "notafter") {
-          if (data.empty())
-            return {};
-          if(!std::all_of(data.begin(), data.end(), ::isdigit))
-            return {};
+
+      case SetType::USER_CERT: {
+        if (vs::inArray(option_name,{"notbefore","notafter"})) {
+          // TODO : fix to allow both YYYY-MM-DD and timestamp
+          if (!vs::isDigit(data))
+            data.clear();
         }
-        else if(option_name == "x509") {
+
+        if (option_name == "x509") {
           string begin_str = "-----BEGIN CERTIFICATE-----";
           string end_str = "-----END CERTIFICATE-----";
           auto found1 = data.find(begin_str);
           auto found2 = data.find(end_str);
-          if(found1 == string::npos || found2 ==string::npos) {
-            return {};
-          }
+          if (found1 == string::npos || found2 == string::npos)
+            data.clear();
+
           auto content_len = data.length() - begin_str.length() - end_str.length();
           auto content = data.substr(begin_str.length(), content_len);
           std::regex rgx(REGEX_BASE64);
-          if(!std::regex_match(data, rgx))
-            return {};
+          if (!std::regex_match(data, rgx))
+            data.clear();
         }
-        contents[option_name] = data;
+
       }
       break;
-    }
-    case SetType::V_CREATE: {
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
+
+      case SetType::V_CREATE: {
         if (option_name == "amount") {
-          if (data.empty() || data[0] == '0' || data[0] == '-' || data.length() > 16)
-            return {};
+          // TODO : enhance the checking routing!
+          if (data[0] == '0' || data[0] == '-' || data.length() > 16)
+            data.clear();
         }
-        else if(option_name == "type") {
-          if (data.empty() || ( data != "GRU" && data != "FIAT" && data != "COIN" && data!= "XCOIN" && data != "MILE"))
-            return {};
+
+        if (option_name == "type") {
+          data = vs::toUpper(data);
+          if (!vs::inArray(data,{"GRU","FIAT","COIN","XCOIN","MILE"}))
+            data.clear();
         }
-        contents[option_name] = data;
       }
       break;
-    }
-    case SetType::V_INCINERATE: {
-      auto option_node = option_nodes.first().node();
-      std::string option_name = option_node.attribute("name").value();
-      std::string option_value = option_node.attribute("value").value();
-      std::string data = data_collector.eval(option_value);
-      if(option_name != "pid" || data.empty())
-        return {};
-      std::regex rgx(REGEX_BASE64);
-      if(!std::regex_match(data, rgx))
-        return {};
-      contents[option_name] = data;
-      break;
-    }
-    case SetType::SCOPE_USER:{
-      std::string for_att = set_node.attribute("for").value();
-      if(for_att.empty() || ( for_att != "user" && for_att != "author"))
-        return {};
-      contents["for"] = for_att;
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        //TODO : need something for checking tag, pid condition.
-        contents[option_name] = data;
-      }
-      break;
-    }
-    case SetType::SCOPE_CONTRACT:{
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        contents[option_name] = data;
-        //TODO : check 'cid'
-      }
-      auto pid = json::get<std::string>(contents, "pid");
-      if(!pid.has_value())
-        return {};
-      std::regex rgx(REGEX_BASE64);
-      if(!pid.value().empty()){
-        if(!std::regex_match(pid.value(), rgx))
-          return {};
-      }
-      break;
-    }
-    case SetType::CONTRACT_NEW: {
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        //TODO : check 'cid'
-        if (option_name == "before" || option_name == "after") {
-          if (data.empty())
-            return {};
-          if(!std::all_of(data.begin(), data.end(), ::isdigit))
-            return {};
+
+      case SetType::V_INCINERATE: {
+        if (option_name == "amount") {
+          // TODO : write code for checking amount
         }
-        contents[option_name] = data;
-      }
-      break;
-    }
-    case SetType::CONTRACT_DISABLE: {
-      auto option_node = option_nodes.first().node();
-      std::string option_name = option_node.attribute("name").value();
-      std::string option_value = option_node.attribute("value").value();
-      std::string data = data_collector.eval(option_value);
-      if(option_name != "cid")
-        return {};
-      contents["cid"] = "";
-      break;
-    }
-    case SetType::V_TRANSFER:{
-      std::string from_att = set_node.attribute("from").value();
-      if(from_att.empty() || ( from_att != "user" && from_att != "author" && from_att != "contract"))
-        return {};
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        //TODO : need something for checking tag, pid condition
-        contents[option_name] = data;
-      }
-      break;
-    }
-    case SetType::RUN_QUERY: {
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        if(option_name == "type"){
-          if(data == "run.query" || data == "user.cert")
-            return {};
+
+        if (option_name == "pid") {
+          std::regex rgx(REGEX_BASE64);
+          if (!std::regex_match(data, rgx))
+            data.clear();
         }
-        else if(option_name == "after"){
-          if(data.empty())
-            return {};
-          if(!std::all_of(data.begin(), data.end(), ::isdigit))
-            return {};
-        }
-        contents[option_name] = data;
       }
       break;
-    }
-    case SetType::RUN_CONTRACT: {
-      for (auto &each_node : option_nodes) {
-        auto option_node = each_node.node();
-        std::string option_name = option_node.attribute("name").value();
-        std::string option_value = option_node.attribute("value").value();
-        std::string data = data_collector.eval(option_value);
-        //TODO : check 'cid'
-        if(option_name == "after"){
-          if(data.empty())
-            return {};
-          if(!std::all_of(data.begin(), data.end(), ::isdigit))
-            return {};
+
+      case SetType::SCOPE_USER: {
+        if(option_name == "tag") {
+          // TODO : check data is xml
         }
-        contents[option_name] = data;
       }
       break;
+
+      case SetType::SCOPE_CONTRACT: {
+        if(option_name == "pid") {
+          std::regex rgx(REGEX_BASE64);
+          if (!std::regex_match(data, rgx))
+            data.clear();
+        }
+      }
+      break;
+
+      case SetType::CONTRACT_NEW: {
+        if (vs::inArray(option_name, {"before","after"})) {
+          // TODO : fix to allow both YYYY-MM-DD and timestamp
+          if (!vs::isDigit(data))
+            data.clear();
+        }
+      }
+      break;
+
+      case SetType::CONTRACT_DISABLE: {
+      }
+      break;
+
+      case SetType::V_TRANSFER: {
+          if (option_name == "tag" && !data.empty()) {
+            // TODO : check data must be xml
+          }
+
+      }
+      break;
+
+      case SetType::RUN_QUERY: {
+        if (option_name == "type") {
+          if (!vs::inArray(data, {"run.query","user.cert"}))
+            data.clear();
+        }
+
+        if (option_name == "after") {
+          // TODO : fix to allow both YYYY-MM-DD and timestamp
+          if (!vs::isDigit(data))
+            data.clear();
+        }
+      }
+      break;
+
+      case SetType::RUN_CONTRACT: {
+          //TODO : check 'cid'
+        if (option_name == "after") {
+          // TODO : fix to allow both YYYY-MM-DD and timestamp
+          if (!vs::isDigit(data))
+            data.clear();
+        }
+      }
+      break;
+
+      default:
+      break;
+      }
+
+      if(!data.empty())
+        contents[option_name] = data;
     }
+
+    // after parsing all option entries
+    // TODO : check missing feild
+
+    switch(set_type) {
+    case SetType::SCOPE_USER: {
+
+      std::string id = data_manager.eval("$" + for_att);
+      std::string pid = json::get<std::string>(contents,"pid").value_or("");
+      std::string name = json::get<std::string>(contents,"unit").value_or("");
+
+      if(!pid.empty()) {
+        auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
+
+        if (!record)
+          return std::nullopt;
+
+        if(!record.value().tag.empty()) {
+
+          // TODO : check updtable condition by tag handler
+
+        }
+      }
+    }
+    break;
+
+    case SetType::V_TRANSFER: {
+
+      if (from_att == "user" || from_att == "author") {
+        std::string id = data_manager.eval("$" + from_att);
+        std::string pid = json::get<std::string>(contents, "pid").value_or("");
+        std::string name = json::get<std::string>(contents, "name").value_or("");
+
+        if (!pid.empty()) {
+          auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
+
+          if (!record)
+            return std::nullopt;
+
+          if (!record.value().tag.empty()) {
+            // TODO : check updtable condition by tag handler
+          }
+        }
+      }
+    }
+    break;
+
     default:
-      return {};
+      break;
     }
+
+
+
     return contents;
   }
+
 };
 
 }

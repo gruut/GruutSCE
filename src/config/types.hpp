@@ -10,8 +10,42 @@
 
 namespace veronn::vsce {
 
+enum class EnumAll : uint8_t {
+  KEYC = 0,
+  FIAT = 1,
+  COIN = 2,
+  XCOIN = 3,
+  MILE = 4,
+  ENUMV = 10,
+  ENUMGENDER = 11,
+  ENUMALL = 12,
+  PEM = 21,
+  CONTRACT = 22,
+  XML = 23,
+  BIN = 31,
+  DEC = 32,
+  HEX = 33,
+  BASE58 = 34,
+  BASE64 = 35,
+  INT = 50,
+  PINT = 51,
+  NINT  = 52,
+  FLOAT = 53,
+  BOOL = 54,
+  TINYTEXT = 60,
+  TEXT = 61,
+  MEDIUMTEXT = 62,
+  LONGTEXT = 63,
+  DATETIME = 71,
+  DATE = 72,
+  MALE = 90,
+  FEMALE = 90,
+  OTHER = 92,
+  NONE = 255
+};
+
 enum class EnumV : int {
-  GRU = 0,
+  KEYC = 0,
   FIAT = 1,
   COIN = 2,
   XCOIN = 3,
@@ -24,54 +58,28 @@ enum class EnumGender : int {
   OTHER = 92
 };
 
-enum class VarType : int {
-  INT,
-  PINT,
-  NINT,
-  FLOAT,
-  BOOL,
-  TINYTEXT,
-  TEXT,
-  MEDIUMTEXT,
-  LONGTEXT,
-  DATETIME,
-  DATE,
-  BIN,
-  DEC,
-  HEX,
-  BASE58,
-  BASE64,
-  PEM,
-  ENUMV,
-  ENUMGENDER,
-  ENUMALL,
-  CONTRACT,
-  XML,
-  NONE
-};
-
-const std::unordered_map<std::string, VarType> VarTypeMap {
-    {"INT", VarType::INT},
-    {"PINT", VarType::PINT},
-    {"NINT", VarType::NINT},
-    {"FLOAT", VarType::FLOAT},
-    {"BOOL", VarType::BOOL},
-    {"TINYTEXT", VarType::TINYTEXT},
-    {"TEXT", VarType::TEXT},
-    {"MEDIUMTEXT", VarType::LONGTEXT},
-    {"DATETIME", VarType::DATETIME},
-    {"DATE", VarType::DATE},
-    {"BIN", VarType::BIN},
-    {"DEC", VarType::DEC},
-    {"HEX", VarType::HEX},
-    {"BASE58", VarType::BASE58},
-    {"BASE64", VarType::BASE64},
-    {"PEM", VarType::PEM},
-    {"ENUMV", VarType::ENUMV},
-    {"ENUMGENDER", VarType::ENUMGENDER},
-    {"ENUMALL", VarType::ENUMALL},
-    {"CONTRACT", VarType::CONTRACT},
-    {"XML", VarType::XML}
+const std::unordered_map<std::string, EnumAll> INPUT_OPTION_TYPE_MAP {
+    {"INT", EnumAll::INT},
+    {"PINT", EnumAll::PINT},
+    {"NINT", EnumAll::NINT},
+    {"FLOAT", EnumAll::FLOAT},
+    {"BOOL", EnumAll::BOOL},
+    {"TINYTEXT", EnumAll::TINYTEXT},
+    {"TEXT", EnumAll::TEXT},
+    {"MEDIUMTEXT", EnumAll::LONGTEXT},
+    {"DATETIME", EnumAll::DATETIME},
+    {"DATE", EnumAll::DATE},
+    {"BIN", EnumAll::BIN},
+    {"DEC", EnumAll::DEC},
+    {"HEX", EnumAll::HEX},
+    {"BASE58", EnumAll::BASE58},
+    {"BASE64", EnumAll::BASE64},
+    {"PEM", EnumAll::PEM},
+    {"ENUMV", EnumAll::ENUMV},
+    {"ENUMGENDER", EnumAll::ENUMGENDER},
+    {"ENUMALL", EnumAll::ENUMALL},
+    {"CONTRACT", EnumAll::CONTRACT},
+    {"XML", EnumAll::XML}
 };
 
 enum class EvalRuleType : int {
@@ -107,10 +115,11 @@ enum class SecondaryConditionType : int {
   UNKNOWN
 };
 
-std::map<std::string,std::string> GSCE_ERROR_MSG = {
+std::map<std::string,std::string> VSCE_ERROR_MSG = {
     {"RUN_INPUT", "input is not met"},
     {"RUN_CONDITION", "condition is not met"},
     {"RUN_PERIOD", "runnable time period is not met"},
+    {"NOT_ENOUGH_FEE", "transaction fee shortage"},
     {"NO_CONTRACT", "corresponding contract does not exist"},
     {"RUN_UNKNOWN", "unknown error occurred"},
     {"CONFIG_WORLD", "error on configuration of world and chain"},

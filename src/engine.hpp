@@ -20,7 +20,7 @@ private:
 
   ContractManager m_contract_manager;
   QueryComposer m_query_composer;
-  DataManager m_data_stroage;
+  DataManager m_data_manager;
 
 public:
   Engine() = default;
@@ -47,7 +47,7 @@ public:
       ContractRunner contract_runner;
       if(!contract_runner.setWorldChain()){
         result_fail["txid"] = tx.getTxid();
-        result_fail["info"] = GSCE_ERROR_MSG["CONFIG_WORLD"];
+        result_fail["info"] = VSCE_ERROR_MSG["CONFIG_WORLD"];
         result_queries.emplace_back(result_fail);
 
       } else {
@@ -57,7 +57,7 @@ public:
 
         if (!contract_runner.readUserAttributes()) {
           result_fail["txid"] = tx.getTxid();
-          result_fail["info"] = GSCE_ERROR_MSG["NO_USER"];
+          result_fail["info"] = VSCE_ERROR_MSG["NO_USER"];
           result_queries.emplace_back(result_fail);
         }
 
@@ -66,7 +66,7 @@ public:
           result_queries.emplace_back(res_query.value());
         else {
           result_fail["txid"] = tx.getTxid();
-          result_fail["info"] = GSCE_ERROR_MSG["RUN_UNKNOWN"];
+          result_fail["info"] = VSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
 
@@ -74,7 +74,7 @@ public:
 
     } else {
       result_fail["txid"] = tx.getTxid();
-      result_fail["info"] = GSCE_ERROR_MSG["NO_CONTRACT"];
+      result_fail["info"] = VSCE_ERROR_MSG["NO_CONTRACT"];
       result_queries.emplace_back(result_fail);
     }
 
