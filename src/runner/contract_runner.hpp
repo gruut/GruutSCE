@@ -30,6 +30,14 @@ private:
 public:
   ContractRunner() = default;
 
+  void clear(){
+    m_data_manager.clear();
+  }
+
+  bool update(nlohmann::json &set_query){
+    return true;
+  }
+
   bool setWorldChain() {
 
     auto world_attr = m_data_manager.getWorld();

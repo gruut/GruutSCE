@@ -299,15 +299,16 @@ public:
     if(expr[0] != '$')
       return expr;
 
+    auto eval_str = m_tx_datamap.get(expr);
+    if(!eval_str)
+      return {};
+
+    return eval_str.value();
+  }
+
+  template <typename S = std::string>
+  std::optional<std::string> get(S && expr) {
     return m_tx_datamap.get(expr);
-  }
-
-  void flush(){
-    // TODO : write all data to write interface
-  }
-
-  void flushToStorage(){
-    // TODO : flush all data to storage
   }
 
   void clear(){

@@ -41,46 +41,52 @@ public:
       "info":""
     )"_json;
 
+    result_fail["txid"] = tx.getTxid();
+
     auto contract = m_contract_manager.getContract(tx.getTxid());
 
     if(contract.has_value()) {
       ContractRunner contract_runner;
       if(!contract_runner.setWorldChain()){
-        result_fail["txid"] = tx.getTxid();
         result_fail["info"] = VSCE_ERROR_MSG["CONFIG_WORLD"];
         result_queries.emplace_back(result_fail);
-
       } else {
 
         contract_runner.setContract(contract.value());
         contract_runner.setTransaction(tx);
 
         if (!contract_runner.readUserAttributes()) {
-          result_fail["txid"] = tx.getTxid();
           result_fail["info"] = VSCE_ERROR_MSG["NO_USER"];
           result_queries.emplace_back(result_fail);
         }
 
         auto res_query = contract_runner.run();
-        if (res_query.has_value())
-          result_queries.emplace_back(res_query.value());
+        if (res_query.has_value()) {
+          if(contract_runner.update(res_query.value())){
+            result_queries.emplace_back(res_query.value());
+          } else {
+            result_fail["info"] = VSCE_ERROR_MSG["INVALID_UPDATE_LV1"];
+            result_queries.emplace_back(result_fail);
+          }
+        }
         else {
-          result_fail["txid"] = tx.getTxid();
           result_fail["info"] = VSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
-
       }
 
+      contract_runner.clear();
+
     } else {
-      result_fail["txid"] = tx.getTxid();
       result_fail["info"] = VSCE_ERROR_MSG["NO_CONTRACT"];
       result_queries.emplace_back(result_fail);
     }
 
     //TODO: get block informations
+
     uint64_t block_hgt = 1;
     std::string block_id;
+
     return m_query_composer.compose(result_queries, block_id, block_hgt);
   }
 
