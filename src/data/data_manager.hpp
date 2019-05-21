@@ -216,7 +216,7 @@ public:
         }
     };
 
-    queryIfUserScopeAndParseData(query, id); // try to cache - ignore return value;
+    queryIfUserScopeAndParseData(query, id, "", false); // try to cache - ignore return value;
 
     return findUserScopeTableByPid(id,name,pid);
   }
@@ -253,7 +253,7 @@ public:
       if (scope == "user") {
         for (auto &each_item : m_user_scope_table) {
           for (auto &each_row : each_item.second) {
-            if (each_row.var_owner == id) {
+            if (each_row.var_owner == id && each_row.tag.empty()) {
               ret_vec.emplace_back(each_row.var_name, each_row.var_value);
             }
           }
@@ -427,14 +427,12 @@ private:
     return ret_vec;
   }
 
-  std::vector<DataAttribute> queryIfUserScopeAndParseData(nlohmann::json &query, const std::string &id){
+  std::vector<DataAttribute> queryIfUserScopeAndParseData(nlohmann::json &query, const std::string &id, const std::string &pid = "", bool get_val = true){
     auto [result_name,result_data] = queryAndCache(query);
 
     std::vector<DataAttribute> ret_vec;
 
     if(!result_name.empty() && !result_data.empty()) {
-
-      bool is_clear = false;
 
       for (auto &each_row : result_data) {
 
@@ -462,19 +460,33 @@ private:
         if (buf_record.var_name.empty())
           continue;
 
-        std::string scope_key = id + buf_record.var_name;
-
-        if(!is_clear) {
-          m_user_scope_table[scope_key].clear();
-          is_clear = true;
+        if(get_val) {
+          if (pid.empty()) {
+            if (buf_record.tag.empty())
+              ret_vec.emplace_back(buf_record.var_name, buf_record.var_value);
+          } else {
+            if (buf_record.pid == pid)
+              ret_vec.emplace_back(buf_record.var_name, buf_record.var_value);
+          }
         }
 
-        m_user_scope_table[scope_key].emplace_back(buf_record);
+        // update cache
 
-        if(buf_record.tag.empty())
-          ret_vec.emplace_back(buf_record.var_name, buf_record.var_value);
+        std::string scope_key = id + buf_record.var_name;
+
+        bool is_new = true;
+
+        for(auto &user_scope_record : m_user_scope_table[scope_key]) {
+          if(user_scope_record.pid == buf_record.pid){
+            user_scope_record.var_value = buf_record.var_value;
+            is_new = false;
+            break;
+          }
+        }
+
+        if(is_new)
+          m_user_scope_table[scope_key].emplace_back(buf_record);
       }
-
     }
 
     return ret_vec;
@@ -513,7 +525,7 @@ private:
           continue;
 
         std::string scope_key = cid + buf_record.var_name;
-        m_contract_scope_table[scope_key] = buf_record;
+        m_contract_scope_table[scope_key] = buf_record; // insert or update
 
         ret_vec.emplace_back(buf_record.var_name, buf_record.var_value);
       }

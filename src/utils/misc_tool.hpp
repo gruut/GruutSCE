@@ -150,6 +150,10 @@ public:
     return false;
   }
 
+  static bool inArray(const std::vector<std::string_view> &array, std::string_view data) {
+    return inArray(data,array);
+  }
+
 };
 
 #endif //GRUUTSCE_VS_TOOL_HPP

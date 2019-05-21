@@ -82,6 +82,7 @@ public:
     auto user_pk = json::get<std::string>(tx_agg_json["user"],"pk");
 
     m_data_manager.updateValue("$tx.txid", txid.value());
+    m_data_manager.updateValue("$txid", txid.value());
     m_data_manager.updateValue("$tx.world", world.value());
     m_data_manager.updateValue("$tx.chain",chain.value());
 
@@ -91,6 +92,7 @@ public:
     std::vector<std::string> cid_components = vs::split(cid.value(),"::");
 
     m_data_manager.updateValue("$tx.body.cid", cid.value());
+    m_data_manager.updateValue("$cid", cid.value());
     m_data_manager.updateValue("$author", cid_components[1]);
     m_data_manager.updateValue("$chain", cid_components[2]);
     m_data_manager.updateValue("$world", cid_components[3]);
