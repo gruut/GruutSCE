@@ -4,6 +4,7 @@
 #include "../data/datamap.hpp"
 #include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
+#include "../condition/tag_handler.hpp"
 
 namespace veronn::vsce {
 
@@ -257,7 +258,7 @@ private:
     }
 
     // after parsing all option entries
-    // TODO : check missing feild
+    // TODO : check missing fields
 
     switch(set_type) {
     case SetType::SCOPE_USER: {
@@ -274,8 +275,10 @@ private:
 
         if(!record.value().tag.empty()) {
 
-          // TODO : check updtable condition by tag handler
-
+          TagHandler tag_handler;
+          if(!tag_handler.evalue(record.value().tag,data_manager)) {
+            return std::nullopt;
+          }
         }
       }
     }
@@ -295,7 +298,12 @@ private:
             return std::nullopt;
 
           if (!record.value().tag.empty()) {
-            // TODO : check updtable condition by tag handler
+
+            TagHandler tag_handler;
+            if(!tag_handler.evalue(record.value().tag,data_manager)) {
+              return std::nullopt;
+            }
+
           }
         }
       }

@@ -17,10 +17,8 @@ class Block;
 
 class Engine {
 private:
-
   ContractManager m_contract_manager;
   QueryComposer m_query_composer;
-  DataManager m_data_manager;
 
 public:
   Engine() = default;
@@ -29,31 +27,44 @@ public:
 
   nlohmann::json procBlock(Block &block) {
 
-    // TODO : Block to Transaction object;
+    // TODO : attach real interface
 
-    Transaction tx;
+    std::function<nlohmann::json(nlohmann::json&)> read_storage_interface = [&](nlohmann::json& query){
+      nlohmann::json result;
+      return result;
+    };
+
+    uint64_t block_hgt = 1;
+    std::string block_id;
 
     std::vector<nlohmann::json> result_queries;
 
-    nlohmann::json result_fail = R"(
-      "txid":"",
-      "status":false,
-      "info":""
-    )"_json;
+    ContractRunner contract_runner;
 
-    result_fail["txid"] = tx.getTxid();
+    if(!contract_runner.setWorldChain()){
+      return m_query_composer.compose(result_queries, block_id, block_hgt);
+    }
 
-    auto contract = m_contract_manager.getContract(tx.getTxid());
+    contract_runner.attachReadInterface(read_storage_interface);
 
-    if(contract.has_value()) {
-      ContractRunner contract_runner;
-      if(!contract_runner.setWorldChain()){
-        result_fail["info"] = VSCE_ERROR_MSG["CONFIG_WORLD"];
-        result_queries.emplace_back(result_fail);
-      } else {
+    for(int i = 0; i < 10; ++i){ // TODO : change block to each each_tx
+
+      Transaction each_tx;
+
+      nlohmann::json result_fail = R"(
+        "txid":"",
+        "status":false,
+        "info":""
+      )"_json;
+
+      result_fail["txid"] = each_tx.getTxid();
+
+      auto contract = m_contract_manager.getContract(each_tx.getTxid());
+
+      if (contract.has_value()) {
 
         contract_runner.setContract(contract.value());
-        contract_runner.setTransaction(tx);
+        contract_runner.setTransaction(each_tx);
 
         if (!contract_runner.readUserAttributes()) {
           result_fail["info"] = VSCE_ERROR_MSG["NO_USER"];
@@ -61,31 +72,27 @@ public:
         }
 
         auto res_query = contract_runner.run();
+
         if (res_query.has_value()) {
-          if(contract_runner.update(res_query.value())){
+          if (contract_runner.update(res_query.value())) {
             result_queries.emplace_back(res_query.value());
           } else {
             result_fail["info"] = VSCE_ERROR_MSG["INVALID_UPDATE_LV1"];
             result_queries.emplace_back(result_fail);
           }
-        }
-        else {
+        } else {
           result_fail["info"] = VSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
+
+        contract_runner.clear();
+
+      } else {
+        result_fail["info"] = VSCE_ERROR_MSG["NO_CONTRACT"];
+        result_queries.emplace_back(result_fail);
       }
 
-      contract_runner.clear();
-
-    } else {
-      result_fail["info"] = VSCE_ERROR_MSG["NO_CONTRACT"];
-      result_queries.emplace_back(result_fail);
     }
-
-    //TODO: get block informations
-
-    uint64_t block_hgt = 1;
-    std::string block_id;
 
     return m_query_composer.compose(result_queries, block_id, block_hgt);
   }

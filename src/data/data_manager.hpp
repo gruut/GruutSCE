@@ -69,17 +69,12 @@ private:
   std::map<std::string, std::vector<UserCertRecord>> m_user_cert_table;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
-  std::function<void(nlohmann::json&, nlohmann::json&)> m_write_storage_interface;
 
 public:
   DataManager() = default;
 
-  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> read_storage_interface){
-    m_read_storage_interface = std::move(read_storage_interface);
-  }
-
-  void attachWriteInterface(std::function<void(nlohmann::json&, nlohmann::json&)> write_storage_interface){
-    m_write_storage_interface = std::move(write_storage_interface);
+  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> &read_storage_interface){
+    m_read_storage_interface = read_storage_interface;
   }
 
   template <typename S1 = std::string, typename S2 = std::string>

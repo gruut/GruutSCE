@@ -38,6 +38,10 @@ public:
     return true;
   }
 
+  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> &read_storage_interface){
+    m_data_manager.attachReadInterface(read_storage_interface);
+  }
+
   bool setWorldChain() {
 
     auto world_attr = m_data_manager.getWorld();
@@ -190,7 +194,7 @@ public:
       for (auto &each_condition : condition_nodes) {
         std::string each_id = each_condition.first.attribute("id").value();
         if(each_id == condition_id){
-          m_condition_manager.evalue(each_condition.first,data_map);
+          m_condition_manager.evalue(each_condition.first,m_data_manager);
           break;
         }
       }
@@ -203,7 +207,7 @@ public:
     }
 
     TimeHandler contract_time_handler;
-    if(!contract_time_handler.evalue(head_node.first,data_map)) {
+    if(!contract_time_handler.evalue(head_node.first,m_data_manager)) {
       result_query["status"] = false;
       result_query["info"] = VSCE_ERROR_MSG["RUN_PERIOD"];
       return result_query;
@@ -212,7 +216,7 @@ public:
     // OK ready to go
 
     for(auto &each_condition : condition_nodes) {
-      m_condition_manager.evalue(each_condition.first,data_map);
+      m_condition_manager.evalue(each_condition.first,m_data_manager);
     }
     result_query["authority"]["author"] = m_data_manager.eval("$author");
     result_query["authority"]["user"] = m_data_manager.eval("$user");
@@ -233,7 +237,7 @@ public:
     // process get directive
 
     for(auto &each_condition : condition_nodes) {
-      m_condition_manager.evalue(each_condition.first,data_map);
+      m_condition_manager.evalue(each_condition.first,m_data_manager);
     }
 
     auto& get_nodes = m_element_parser.getNodes("get");
@@ -245,7 +249,7 @@ public:
     // no more change values here
     
     for(auto &each_condition : condition_nodes) {
-      m_condition_manager.evalue(each_condition.first,data_map);
+      m_condition_manager.evalue(each_condition.first,m_data_manager);
     }
 
     // process fee directive
