@@ -10,9 +10,9 @@ class TimeHandler : public BaseConditionHandler {
 public:
   TimeHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
 
-    auto data = datamap.get("$time");
+    auto data = data_manager.get("$time");
     if(!data.has_value()) {
       return false;
     }

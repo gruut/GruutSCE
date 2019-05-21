@@ -13,7 +13,7 @@ class SignatureHandler : public BaseConditionHandler {
 public:
   SignatureHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
     auto signature_type = doc_node.attribute("type").value(); // GAMMA / ECDSA / .... default = GAMMA
 
     auto sig_node = doc_node.child("sig");
@@ -32,7 +32,7 @@ public:
     if (pk_val.empty())
       return false;
     else if (pk_val[0] == '$') {
-      auto pk_val_temp = datamap.get(pk_val);
+      auto pk_val_temp = data_manager.get(pk_val);
       if (!pk_val_temp.has_value())
         return false;
       pk_val = pk_val_temp.value();
@@ -48,7 +48,7 @@ public:
       if (val_value.empty())
         continue;
       if (val_value[0] == '$') {
-        auto temp_val = datamap.get(val_value);
+        auto temp_val = data_manager.get(val_value);
         if (!temp_val.has_value())
           continue;
         val_value = temp_val.value();

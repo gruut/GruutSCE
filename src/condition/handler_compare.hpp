@@ -24,7 +24,7 @@ class CompareHandler : public BaseConditionHandler {
 public:
   CompareHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
 
     std::string src_str = doc_node.attribute("src").value();
     std::string ref_str = doc_node.attribute("ref").value();
@@ -38,7 +38,7 @@ public:
     }
 
     if(src_str[0] == '$'){
-      auto data = datamap.get(src_str);
+      auto data = data_manager.get(src_str);
       if(!data.has_value())
         return false;
 
@@ -47,7 +47,7 @@ public:
     }
 
     if(ref_str[0] == '$'){
-      auto data = datamap.get(src_str);
+      auto data = data_manager.get(src_str);
       if(!data.has_value())
         return false;
 

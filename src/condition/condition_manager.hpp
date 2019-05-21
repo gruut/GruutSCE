@@ -17,7 +17,7 @@ private:
 public:
   ConditionManager() = default;
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) {
+  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) {
 
     std::string condition_id = doc_node.attribute("id").value();
     if(condition_id.empty())
@@ -29,7 +29,7 @@ public:
 
     auto it_map = m_keyword_map.find(condition_id);
     if(it_map != m_keyword_map.end()) { // we know all keywords for this condition
-      hash_kv = getHashKV(it_map->second,datamap);
+      hash_kv = getHashKV(it_map->second,data_manager);
     }
     else { // we don't know any keywords!
       std::function<void(pugi::xml_node &doc_node,std::vector<std::string> &)> keyword_search;
@@ -61,7 +61,7 @@ public:
 
       std::vector<std::string> keyword_list;
       keyword_search(doc_node,keyword_list);
-      hash_kv = getHashKV(keyword_list,datamap);
+      hash_kv = getHashKV(keyword_list,data_manager);
 
       m_keyword_map.insert({condition_id, keyword_list});
     }
@@ -71,13 +71,13 @@ public:
 
     auto it_cache = m_result_cache.find(condition_id);
     if(it_cache == m_result_cache.end()) {
-      eval_result = m_condition_handler.evalue(doc_node,datamap);
+      eval_result = m_condition_handler.evalue(doc_node,data_manager);
       m_result_cache.insert({condition_id,{eval_result, hash_kv}});
     } else {
       if(hash_kv == it_cache->second.second) { // no value changed, cache is valid
         eval_result = it_cache->second.first;
       } else { // value is changed, cache is invalid -> re-evaluate this condition
-        eval_result = m_condition_handler.evalue(doc_node,datamap);
+        eval_result = m_condition_handler.evalue(doc_node,data_manager);
         m_result_cache.insert({condition_id,{eval_result, hash_kv}});
       }
     }
@@ -112,11 +112,11 @@ public:
   }
 
 private:
-  std::vector<uint8_t> getHashKV(std::vector<std::string> &keywords, Datamap &datamap) {
+  std::vector<uint8_t> getHashKV(std::vector<std::string> &keywords, DataManager &data_manager) {
 
     std::string kv_string;
     for(auto &each_kw : keywords) {
-      kv_string.append(datamap.get(each_kw).value_or(""));
+      kv_string.append(data_manager.get(each_kw).value_or(""));
     }
 
     return Sha256::hash(kv_string);

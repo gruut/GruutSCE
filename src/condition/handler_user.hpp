@@ -21,7 +21,7 @@ public:
     }
   }
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
 
     SecondaryConditionType base_condition_type = getSecondaryConditionType(doc_node.name());
 
@@ -37,14 +37,14 @@ public:
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
         for (pugi::xml_node &tags: doc_node) {
-          eval_result &= evalue(tags, datamap);
+          eval_result &= evalue(tags, data_manager);
           if (!eval_result)
             break;
         }
       } else {
         eval_result = false;
         for (pugi::xml_node &tags: doc_node) {
-          eval_result |= evalue(tags, datamap);
+          eval_result |= evalue(tags, data_manager);
           if (eval_result)
             break;
         }
@@ -55,7 +55,7 @@ public:
       std::string user_id_b58 = doc_node.text().as_string(); // <id>...</id>
       vs::trim(user_id_b58);
 
-      auto data = datamap.get(m_user_key);
+      auto data = data_manager.get(m_user_key);
       if(!data.has_value()){
         return false;
       }
@@ -71,7 +71,7 @@ public:
       location += " ";
       location += doc_node.attribute("state").value();
 
-      auto data = datamap.get(m_user_key + ".location");
+      auto data = data_manager.get(m_user_key + ".location");
       if(!data.has_value()){
         return false;
       }
@@ -89,12 +89,12 @@ public:
 
       vs::trim(service_code);
 
-      auto type_data = datamap.get(m_user_key + ".isc_type");
+      auto type_data = data_manager.get(m_user_key + ".isc_type");
       if(!type_data.has_value()){
         return false;
       }
 
-      auto code_data = datamap.get(m_user_key + ".isc_code");
+      auto code_data = data_manager.get(m_user_key + ".isc_code");
       if(!code_data.has_value()){
         return false;
       }
@@ -114,7 +114,7 @@ public:
       if(age_after.empty() && age_before.empty())
         return false;
 
-      auto data = datamap.get(m_user_key + ".birthday");
+      auto data = data_manager.get(m_user_key + ".birthday");
       if(!data.has_value()) {
         return false;
       }

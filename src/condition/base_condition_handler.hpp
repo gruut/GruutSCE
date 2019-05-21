@@ -3,6 +3,7 @@
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
+#include "../data/data_manager.hpp"
 
 namespace veronn::vsce {
 
@@ -10,7 +11,7 @@ class BaseConditionHandler {
 public:
   BaseConditionHandler() = default;
 
-  virtual bool evalue(pugi::xml_node &doc_node, Datamap &datamap);
+  virtual bool evalue(pugi::xml_node &doc_node, DataManager &data_manager);
 
 protected:
   EvalRuleType getEvalRule(std::string_view eval_str) {
@@ -38,7 +39,8 @@ protected:
         {"time", PrimaryConditionType::TIME},
         {"endorser", PrimaryConditionType::ENDORSER},
         {"receiver", PrimaryConditionType::RECEIVER},
-        {"user", PrimaryConditionType::USER}
+        {"user", PrimaryConditionType::USER},
+        {"var", PrimaryConditionType::VAR}
     };
 
     auto it_map = tag_to_type_map.find(cond_tag_lower);

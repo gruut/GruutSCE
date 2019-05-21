@@ -10,7 +10,7 @@ class CertificateHandler : public BaseConditionHandler {
 public:
   CertificateHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, Datamap &datamap) override {
+  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
     auto pk_node = doc_node.child("pk");
     auto by_node = doc_node.child("by");
 
@@ -22,7 +22,7 @@ public:
     if(pk.empty() || pk[0] != '$')
       return false;
     else{
-      auto pk_temp = datamap.get(pk);
+      auto pk_temp = data_manager.get(pk);
       if(!pk_temp.has_value())
         return false;
       pk = pk_temp.value();
@@ -33,7 +33,7 @@ public:
     if(by.empty())
       return false;
     else if(by[0] == '$'){
-	  auto by_temp = datamap.get(by);
+	  auto by_temp = data_manager.get(by);
 	  if(!by_temp.has_value())
 		return false;
 	  by = by_temp.value();
@@ -51,7 +51,7 @@ public:
 
       return cert.check_signature(ecdsa_by_pk);
     }
-    catch(Botan::Exception &exception){
+    catch(...){
       return false;
     }
   }
