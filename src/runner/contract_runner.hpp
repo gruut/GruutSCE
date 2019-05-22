@@ -30,12 +30,13 @@ private:
 public:
   ContractRunner() = default;
 
-  void clear(){
-    m_data_manager.clear();
+  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> &read_storage_interface){
+    m_data_manager.attachReadInterface(read_storage_interface);
   }
 
-  bool update(nlohmann::json &set_query){
-    return true;
+
+  void clear(){
+    m_data_manager.clear();
   }
 
   bool setWorldChain() {
@@ -137,7 +138,7 @@ public:
     return true;
 
 
-    /*
+#if 0
     int num_endorser;
     try{
       num_endorser = std::stoi(m_data_manager.eval("$tx.endorser.count"));
@@ -151,7 +152,7 @@ public:
       auto endorser_attr = m_data_manager.getUserInfo(prefix + ".id");
       attrToMap(endorser_attr, prefix);
     }
-    */
+#endif
   }
 
   std::optional<nlohmann::json> run() {
@@ -190,7 +191,7 @@ public:
       for (auto &each_condition : condition_nodes) {
         std::string each_id = each_condition.first.attribute("id").value();
         if(each_id == condition_id){
-          m_condition_manager.evalue(each_condition.first,data_map);
+          m_condition_manager.evalue(each_condition.first,m_data_manager);
           break;
         }
       }
@@ -203,7 +204,7 @@ public:
     }
 
     TimeHandler contract_time_handler;
-    if(!contract_time_handler.evalue(head_node.first,data_map)) {
+    if(!contract_time_handler.evalue(head_node.first,m_data_manager)) {
       result_query["status"] = false;
       result_query["info"] = VSCE_ERROR_MSG["RUN_PERIOD"];
       return result_query;
@@ -212,7 +213,7 @@ public:
     // OK ready to go
 
     for(auto &each_condition : condition_nodes) {
-      m_condition_manager.evalue(each_condition.first,data_map);
+      m_condition_manager.evalue(each_condition.first,m_data_manager);
     }
     result_query["authority"]["author"] = m_data_manager.eval("$author");
     result_query["authority"]["user"] = m_data_manager.eval("$user");
@@ -233,7 +234,7 @@ public:
     // process get directive
 
     for(auto &each_condition : condition_nodes) {
-      m_condition_manager.evalue(each_condition.first,data_map);
+      m_condition_manager.evalue(each_condition.first,m_data_manager);
     }
 
     auto& get_nodes = m_element_parser.getNodes("get");
@@ -245,7 +246,7 @@ public:
     // no more change values here
     
     for(auto &each_condition : condition_nodes) {
-      m_condition_manager.evalue(each_condition.first,data_map);
+      m_condition_manager.evalue(each_condition.first,m_data_manager);
     }
 
     // process fee directive

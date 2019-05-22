@@ -65,26 +65,55 @@ private:
 
   std::map<std::string, std::vector<UserScopeRecord>> m_user_scope_table;
   std::map<std::string, ContractScopeRecord> m_contract_scope_table;
+
   std::map<std::string, UserAttributeRecord> m_user_attr_table;
   std::map<std::string, std::vector<UserCertRecord>> m_user_cert_table;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
-  std::function<void(nlohmann::json&, nlohmann::json&)> m_write_storage_interface;
 
 public:
   DataManager() = default;
 
-  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> read_storage_interface){
-    m_read_storage_interface = std::move(read_storage_interface);
-  }
-
-  void attachWriteInterface(std::function<void(nlohmann::json&, nlohmann::json&)> write_storage_interface){
-    m_write_storage_interface = std::move(write_storage_interface);
+  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> &read_storage_interface){
+    m_read_storage_interface = read_storage_interface;
   }
 
   template <typename S1 = std::string, typename S2 = std::string>
-  void updateValue(S1 &&key,S2 &&value, bool updatable = true) {
-    m_tx_datamap.set(key,value, updatable);
+  void updateValue(S1 &&key,S2 &&value) {
+    m_tx_datamap.set(key,value);
+  }
+
+  template <typename S = std::string>
+  std::string eval(S && expr){
+
+    vs::trim(expr);
+
+    if(expr.empty())
+      return {};
+
+    if(expr[0] != '$')
+      return expr;
+
+    auto eval_str = m_tx_datamap.get(expr);
+    if(!eval_str)
+      return {};
+
+    return eval_str.value();
+  }
+
+  template <typename S = std::string>
+  std::optional<std::string> get(S && expr) {
+    return m_tx_datamap.get(expr);
+  }
+
+  void clear(){
+    m_user_scope_table.clear();
+    m_contract_scope_table.clear();
+    m_tx_datamap.clear();
+  }
+
+  Datamap& getDatamap() {
+    return m_tx_datamap;
   }
 
   std::vector<DataAttribute> getWorld() {
@@ -196,10 +225,34 @@ public:
     return queryIfUserCertAndParseData(query, user_id);
   }
 
+  template <typename S1 = std::string, typename S2 = std::string>
+  std::optional<UserScopeRecord> getUserScopeRecordByName(S1 &&id, S2 &&name) {
+
+    if(name == "*")
+      return std::nullopt;
+
+    std::string scope_key = id + name;
+
+    auto ret_record = findUserScopeTableByName(id,name);
+
+    if(ret_record)
+      return ret_record;
+
+    nlohmann::json query = {
+        {"type", "user.scope.get"},
+        {"where",
+         {"uid", id},
+         {"name", name}
+        }
+    };
+
+    queryIfUserScopeAndParseData(query, id, "", false); // try to cache - ignore return value;
+
+    return findUserScopeTableByName(id,name);
+  }
+
   template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
   std::optional<UserScopeRecord> getUserScopeRecordByPid(S1 &&id, S2 &&name, S3 &&pid) {
-
-    std::vector<DataAttribute> ret_vec;
 
     std::string scope_key = id + name;
 
@@ -291,35 +344,39 @@ public:
     }
   }
 
-  template <typename S = std::string>
-  std::string eval(S && expr){
-    if(expr.empty())
-      return {};
-
-    if(expr[0] != '$')
-      return expr;
-
-    auto eval_str = m_tx_datamap.get(expr);
-    if(!eval_str)
-      return {};
-
-    return eval_str.value();
-  }
-
-  template <typename S = std::string>
-  std::optional<std::string> get(S && expr) {
-    return m_tx_datamap.get(expr);
-  }
-
-  void clear(){
-    m_tx_datamap.clear();
-  }
-
-  Datamap& getDatamap() {
-    return m_tx_datamap;
-  }
 
 private:
+  template <typename S1 = std::string, typename S2 = std::string>
+  std::optional<UserScopeRecord> findUserScopeTableByName(S1 &&id, S2 &&name){
+    std::string scope_key = id + name;
+
+    bool null_tag = false;
+    bool found = false;
+
+    UserScopeRecord ret_record;
+
+    auto it_tbl = m_user_scope_table.find(scope_key);
+    if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
+      for(auto &each_row : it_tbl->second) {
+        if(each_row.var_name == name) {
+          found = true;
+
+          if(each_row.tag.empty()) {
+            null_tag = true;
+            ret_record = each_row;
+          }
+
+          if(!null_tag)
+            ret_record = each_row;
+        }
+      }
+    }
+
+    if(found)
+      return ret_record;
+
+    return std::nullopt;
+  }
 
   template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
   std::optional<UserScopeRecord> findUserScopeTableByPid(S1 &&id, S2 &&name, S3 &&pid){

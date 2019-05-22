@@ -8,42 +8,22 @@
 
 namespace veronn::vsce {
 
-struct DataRecord {
-  std::string value;
-  bool updatable;
-  DataRecord() : value(""), updatable(false){
-  }
-
-  DataRecord(std::string value_, bool updatable_) : value(std::move(value_)), updatable(updatable_){
-  };
-};
-
-
 class Datamap {
 private:
-  std::unordered_map<std::string, DataRecord> m_storage;
+  std::unordered_map<std::string, std::string> m_storage;
 
 public:
 
-  template <typename S = std::string, typename D = DataRecord>
-  void set(S &&key, D &&vv) {
-    if(key.empty())
+  template <typename S1 = std::string, typename S2 = std::string>
+  void set(S1 &&key, S2 &&vv) {
+    if (key.empty())
       return;
 
-    auto ret = m_storage.insert({key,vv}); // as new
+    auto ret = m_storage.insert({key, vv}); // as new
     if (!ret.second) { // as update
-      if(ret.first->second.updatable) // only updatable
+      if (ret.first->second.updatable) // only updatable
         ret.first->second = vv;
     }
-  }
-
-  template <typename S1 = std::string, typename S2 = std::string>
-  void set(S1 &&key, S2 &&value, bool updatable = false) {
-    if(key.empty())
-      return;
-
-    DataRecord vv(value, updatable);
-    set(key,vv);
   }
 
   template <typename S = std::string>
