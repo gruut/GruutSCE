@@ -30,16 +30,13 @@ private:
 public:
   ContractRunner() = default;
 
-  void clear(){
-    m_data_manager.clear();
-  }
-
-  bool update(nlohmann::json &set_query){
-    return true;
-  }
-
   void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> &read_storage_interface){
     m_data_manager.attachReadInterface(read_storage_interface);
+  }
+
+
+  void clear(){
+    m_data_manager.clear();
   }
 
   bool setWorldChain() {
@@ -141,7 +138,7 @@ public:
     return true;
 
 
-    /*
+#if 0
     int num_endorser;
     try{
       num_endorser = std::stoi(m_data_manager.eval("$tx.endorser.count"));
@@ -155,7 +152,7 @@ public:
       auto endorser_attr = m_data_manager.getUserInfo(prefix + ".id");
       attrToMap(endorser_attr, prefix);
     }
-    */
+#endif
   }
 
   std::optional<nlohmann::json> run() {

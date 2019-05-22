@@ -34,6 +34,8 @@ public:
       return result;
     };
 
+
+    // TODO : replace real information
     uint64_t block_hgt = 1;
     std::string block_id;
 
@@ -51,12 +53,8 @@ public:
 
       Transaction each_tx;
 
-      nlohmann::json result_fail = R"(
-        "txid":"",
-        "status":false,
-        "info":""
-      )"_json;
-
+      nlohmann::json result_fail;
+      result_fail["status"] = false;
       result_fail["txid"] = each_tx.getTxid();
 
       auto contract = m_contract_manager.getContract(each_tx.getTxid());

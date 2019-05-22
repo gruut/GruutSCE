@@ -18,6 +18,7 @@
 class vs {
 public:
 
+#if 0
   static inline void ltrim(std::string &s) {
     s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
       return !std::isspace(ch);
@@ -34,16 +35,43 @@ public:
     ltrim(s);
     rtrim(s);
   }
+#endif
 
-  static std::string toLower(std::string_view src) {
-    std::string dst("",src.size());
-    std::transform(src.begin(), src.end(), dst.begin(), ::tolower);
+  static std::string& ltrim(std::string& str) {
+    const std::string chars = "\t\n\v\f\r ";
+    str.erase(0, str.find_first_not_of(chars));
+    return str;
+  }
+
+  static std::string& rtrim(std::string& str) {
+    const std::string chars = "\t\n\v\f\r ";
+    str.erase(str.find_last_not_of(chars) + 1);
+    return str;
+  }
+
+  static std::string& trim(std::string& str) {
+    return ltrim(rtrim(str));
+  }
+
+  static std::string& toLower(std::string& str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    return str;
+  }
+
+  static std::string& toUpper(std::string& str) {
+    std::transform(str.begin(), str.end(), str.begin(), ::toupper);
+    return str;
+  }
+
+  static std::string toLower(std::string_view str) {
+    std::string dst(str);
+    std::transform(str.begin(), str.end(), dst.begin(), ::tolower);
     return dst;
   }
 
-  static std::string toUpper(std::string_view src) {
-    std::string dst("",src.size());
-    std::transform(src.begin(), src.end(), dst.begin(), ::toupper);
+  static std::string toUpper(std::string_view str) {
+    std::string dst(str);
+    std::transform(str.begin(), str.end(), dst.begin(), ::toupper);
     return dst;
   }
 
@@ -131,6 +159,7 @@ public:
         ret_val = (T) std::stoll(s);
       }
       catch (...){
+        ret_val = 0;
       }
     }
 

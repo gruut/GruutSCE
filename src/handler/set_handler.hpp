@@ -113,7 +113,8 @@ private:
       std::string option_value = option_node.attribute("value").value();
       std::string data = data_manager.eval(option_value);
 
-      option_name = vs::toUpper(option_name);
+      vs::trim(data);
+      vs::toLower(option_name);
 
       if (option_name.empty() || data.empty())
         continue;
@@ -132,8 +133,9 @@ private:
           if (!vs::isDigit(data))
             data.clear();
         }
+
+        break;
       }
-      break;
 
       case SetType::USER_CERT: {
         if (vs::inArray(option_name,{"notbefore","notafter"})) {
@@ -157,23 +159,24 @@ private:
             data.clear();
         }
 
+        break;
       }
-      break;
+
 
       case SetType::V_CREATE: {
         if (option_name == "amount") {
-          // TODO : enhance the checking routing!
-          if (data[0] == '0' || data[0] == '-' || data.length() > 16)
+          if (vs::str2num<int>(data) <= 0)
             data.clear();
         }
 
         if (option_name == "type") {
-          data = vs::toUpper(data);
+          vs::toUpper(data);
           if (!vs::inArray(data,{"GRU","FIAT","COIN","XCOIN","MILE"}))
             data.clear();
         }
+
+        break;
       }
-      break;
 
       case SetType::V_INCINERATE: {
         if (option_name == "amount") {
@@ -185,15 +188,15 @@ private:
           if (!std::regex_match(data, rgx))
             data.clear();
         }
+        break;
       }
-      break;
 
       case SetType::SCOPE_USER: {
         if(option_name == "tag") {
           // TODO : check data is xml
         }
+        break;
       }
-      break;
 
       case SetType::SCOPE_CONTRACT: {
         if(option_name == "pid") {
@@ -201,8 +204,9 @@ private:
           if (!std::regex_match(data, rgx))
             data.clear();
         }
+        break;
       }
-      break;
+
 
       case SetType::CONTRACT_NEW: {
         if (vs::inArray(option_name, {"before","after"})) {
@@ -210,20 +214,31 @@ private:
           if (!vs::isDigit(data))
             data.clear();
         }
+        break;
       }
-      break;
 
       case SetType::CONTRACT_DISABLE: {
+        // TODO : check cid is belong to user
+        break;
       }
-      break;
 
       case SetType::V_TRANSFER: {
-          if (option_name == "tag" && !data.empty()) {
+        if(!data.empty()) {
+          if (option_name == "tag") {
             // TODO : check data must be xml
           }
 
+          if (option_name == "amount") {
+
+            vs::trim(data);
+            if (vs::str2num<int>(data) <= 0)
+              data.clear();
+
+          }
+        }
+
+        break;
       }
-      break;
 
       case SetType::RUN_QUERY: {
         if (option_name == "type") {
@@ -236,8 +251,10 @@ private:
           if (!vs::isDigit(data))
             data.clear();
         }
+
+        break;
       }
-      break;
+
 
       case SetType::RUN_CONTRACT: {
           //TODO : check 'cid'
@@ -246,9 +263,9 @@ private:
           if (!vs::isDigit(data))
             data.clear();
         }
-      }
-      break;
 
+        break;
+      }
       default:
       break;
       }

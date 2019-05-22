@@ -58,7 +58,21 @@ enum class EnumGender : int {
   OTHER = 92
 };
 
-const std::unordered_map<std::string, EnumAll> INPUT_OPTION_TYPE_MAP {
+const std::unordered_map<EnumAll, EnumV> ENUM_ALL_V_MAP = {
+    {EnumAll::KEYC,EnumV::KEYC},
+    {EnumAll::FIAT,EnumV::FIAT},
+    {EnumAll::COIN,EnumV::COIN},
+    {EnumAll::XCOIN,EnumV::XCOIN},
+    {EnumAll::MILE,EnumV::MILE}
+};
+
+const std::unordered_map<EnumAll, EnumGender> ENUM_ALL_GENDER_MAP = {
+    {EnumAll::MALE,EnumGender::MALE},
+    {EnumAll::FEMALE,EnumGender::FEMALE},
+    {EnumAll::OTHER,EnumGender::OTHER}
+};
+
+const std::unordered_map<std::string, EnumAll> INPUT_OPTION_TYPE_MAP = {
     {"INT", EnumAll::INT},
     {"PINT", EnumAll::PINT},
     {"NINT", EnumAll::NINT},
