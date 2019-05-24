@@ -14,7 +14,7 @@ public:
 
     SecondaryConditionType base_condition_type = getSecondaryConditionType(doc_node.name());
 
-    bool eval_result;
+    bool eval_result = false;
 
     switch(base_condition_type) {
     case SecondaryConditionType::ENDORSER:
@@ -44,19 +44,27 @@ public:
       std::string endorser_id_b58 = doc_node.text().as_string();
       vs::trim(endorser_id_b58);
 
-      auto data = data_manager.get("$endorsers");
+      auto data = data_manager.evalOpt("$tx.endorser.count");
       if(!data.has_value()){
         return false;
       }
-      auto endorser_list = json::parse(data.value());
-      if(endorser_list.is_discarded())
-        return false;
-      if(endorser_list.empty()){
+
+      int num_endorsers = vs::str2num<int>(data.value());
+
+      if(num_endorsers <= 0) {
         return false;
       }
 
-      auto it_vec = endorser_list.find(endorser_id_b58);
-      eval_result = (it_vec != endorser_list.end());
+      for(int i = 0 ; i < num_endorsers; ++i) {
+        std::string nth_endorder_id = "$tx.endorser[" + std::to_string(i) + "].id";
+        auto tx_endorser = data_manager.evalOpt(nth_endorder_id).value_or("");
+
+        if(!tx_endorser.empty() && tx_endorser == endorser_id_b58) {
+          eval_result = true;
+          break;
+        }
+      }
+
       break;
     }
     default:

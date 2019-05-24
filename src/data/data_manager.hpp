@@ -83,9 +83,12 @@ public:
     m_tx_datamap.set(key,value);
   }
 
-  template <typename S = std::string>
-  std::string eval(S && expr){
+  std::optional<std::string> eval(std::string_view expr_view){
+    std::string expr(expr_view);
+    return eval(expr);
+  }
 
+  std::string eval(std::string &expr){
     vs::trim(expr);
 
     if(expr.empty())
@@ -99,6 +102,25 @@ public:
       return {};
 
     return eval_str.value();
+  }
+
+
+
+  std::optional<std::string> evalOpt(std::string_view expr_view){
+    std::string expr(expr_view);
+    return evalOpt(expr);
+  }
+
+  std::optional<std::string> evalOpt(std::string &expr){
+    vs::trim(expr);
+
+    if(expr.empty())
+      return {};
+
+    if(expr[0] != '$')
+      return expr;
+
+    return m_tx_datamap.get(expr);
   }
 
   template <typename S = std::string>
@@ -405,7 +427,8 @@ private:
 
       for (auto &each_row : result_data) {
         for (int i = 0; i < each_row.size(); ++i) { // last row will be selected
-          ret_vec.emplace_back(result_name[i], each_row[i].get<std::string>());
+          std::string value = each_row[i].get<std::string>();
+          ret_vec.emplace_back(result_name[i], value);
         }
       }
     }
@@ -436,7 +459,9 @@ private:
           else if (result_name[i] == "cert")
             buf_record.x509 = each_row[i].get<std::string>();
 
-          ret_vec.emplace_back(result_name[i], each_row[i].get<std::string>());
+          std::string value = each_row[i].get<std::string>();
+
+          ret_vec.emplace_back(result_name[i], value);
         }
 
         m_user_cert_table[id].emplace_back(buf_record);
@@ -474,7 +499,8 @@ private:
         else if (result_name[i] == "age_limit")
           buf_record.age_limit = vs::str2num<int>(result_data[0][i].get<std::string>());
 
-        ret_vec.emplace_back(result_name[i], result_data[0][i].get<std::string>());
+        std::string value =  result_data[0][i].get<std::string>();
+        ret_vec.emplace_back(result_name[i],value);
       }
 
       m_user_attr_table[id] = buf_record;

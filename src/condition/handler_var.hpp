@@ -51,13 +51,15 @@ public:
 
     } else if(scope_str == "world") {
 
-      std::string src_val = data_manager.eval("$world." + name_str);
+      std::string keyw = "$world." + name_str;
+      std::string src_val = data_manager.eval(keyw);
       compare_node.append_attribute("src") = src_val.c_str();
       return compare_handler.evalue(compare_node,data_manager);
 
     } else if(scope_str == "chain") {
 
-      std::string src_val = data_manager.eval("$chain." + name_str);
+      std::string keyw = "$chain." + name_str;
+      std::string src_val = data_manager.eval(keyw);
       compare_node.append_attribute("src") = src_val.c_str();
       return compare_handler.evalue(compare_node,data_manager);
     } else {

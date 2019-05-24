@@ -37,22 +37,17 @@ public:
       return false;
     }
 
-    if(src_str[0] == '$'){
-      auto data = data_manager.get(src_str);
-      if(!data.has_value())
-        return false;
+    auto src_opt = data_manager.evalOpt(src_str);
+    if(!src_opt)
+      return false;
 
-      src_str = data.value();
+    src_str = src_opt.value();
 
-    }
+    auto ref_opt = data_manager.evalOpt(ref_str);
+    if(!ref_opt)
+      return false;
 
-    if(ref_str[0] == '$'){
-      auto data = data_manager.get(src_str);
-      if(!data.has_value())
-        return false;
-
-      ref_str = data.value();
-    }
+    ref_str = ref_opt.value();
 
     bool eval_result;
 
@@ -104,28 +99,28 @@ public:
 
 private:
   CompareType getCompareType(std::string_view type_str){
-    std::string type_str_lower = vs::toLower(type_str);
+    std::string type_str_lower = vs::toUpper(type_str);
 
     static std::map<std::string, CompareType> tag_to_type_map = {
-        {"eq", CompareType::EQ},
+        {"EQ", CompareType::EQ},
         {"=", CompareType::EQ},
         {"==", CompareType::EQ},
-        {"ne", CompareType::NE},
+        {"NE", CompareType::NE},
         {"!=", CompareType::NE},
-        {"ge", CompareType::GE},
+        {"GE", CompareType::GE},
         {">=", CompareType::GE},
         {"=>", CompareType::GE},
-        {"le", CompareType::LE},
+        {"LE", CompareType::LE},
         {"<=", CompareType::LE},
         {"=<", CompareType::LE},
-        {"gt",CompareType::GT},
+        {"GT",CompareType::GT},
         {">",CompareType::GT},
-        {"lt", CompareType::LT},
+        {"LT", CompareType::LT},
         {"<", CompareType::LT},
-        {"age", CompareType::AGE},
-        {"ale", CompareType::ALE},
-        {"agt", CompareType::AGT},
-        {"alt", CompareType::ALT}
+        {"AGE", CompareType::AGE},
+        {"ALE", CompareType::ALE},
+        {"AGT", CompareType::AGT},
+        {"ALT", CompareType::ALT}
     };
 
     auto it_map = tag_to_type_map.find(type_str_lower);

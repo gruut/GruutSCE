@@ -11,7 +11,7 @@ class BaseConditionHandler {
 public:
   BaseConditionHandler() = default;
 
-  virtual bool evalue(pugi::xml_node &doc_node, DataManager &data_manager);
+  virtual bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) = 0;
 
 protected:
   EvalRuleType getEvalRule(std::string_view eval_str) {
@@ -63,7 +63,10 @@ protected:
         {"age", SecondaryConditionType::AGE},
         {"service",SecondaryConditionType::SERVICE},
         {"id", SecondaryConditionType::ID},
-        {"location", SecondaryConditionType::LOCATION}
+        {"location", SecondaryConditionType::LOCATION},
+        {"endorser", SecondaryConditionType::ENDORSER},
+        {"user", SecondaryConditionType::USER},
+        {"receiver", SecondaryConditionType::RECEIVER}
     };
 
     auto it_map = tag_to_type_map.find(cond_tag_lower);
