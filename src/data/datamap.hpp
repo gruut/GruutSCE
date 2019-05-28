@@ -1,12 +1,12 @@
-#ifndef VERONN_SCE_DATAMAP_HPP
-#define VERONN_SCE_DATAMAP_HPP
+#ifndef TETHYS_SCE_DATAMAP_HPP
+#define TETHYS_SCE_DATAMAP_HPP
 
 #include <string>
 #include <unordered_map>
 #include <optional>
 #include "../config.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class Datamap {
 private:
@@ -14,15 +14,13 @@ private:
 
 public:
 
-  template <typename S1 = std::string, typename S2 = std::string>
-  void set(S1 &&key, S2 &&vv) {
+  void set(const std::string &key, const std::string &vv) {
     if (key.empty())
       return;
 
     auto ret = m_storage.insert({key, vv}); // as new
     if (!ret.second) { // as update
-      if (ret.first->second.updatable) // only updatable
-        ret.first->second = vv;
+      ret.first->second = vv;
     }
   }
 
@@ -32,7 +30,7 @@ public:
     if(map_it == m_storage.end())
       return {};
 
-    return data = map_it->second;
+    return map_it->second;
   }
 
   void clear(){

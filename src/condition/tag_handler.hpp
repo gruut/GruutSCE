@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_TAG_HANDLER_HPP
-#define VERONN_SCE_TAG_HANDLER_HPP
+#ifndef TETHYS_SCE_TAG_HANDLER_HPP
+#define TETHYS_SCE_TAG_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/data_manager.hpp"
@@ -9,7 +9,7 @@
 #include <iostream>
 #include <map>
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class TagHandler {
   pugi::xml_node m_info_node;

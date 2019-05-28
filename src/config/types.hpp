@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_TYPES_HPP
-#define VERONN_SCE_TYPES_HPP
+#ifndef TETHYS_SCE_TYPES_HPP
+#define TETHYS_SCE_TYPES_HPP
 
 // Please, do not include this file directly.
 // Instead, you can include this file by including config.hpp
@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <json.hpp>
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 enum class EnumAll : uint8_t {
   KEYC = 0,
@@ -146,7 +146,7 @@ using TransactionJson = nlohmann::json;
 
 }
 
-namespace veronn {
+namespace tethys {
 
 using string = std::string;
 using bytes = std::vector<uint8_t>;

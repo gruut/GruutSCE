@@ -1,10 +1,10 @@
-#ifndef VERONN_SCE_CONFIG_HPP
-#define VERONN_SCE_CONFIG_HPP
+#ifndef TETHYS_SCE_CONFIG_HPP
+#define TETHYS_SCE_CONFIG_HPP
 
 #include <string>
 #include <vector>
 #include <algorithm>
-#include <algorithm>
+#include <iostream>
 #include <optional>
 #include <regex>
 #include <cctype>
@@ -24,7 +24,7 @@
 #include "utils/gruut-utils/src/ecdsa.hpp"
 #include "utils/gruut-utils/src/ags.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 constexpr int NUM_GSCE_THREAD = 4;
 

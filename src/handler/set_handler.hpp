@@ -1,12 +1,12 @@
-#ifndef VERONN_SCE_SET_HANDLER_HPP
-#define VERONN_SCE_SET_HANDLER_HPP
+#ifndef TETHYS_SCE_SET_HANDLER_HPP
+#define TETHYS_SCE_SET_HANDLER_HPP
 
 #include "../data/datamap.hpp"
 #include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 #include "../condition/tag_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 const auto REGEX_BASE64 = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
 
@@ -88,14 +88,14 @@ private:
 
     if(set_type == SetType::SCOPE_USER) {
       for_att = set_node.attribute("for").value();
-      if (for_att.empty() || !vs::inArray(for_att,{"user","author"}))
+      if (for_att.empty() || !tt::inArray(for_att,{"user","author"}))
         return std::nullopt;
 
       contents["for"] = for_att;
     }
     else if(set_type == SetType::V_TRANSFER) {
       from_att = set_node.attribute("from").value();
-      if (from_att.empty() || !vs::inArray(from_att,{"user","author","contract"}))
+      if (from_att.empty() || !tt::inArray(from_att,{"user","author","contract"}))
         return std::nullopt;
 
       contents["from"] = from_att;
@@ -113,8 +113,8 @@ private:
       std::string option_value = option_node.attribute("value").value();
       std::string data = data_manager.eval(option_value);
 
-      vs::trim(data);
-      vs::toLower(option_name);
+      tt::trim(data);
+      tt::toLower(option_name);
 
       if (option_name.empty() || data.empty())
         continue;
@@ -123,14 +123,14 @@ private:
 
       case SetType::USER_JOIN: {
         if (option_name == "gender") {
-          data = vs::toUpper(data);
-          if (!vs::inArray(data,{"MALE","FEMALE","OTHER"}))
+          data = tt::toUpper(data);
+          if (!tt::inArray(data,{"MALE","FEMALE","OTHER"}))
             data.clear(); // for company or something other cases
         }
 
         if (option_name == "register_day") {
           // TODO : fix to YYYY-MM-DD format
-          if (!vs::isDigit(data))
+          if (!tt::isDigit(data))
             data.clear();
         }
 
@@ -138,9 +138,9 @@ private:
       }
 
       case SetType::USER_CERT: {
-        if (vs::inArray(option_name,{"notbefore","notafter"})) {
+        if (tt::inArray(option_name,{"notbefore","notafter"})) {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!vs::isDigit(data))
+          if (!tt::isDigit(data))
             data.clear();
         }
 
@@ -165,13 +165,13 @@ private:
 
       case SetType::V_CREATE: {
         if (option_name == "amount") {
-          if (vs::str2num<int>(data) <= 0)
+          if (tt::str2num<int>(data) <= 0)
             data.clear();
         }
 
         if (option_name == "type") {
-          vs::toUpper(data);
-          if (!vs::inArray(data,{"GRU","FIAT","COIN","XCOIN","MILE"}))
+          tt::toUpper(data);
+          if (!tt::inArray(data,{"GRU","FIAT","COIN","XCOIN","MILE"}))
             data.clear();
         }
 
@@ -209,9 +209,9 @@ private:
 
 
       case SetType::CONTRACT_NEW: {
-        if (vs::inArray(option_name, {"before","after"})) {
+        if (tt::inArray(option_name, {"before","after"})) {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!vs::isDigit(data))
+          if (!tt::isDigit(data))
             data.clear();
         }
         break;
@@ -230,8 +230,8 @@ private:
 
           if (option_name == "amount") {
 
-            vs::trim(data);
-            if (vs::str2num<int>(data) <= 0)
+            tt::trim(data);
+            if (tt::str2num<int>(data) <= 0)
               data.clear();
 
           }
@@ -242,13 +242,13 @@ private:
 
       case SetType::RUN_QUERY: {
         if (option_name == "type") {
-          if (!vs::inArray(data, {"run.query","user.cert"}))
+          if (!tt::inArray(data, {"run.query","user.cert"}))
             data.clear();
         }
 
         if (option_name == "after") {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!vs::isDigit(data))
+          if (!tt::isDigit(data))
             data.clear();
         }
 
@@ -260,7 +260,7 @@ private:
           //TODO : check 'cid'
         if (option_name == "after") {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!vs::isDigit(data))
+          if (!tt::isDigit(data))
             data.clear();
         }
 

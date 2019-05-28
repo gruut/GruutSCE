@@ -1,2 +1,2 @@
-# Veronn-SCE
-Veronn StandardContract Engine
+# Tethys-SCE
+Tethys StandardContract Engine

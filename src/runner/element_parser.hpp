@@ -1,9 +1,9 @@
-#ifndef VERONN_SCE_ELEMENT_PARSER_HPP
-#define VERONN_SCE_ELEMENT_PARSER_HPP
+#ifndef TETHYS_SCE_ELEMENT_PARSER_HPP
+#define TETHYS_SCE_ELEMENT_PARSER_HPP
 
 #include "../config.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class ElementParser {
 private:

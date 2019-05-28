@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_CONTRACT_RUNNER_HPP
-#define VERONN_SCE_CONTRACT_RUNNER_HPP
+#ifndef TETHYS_SCE_CONTRACT_RUNNER_HPP
+#define TETHYS_SCE_CONTRACT_RUNNER_HPP
 
 #include "../config.hpp"
 #include "../data/data_manager.hpp"
@@ -11,7 +11,7 @@
 #include "element_parser.hpp"
 #include "../handler/fee_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class ContractRunner {
 
@@ -90,7 +90,7 @@ public:
     m_data_manager.updateValue("$tx.time", time.value());
     m_data_manager.updateValue("$time", time.value());
 
-    std::vector<std::string> cid_components = vs::split(cid.value(),"::");
+    std::vector<std::string> cid_components = tt::split(cid.value(),"::");
 
     m_data_manager.updateValue("$tx.body.cid", cid.value());
     m_data_manager.updateValue("$cid", cid.value());

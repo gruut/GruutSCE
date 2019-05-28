@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.13)
-project(VeronnSCE)
-
-option(BUILD_TESTS "Build tests" OFF)
+project(TethysSCE)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(Boost REQUIRED COMPONENTS system thread filesystem)
+find_package(Boost REQUIRED COMPONENTS unit_test_framework system thread filesystem)
 IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
 ENDIF (Boost_FOUND)
+
+ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -19,6 +19,8 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+add_subdirectory(src/utils/gruut-utils)
+
 set(LIB_PREFIX "/usr/local/lib")
 set(BOTAN_LIBS "${LIB_PREFIX}/libbotan-2.so")
 
@@ -27,6 +29,7 @@ file(GLOB SOURCE_FILES
     "src/*/*.cpp"
     "include/*.cpp"
     "include/*/*.cpp"
+    "utils/gruut-utils/src/*.cpp"
     )
 
 file(GLOB HEADER_FILES
@@ -34,24 +37,24 @@ file(GLOB HEADER_FILES
     "src/*/*.hpp"
     "include/*.hpp"
     "include/*/*.hpp"
+    "utils/gruut-utils/src/*.hpp"
     )
 
-add_executable(VSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})
-target_include_directories(VSCE PRIVATE include/ /usr/local/include)
-target_link_libraries(VSCE
+add_executable(TSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(TSCE PRIVATE include/ /usr/local/include)
+target_link_libraries(TSCE
     PRIVATE
     ${Boost_LIBRARIES}
     ${BOTAN_LIBS}
 )
 
-if(BUILD_TESTS)
-    file(GLOB TEST_SOURCES test/*.cpp)
-
-    add_executable(check ${TEST_SOURCES})
-    target_include_directories(check PRIVATE include/ /usr/local/include)
-    target_link_libraries(check
-        PRIVATE
-        ${Boost_LIBRARIES}
-        ${BOTAN_LIBS}
-    )
-endif()
+add_executable(test test/component_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(test PRIVATE include/ /usr/local/include)
+target_link_libraries(test
+    PRIVATE
+    ${Boost_LIBRARIES}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${BOTAN_LIBS}
+)

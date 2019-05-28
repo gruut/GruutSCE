@@ -1,12 +1,12 @@
-#ifndef VERONN_SCE_GET_HANDLER_HPP
-#define VERONN_SCE_GET_HANDLER_HPP
+#ifndef TETHYS_SCE_GET_HANDLER_HPP
+#define TETHYS_SCE_GET_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
 #include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class GetHandler {
 public:
@@ -27,7 +27,7 @@ public:
         auto var_node = var_path.node();
         std::string scope = var_node.attribute("scope").value();
 
-        if(!vs::inArray(scope,{"author","user","contract"}))
+        if(!tt::inArray(scope,{"author","user","contract"}))
           continue;
 
         std::string id = var_node.attribute("id").value();

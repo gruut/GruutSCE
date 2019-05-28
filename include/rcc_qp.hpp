@@ -29,7 +29,7 @@
 #else
 #endif
 
-namespace veronn {
+namespace tethys {
 
 constexpr int HASH_TABLE_SIZE = 1048576; // 0x100000;
 constexpr int CACHE_SIZE = 131072; // ‬(1 << 17);
@@ -388,7 +388,7 @@ private:
   float getKhat(float zeros, float mzeros) {
     float Vs = (zeros / (VIRTUAL_VECTOER_SIZE - 1));
     float Vm = ((mzeros) / (VIRTUAL_VECTOER_SIZE));
-    float cs = log(1.0 - 1.0 / (VIRTUAL_VECTOER_SIZE));			  // constant for vs
+    float cs = log(1.0 - 1.0 / (VIRTUAL_VECTOER_SIZE));			  // constant for tt
     float k2 = -(VIRTUAL_VECTOER_SIZE - 1)*log(Vs);
     float k1 = log(Vm) / cs;
     float khat = k2 - k1;

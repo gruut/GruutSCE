@@ -1,5 +1,5 @@
-#ifndef VERONN_PUBLIC_MERGER_TRANSACTION_HPP
-#define VERONN_PUBLIC_MERGER_TRANSACTION_HPP
+#ifndef TETHYS_PUBLIC_MERGER_TRANSACTION_HPP
+#define TETHYS_PUBLIC_MERGER_TRANSACTION_HPP
 
 #include "../config.hpp"
 #include "endorser.hpp"
@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-namespace veronn {
+namespace tethys {
 
 class Transaction {
 private:
@@ -40,7 +40,7 @@ public:
     m_tx_json = tx_json;
 
     m_txid = json::get<string>(tx_json, "txid").value();
-    m_tx_time = static_cast<veronn::timestamp_t>(stoll(json::get<string>(tx_json, "time").value()));
+    m_tx_time = static_cast<tethys::timestamp_t>(stoll(json::get<string>(tx_json, "time").value()));
     m_seed = json::get<string>(tx_json, "txid").value();
 
     m_contract_id = json::get<string>(tx_json["body"], "cid").value(); // 현재 cid 관련 내용은 message에 없음
@@ -120,5 +120,5 @@ public:
     return m_tx_endorsers;
   }
 };
-} // namespace veronn
+} // namespace tethys
 #endif

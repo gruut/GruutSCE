@@ -1,9 +1,9 @@
-#ifndef VERONNSCE_HANDLER_VAR_HPP
-#define VERONNSCE_HANDLER_VAR_HPP
+#ifndef TETHYS_SCE_HANDLER_VAR_HPP
+#define TETHYS_SCE_HANDLER_VAR_HPP
 
 #include "base_condition_handler.hpp"
 #include "handler_compare.hpp"
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class VarHandler : public BaseConditionHandler {
 public:
@@ -18,7 +18,7 @@ public:
     std::string type_str = doc_node.attribute("type").value();
     std::string abs_str = doc_node.attribute("abs").value();
 
-    if(name_str == "*")
+    if(tt::trim(name_str) == "*")
       return false;
 
     pugi::xml_node compare_node;
@@ -29,7 +29,7 @@ public:
 
     CompareHandler compare_handler;
 
-    if(vs::inArray(scope_str,{"user","author", "receiver","contract"})) {
+    if(tt::inArray(scope_str,{"user","author", "receiver","contract"})) {
 
       id_str = data_manager.eval(id_str);
       std::string real_scope = (scope_str == "contract") ? "contract" : "user";
@@ -51,13 +51,15 @@ public:
 
     } else if(scope_str == "world") {
 
-      std::string src_val = data_manager.eval("$world." + name_str);
+      std::string keyw = "$world." + name_str;
+      std::string src_val = data_manager.eval(keyw);
       compare_node.append_attribute("src") = src_val.c_str();
       return compare_handler.evalue(compare_node,data_manager);
 
     } else if(scope_str == "chain") {
 
-      std::string src_val = data_manager.eval("$chain." + name_str);
+      std::string keyw = "$chain." + name_str;
+      std::string src_val = data_manager.eval(keyw);
       compare_node.append_attribute("src") = src_val.c_str();
       return compare_handler.evalue(compare_node,data_manager);
     } else {

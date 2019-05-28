@@ -1,11 +1,11 @@
-#ifndef VERONN_SCE_CONDITION_MANAGER_HPP
-#define VERONN_SCE_CONDITION_MANAGER_HPP
+#ifndef TETHYS_SCE_CONDITION_MANAGER_HPP
+#define TETHYS_SCE_CONDITION_MANAGER_HPP
 
 #include <string>
 #include "../config.hpp"
 #include "condition_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class ConditionManager {
 

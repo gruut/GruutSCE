@@ -1,11 +1,11 @@
-#ifndef VERONN_SCE_HANDLER_USER_HPP
-#define VERONN_SCE_HANDLER_USER_HPP
+#ifndef TETHYS_SCE_HANDLER_USER_HPP
+#define TETHYS_SCE_HANDLER_USER_HPP
 
 #include <vector>
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class UserHandler : public BaseConditionHandler {
 private:
@@ -53,7 +53,7 @@ public:
     }
     case SecondaryConditionType::ID: {
       std::string user_id_b58 = doc_node.text().as_string(); // <id>...</id>
-      vs::trim(user_id_b58);
+      tt::trim(user_id_b58);
 
       auto data = data_manager.get(m_user_key);
       if(!data.has_value()){
@@ -87,7 +87,7 @@ public:
       std::string service_type = doc_node.attribute("type").value();
       std::string service_code = doc_node.text().as_string();
 
-      vs::trim(service_code);
+      tt::trim(service_code);
 
       auto type_data = data_manager.get(m_user_key + ".isc_type");
       if(!type_data.has_value()){
@@ -108,8 +108,8 @@ public:
       std::string age_after = doc_node.attribute("after").value();
       std::string age_before = doc_node.attribute("before").value();
 
-      vs::trim(age_after);
-      vs::trim(age_before);
+      tt::trim(age_after);
+      tt::trim(age_before);
 
       if(age_after.empty() && age_before.empty())
         return false;

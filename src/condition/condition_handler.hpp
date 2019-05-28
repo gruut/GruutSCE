@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_CONDITION_HANDLER_HPP
-#define VERONN_SCE_CONDITION_HANDLER_HPP
+#ifndef TETHYS_SCE_CONDITION_HANDLER_HPP
+#define TETHYS_SCE_CONDITION_HANDLER_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
@@ -16,7 +16,7 @@
 #include <iostream>
 #include <map>
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class ConditionHandler : BaseConditionHandler {
 

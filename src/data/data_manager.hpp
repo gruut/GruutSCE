@@ -1,12 +1,12 @@
-#ifndef VERONN_SCE_DATA_STORAGE_HPP
-#define VERONN_SCE_DATA_STORAGE_HPP
+#ifndef TETHYS_SCE_DATA_STORAGE_HPP
+#define TETHYS_SCE_DATA_STORAGE_HPP
 
 #include <string>
 
 #include "../config.hpp"
 #include "datamap.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 struct DataAttribute {
   std::string name;
@@ -83,10 +83,13 @@ public:
     m_tx_datamap.set(key,value);
   }
 
-  template <typename S = std::string>
-  std::string eval(S && expr){
+  std::optional<std::string> eval(std::string_view expr_view){
+    std::string expr(expr_view);
+    return eval(expr);
+  }
 
-    vs::trim(expr);
+  std::string eval(std::string &expr){
+    tt::trim(expr);
 
     if(expr.empty())
       return {};
@@ -99,6 +102,25 @@ public:
       return {};
 
     return eval_str.value();
+  }
+
+
+
+  std::optional<std::string> evalOpt(std::string_view expr_view){
+    std::string expr(expr_view);
+    return evalOpt(expr);
+  }
+
+  std::optional<std::string> evalOpt(std::string &expr){
+    tt::trim(expr);
+
+    if(expr.empty())
+      return {};
+
+    if(expr[0] != '$')
+      return expr;
+
+    return m_tx_datamap.get(expr);
   }
 
   template <typename S = std::string>
@@ -175,7 +197,7 @@ public:
     if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
       for(auto &each_row : it_tbl->second) {
         if(each_row.tag.empty() && each_row.var_type == EnumAll::KEYC && each_row.var_name == "KEYC") {
-          keyc_amount = vs::str2num<int64_t>(each_row.var_value);
+          keyc_amount = tt::str2num<int64_t>(each_row.var_value);
           break;
         }
       }
@@ -197,7 +219,7 @@ public:
     auto result = queryIfUserScopeAndParseData(query, user_id);
 
     if(!result.empty() && result[0].name == "KEYC"){
-      keyc_amount = vs::str2num<int64_t>(result[0].value);
+      keyc_amount = tt::str2num<int64_t>(result[0].value);
     }
 
     return keyc_amount;
@@ -405,7 +427,8 @@ private:
 
       for (auto &each_row : result_data) {
         for (int i = 0; i < each_row.size(); ++i) { // last row will be selected
-          ret_vec.emplace_back(result_name[i], each_row[i].get<std::string>());
+          std::string value = each_row[i].get<std::string>();
+          ret_vec.emplace_back(result_name[i], value);
         }
       }
     }
@@ -430,13 +453,15 @@ private:
           if (result_name[i] == "sn")
             buf_record.sn = each_row[i].get<std::string>();
           else if (result_name[i] == "after")
-            buf_record.nvbefore = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.nvbefore = tt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "before")
-            buf_record.nvafter = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.nvafter = tt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "cert")
             buf_record.x509 = each_row[i].get<std::string>();
 
-          ret_vec.emplace_back(result_name[i], each_row[i].get<std::string>());
+          std::string value = each_row[i].get<std::string>();
+
+          ret_vec.emplace_back(result_name[i], value);
         }
 
         m_user_cert_table[id].emplace_back(buf_record);
@@ -464,7 +489,7 @@ private:
         else if (result_name[i] == "register_code")
           buf_record.register_code = result_data[0][i].get<std::string>();
         else if (result_name[i] == "gender")
-          buf_record.gender = static_cast<EnumGender>(vs::str2num<uint8_t>(result_data[0][i].get<std::string>()));
+          buf_record.gender = static_cast<EnumGender>(tt::str2num<uint8_t>(result_data[0][i].get<std::string>()));
         else if (result_name[i] == "isc_type")
           buf_record.isc_type = result_data[0][i].get<std::string>();
         else if (result_name[i] == "isc_code")
@@ -472,9 +497,10 @@ private:
         else if (result_name[i] == "location")
           buf_record.location = result_data[0][i].get<std::string>();
         else if (result_name[i] == "age_limit")
-          buf_record.age_limit = vs::str2num<int>(result_data[0][i].get<std::string>());
+          buf_record.age_limit = tt::str2num<int>(result_data[0][i].get<std::string>());
 
-        ret_vec.emplace_back(result_name[i], result_data[0][i].get<std::string>());
+        std::string value =  result_data[0][i].get<std::string>();
+        ret_vec.emplace_back(result_name[i],value);
       }
 
       m_user_attr_table[id] = buf_record;
@@ -501,13 +527,13 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = each_row[i].get<std::string>();
           else if (result_name[i] == "var_type")
-            buf_record.var_type = static_cast<EnumAll>(vs::str2num<uint8_t>(each_row[i].get<std::string>()));
+            buf_record.var_type = static_cast<EnumAll>(tt::str2num<uint8_t>(each_row[i].get<std::string>()));
           else if (result_name[i] == "var_owner")
             buf_record.var_owner = each_row[i].get<std::string>();
           else if (result_name[i] == "up_time")
-            buf_record.up_time = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.up_time = tt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "up_block")
-            buf_record.up_block = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.up_block = tt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "tag")
             buf_record.tag = each_row[i].get<std::string>();
           else if (result_name[i] == "pid")
@@ -567,13 +593,13 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = each_row[i].get<std::string>();
           else if (result_name[i] == "var_type")
-            buf_record.var_type = static_cast<EnumAll>(vs::str2num<uint8_t>(each_row[i].get<std::string>()));
+            buf_record.var_type = static_cast<EnumAll>(tt::str2num<uint8_t>(each_row[i].get<std::string>()));
           else if (result_name[i] == "contract_id")
             buf_record.contract_id = each_row[i].get<std::string>();
           else if (result_name[i] == "up_time")
-            buf_record.up_time = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.up_time = tt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "up_block")
-            buf_record.up_block = vs::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.up_block = tt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "pid")
             buf_record.pid = each_row[i].get<std::string>();
         }

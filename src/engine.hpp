@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_ENGINE_HPP
-#define VERONN_SCE_ENGINE_HPP
+#ifndef TETHYS_SCE_ENGINE_HPP
+#define TETHYS_SCE_ENGINE_HPP
 
 #include "config.hpp"
 #include "data/data_manager.hpp"
@@ -10,7 +10,7 @@
 #include "chain/transaction.hpp"
 
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 
 class Block;

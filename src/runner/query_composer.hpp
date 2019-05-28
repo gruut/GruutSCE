@@ -1,10 +1,10 @@
-#ifndef VERONN_SCE_QUERY_COMPOSER_HPP
-#define VERONN_SCE_QUERY_COMPOSER_HPP
+#ifndef TETHYS_SCE_QUERY_COMPOSER_HPP
+#define TETHYS_SCE_QUERY_COMPOSER_HPP
 
 #include "../config.hpp"
 
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class QueryComposer {
 public:
