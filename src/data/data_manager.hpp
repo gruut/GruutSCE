@@ -83,7 +83,7 @@ public:
     m_tx_datamap.set(key,value);
   }
 
-  std::optional<std::string> eval(std::string_view expr_view){
+  std::string eval(std::string_view expr_view){
     std::string expr(expr_view);
     return eval(expr);
   }
@@ -103,8 +103,6 @@ public:
 
     return eval_str.value();
   }
-
-
 
   std::optional<std::string> evalOpt(std::string_view expr_view){
     std::string expr(expr_view);
