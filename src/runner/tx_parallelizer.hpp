@@ -1,9 +1,9 @@
-#ifndef VERONN_SCE_TX_PARALLELIZER_HPP
-#define VERONN_SCE_TX_PARALLELIZER_HPP
+#ifndef TETHYS_SCE_TX_PARALLELIZER_HPP
+#define TETHYS_SCE_TX_PARALLELIZER_HPP
 
 #include "../config.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class TxParallelizer {
 
@@ -19,7 +19,7 @@ public:
     int num_tx = block["tx"].size();
 
     for(int i = 0; i < num_tx; ++i) {
-      TransactionJson this_tx = nlohmann::json::from_cbor(vs::decodeBase64(block["tx"][i].get<std::string>()));
+      TransactionJson this_tx = nlohmann::json::from_cbor(tt::decodeBase64(block["tx"][i].get<std::string>()));
       auto user = this_tx["user"]["id"].get<std::string>();
       auto receiver = this_tx["body"]["receiver"].get<std::string>();
 

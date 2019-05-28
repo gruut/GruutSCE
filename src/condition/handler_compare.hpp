@@ -1,10 +1,10 @@
-#ifndef VERONN_SCE_HANDLER_COMPARE_HPP
-#define VERONN_SCE_HANDLER_COMPARE_HPP
+#ifndef TETHYS_SCE_HANDLER_COMPARE_HPP
+#define TETHYS_SCE_HANDLER_COMPARE_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 enum class CompareType : int {
   EQ,
@@ -30,8 +30,8 @@ public:
     std::string ref_str = doc_node.attribute("ref").value();
     CompareType comp_type = getCompareType(doc_node.attribute("type").value());
 
-    vs::trim(src_str);
-    vs::trim(ref_str);
+    tt::trim(src_str);
+    tt::trim(ref_str);
 
     if(src_str.empty() || ref_str.empty()) {
       return false;
@@ -58,11 +58,11 @@ public:
     } else {
 
       std::string abs_str = doc_node.attribute("abs").value();
-      vs::trim(abs_str);
+      tt::trim(abs_str);
 
-      int src_int = vs::str2num<int>(src_str);
-      int ref_int = vs::str2num<int>(ref_str);
-      int abs_val = vs::str2num<int>(abs_str);
+      int src_int = tt::str2num<int>(src_str);
+      int ref_int = tt::str2num<int>(ref_str);
+      int abs_val = tt::str2num<int>(abs_str);
 
       switch (comp_type) {
       case CompareType::GE:
@@ -99,7 +99,7 @@ public:
 
 private:
   CompareType getCompareType(std::string_view type_str){
-    std::string type_str_lower = vs::toUpper(type_str);
+    std::string type_str_lower = tt::toUpper(type_str);
 
     static std::map<std::string, CompareType> tag_to_type_map = {
         {"EQ", CompareType::EQ},

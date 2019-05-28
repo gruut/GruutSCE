@@ -1,12 +1,12 @@
-#ifndef VERONN_SCE_DATAMAP_HPP
-#define VERONN_SCE_DATAMAP_HPP
+#ifndef TETHYS_SCE_DATAMAP_HPP
+#define TETHYS_SCE_DATAMAP_HPP
 
 #include <string>
 #include <unordered_map>
 #include <optional>
 #include "../config.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class Datamap {
 private:

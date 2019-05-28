@@ -1,11 +1,11 @@
-#ifndef VERONN_SCE_FEE_HANDLER_HPP
-#define VERONN_SCE_FEE_HANDLER_HPP
+#ifndef TETHYS_SCE_FEE_HANDLER_HPP
+#define TETHYS_SCE_FEE_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/data_manager.hpp"
 #include "../condition/condition_manager.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class FeeHandler {
 public:

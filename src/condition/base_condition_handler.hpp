@@ -1,11 +1,11 @@
-#ifndef VERONN_SCE_BASE_CONDITION_HANDLER_HPP
-#define VERONN_SCE_BASE_CONDITION_HANDLER_HPP
+#ifndef TETHYS_SCE_BASE_CONDITION_HANDLER_HPP
+#define TETHYS_SCE_BASE_CONDITION_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
 #include "../data/data_manager.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class BaseConditionHandler {
 public:
@@ -15,7 +15,7 @@ public:
 
 protected:
   EvalRuleType getEvalRule(std::string_view eval_str) {
-    if(eval_str.empty() || vs::toLower(eval_str) != "and")
+    if(eval_str.empty() || tt::toLower(eval_str) != "and")
       return EvalRuleType::OR;
 
     return EvalRuleType::AND;
@@ -25,7 +25,7 @@ protected:
     if(condition_tag.empty())
       return PrimaryConditionType::UNKNOWN;
 
-    std::string cond_tag_lower = vs::toLower(condition_tag);
+    std::string cond_tag_lower = tt::toLower(condition_tag);
 
     static std::map<std::string, PrimaryConditionType> tag_to_type_map = {
         {"condition", PrimaryConditionType::ROOT},
@@ -55,7 +55,7 @@ protected:
     if(condition_tag.empty())
       return SecondaryConditionType::UNKNOWN;
 
-    std::string cond_tag_lower = vs::toLower(condition_tag);
+    std::string cond_tag_lower = tt::toLower(condition_tag);
 
     static std::map<std::string, SecondaryConditionType> tag_to_type_map = {
         {"if", SecondaryConditionType::IF},

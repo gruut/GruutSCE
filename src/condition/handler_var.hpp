@@ -1,9 +1,9 @@
-#ifndef VERONNSCE_HANDLER_VAR_HPP
-#define VERONNSCE_HANDLER_VAR_HPP
+#ifndef TETHYS_SCE_HANDLER_VAR_HPP
+#define TETHYS_SCE_HANDLER_VAR_HPP
 
 #include "base_condition_handler.hpp"
 #include "handler_compare.hpp"
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class VarHandler : public BaseConditionHandler {
 public:
@@ -18,7 +18,7 @@ public:
     std::string type_str = doc_node.attribute("type").value();
     std::string abs_str = doc_node.attribute("abs").value();
 
-    if(name_str == "*")
+    if(tt::trim(name_str) == "*")
       return false;
 
     pugi::xml_node compare_node;
@@ -29,7 +29,7 @@ public:
 
     CompareHandler compare_handler;
 
-    if(vs::inArray(scope_str,{"user","author", "receiver","contract"})) {
+    if(tt::inArray(scope_str,{"user","author", "receiver","contract"})) {
 
       id_str = data_manager.eval(id_str);
       std::string real_scope = (scope_str == "contract") ? "contract" : "user";

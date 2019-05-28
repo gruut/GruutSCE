@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_HANDLER_SIGNATURE_HPP
-#define VERONN_SCE_HANDLER_SIGNATURE_HPP
+#ifndef TETHYS_SCE_HANDLER_SIGNATURE_HPP
+#define TETHYS_SCE_HANDLER_SIGNATURE_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
@@ -7,7 +7,7 @@
 #include <cstring>
 #include <array>
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class SignatureHandler : public BaseConditionHandler {
 public:
@@ -85,7 +85,7 @@ private:
         auto num = std::stoi(data);
         (num > 0) ? bool_data.push_back(1) : bool_data.push_back(0);
       } else {
-        std::string bool_str = vs::toLower(data);
+        std::string bool_str = tt::toLower(data);
         std::istringstream iss(bool_str);
         bool b;
         iss >> std::boolalpha >> b;
@@ -101,12 +101,12 @@ private:
       break;
     }
     case EnumAll::DATETIME: {
-      auto t = vs::isotime2timestamp(data);
+      auto t = tt::isotime2timestamp(data);
       bytes_builder.appendDec(t);
       break;
     }
     case EnumAll::DATE: {
-      auto t = vs::simpletime2timestamp(data);
+      auto t = tt::simpletime2timestamp(data);
       bytes_builder.appendDec(t);
       break;
     }

@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_VS_TOOL_HPP
-#define VERONN_SCE_VS_TOOL_HPP
+#ifndef TETHYS_SCE_VS_TOOL_HPP
+#define TETHYS_SCE_VS_TOOL_HPP
 
 #include <string>
 #include <algorithm>
@@ -15,7 +15,7 @@
 
 #include "date.hpp"
 
-class vs {
+class tt {
 public:
 
 #if 0

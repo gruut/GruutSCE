@@ -1,5 +1,5 @@
-#ifndef VERONN_SCE_INPUT_HANDLER_HPP
-#define VERONN_SCE_INPUT_HANDLER_HPP
+#ifndef TETHYS_SCE_INPUT_HANDLER_HPP
+#define TETHYS_SCE_INPUT_HANDLER_HPP
 
 #include "../config.hpp"
 #include "../data/datamap.hpp"
@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <regex>
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 constexpr int INT_LENGTH = 17;
 constexpr long long MAX_INT = 9007199254740991;
@@ -45,7 +45,7 @@ public:
       return false;
 
     std::string max_str = input_node.attribute("max").value();
-    int num_max = vs::str2num<int>(max_str);
+    int num_max = tt::str2num<int>(max_str);
     num_max = (input_json.size() < num_max) ? input_json.size() : num_max;
 
     if(num_max > 10)

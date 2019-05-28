@@ -1,9 +1,9 @@
-#ifndef VERONN_SCE_CONTRACT_MANAGER_HPP
-#define VERONN_SCE_CONTRACT_MANAGER_HPP
+#ifndef TETHYS_SCE_CONTRACT_MANAGER_HPP
+#define TETHYS_SCE_CONTRACT_MANAGER_HPP
 
 #include "../config.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 using namespace nlohmann;
 

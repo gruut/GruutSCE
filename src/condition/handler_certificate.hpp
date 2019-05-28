@@ -1,10 +1,10 @@
-#ifndef VERONN_SCE_HANDLER_CERTIFICATE_HPP
-#define VERONN_SCE_HANDLER_CERTIFICATE_HPP
+#ifndef TETHYS_SCE_HANDLER_CERTIFICATE_HPP
+#define TETHYS_SCE_HANDLER_CERTIFICATE_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class CertificateHandler : public BaseConditionHandler {
 public:

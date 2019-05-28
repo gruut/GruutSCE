@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
-project(VeronnSCE)
+project(TethysSCE)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -40,9 +40,9 @@ file(GLOB HEADER_FILES
     "utils/gruut-utils/src/*.hpp"
     )
 
-add_executable(VSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})
-target_include_directories(VSCE PRIVATE include/ /usr/local/include)
-target_link_libraries(VSCE
+add_executable(TSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(TSCE PRIVATE include/ /usr/local/include)
+target_link_libraries(TSCE
     PRIVATE
     ${Boost_LIBRARIES}
     ${BOTAN_LIBS}

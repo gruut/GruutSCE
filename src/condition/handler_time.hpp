@@ -1,10 +1,10 @@
-#ifndef VERONN_SCE_HANDLER_TIME_HPP
-#define VERONN_SCE_HANDLER_TIME_HPP
+#ifndef TETHYS_SCE_HANDLER_TIME_HPP
+#define TETHYS_SCE_HANDLER_TIME_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class TimeHandler : public BaseConditionHandler {
 public:
@@ -17,24 +17,24 @@ public:
       return false;
     }
 
-    uint64_t current_timestamp = vs::isotime2timestamp(data.value());
+    uint64_t current_timestamp = tt::isotime2timestamp(data.value());
 
     std::string time_after = doc_node.child("after").text().as_string();
     std::string time_before = doc_node.child("before").text().as_string();
 
-    vs::trim(time_after);
-    vs::trim(time_before);
+    tt::trim(time_after);
+    tt::trim(time_before);
 
     if(time_after.empty() && time_before.empty())
         return false;
 
     if(time_before.empty())
-        return (vs::isotime2timestamp(time_before) > current_timestamp);
+        return (tt::isotime2timestamp(time_before) > current_timestamp);
 
     if(time_before.empty())
-        return (vs::isotime2timestamp(time_after) < current_timestamp);
+        return (tt::isotime2timestamp(time_after) < current_timestamp);
 
-    return (vs::isotime2timestamp(time_after) < current_timestamp && current_timestamp < vs::isotime2timestamp(time_before));
+    return (tt::isotime2timestamp(time_after) < current_timestamp && current_timestamp < tt::isotime2timestamp(time_before));
 
   }
 };

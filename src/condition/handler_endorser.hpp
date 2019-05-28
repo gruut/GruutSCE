@@ -1,10 +1,10 @@
-#ifndef VERONN_SCE_HANDLER_ENDORSER_HPP
-#define VERONN_SCE_HANDLER_ENDORSER_HPP
+#ifndef TETHYS_SCE_HANDLER_ENDORSER_HPP
+#define TETHYS_SCE_HANDLER_ENDORSER_HPP
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
-namespace veronn::vsce {
+namespace tethys::tsce {
 
 class EndorserHandler : public BaseConditionHandler {
 public:
@@ -25,6 +25,7 @@ public:
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
         for (pugi::xml_node &tags: doc_node) {
+
           eval_result &= evalue(tags, data_manager);
           if (!eval_result)
             break;
@@ -42,14 +43,15 @@ public:
     case SecondaryConditionType::ID: {
 
       std::string endorser_id_b58 = doc_node.text().as_string();
-      vs::trim(endorser_id_b58);
+
+      tt::trim(endorser_id_b58);
 
       auto data = data_manager.evalOpt("$tx.endorser.count");
       if(!data.has_value()){
         return false;
       }
 
-      int num_endorsers = vs::str2num<int>(data.value());
+      int num_endorsers = tt::str2num<int>(data.value());
 
       if(num_endorsers <= 0) {
         return false;
