@@ -17,7 +17,7 @@ public:
       return false;
     }
 
-    uint64_t current_timestamp = tt::isotime2timestamp(data.value());
+    uint64_t current_timestamp = tt::timestr2timestamp(data.value());
 
     std::string time_after = doc_node.child("after").text().as_string();
     std::string time_before = doc_node.child("before").text().as_string();
@@ -29,12 +29,12 @@ public:
         return false;
 
     if(time_before.empty())
-        return (tt::isotime2timestamp(time_before) > current_timestamp);
+        return (tt::timestr2timestamp(time_before) > current_timestamp);
 
     if(time_before.empty())
-        return (tt::isotime2timestamp(time_after) < current_timestamp);
+        return (tt::timestr2timestamp(time_after) < current_timestamp);
 
-    return (tt::isotime2timestamp(time_after) < current_timestamp && current_timestamp < tt::isotime2timestamp(time_before));
+    return (tt::timestr2timestamp(time_after) < current_timestamp && current_timestamp < tt::timestr2timestamp(time_before));
 
   }
 };

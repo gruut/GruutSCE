@@ -20,7 +20,7 @@ public:
     case SecondaryConditionType::ENDORSER:
     case SecondaryConditionType::IF:
     case SecondaryConditionType::NIF: {
-      EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value());
+      EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value()).value_or(EvalRuleType::AND);
 
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
