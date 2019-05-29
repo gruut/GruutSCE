@@ -75,26 +75,46 @@ public:
     return dst;
   }
 
-  static uint64_t isotime2timestamp(const std::string &iso_time) {
-    std::istringstream in{iso_time};
-    date::sys_time<std::chrono::milliseconds> time_point;
-    in >> date::parse("%FT%TZ", time_point);
+  static uint64_t timestr2timestamp(std::string_view time_str, int offset_min = 0) {
 
-    if (in.fail()) {
-      in.clear();
-      in.exceptions(std::ios::failbit);
-      in.str(iso_time);
-      in >> date::parse("%FT%T%Ez", time_point);
-    }
+  std::istringstream in;
+  date::sys_time<std::chrono::milliseconds> time_point;
 
-    return static_cast<uint64_t>(time_point.time_since_epoch().count());
+  std::string iso_time{time_str};
+
+  if(iso_time.empty())
+  return 0;
+
+  if(iso_time.back() == 'Z' || iso_time.back() == 'z'){
+    iso_time = iso_time.substr(0,iso_time.size() - 1);
   }
-  static uint64_t  simpletime2timestamp(const std::string &simple_time) {
-    std::istringstream in{simple_time};
-    date::sys_time<std::chrono::milliseconds> time_point;
-    in >> date::parse("%F", time_point);
 
-    return static_cast<uint64_t>(time_point.time_since_epoch().count());
+  if(iso_time.size() < 10)
+    return 0;
+
+  if(iso_time.size() > 10) {
+    iso_time[10] = 'T';
+  }
+
+  if(iso_time.size() == 10) {
+    std::string add_str = "T00:00:00+00:00";
+    in.str(iso_time + add_str);
+  } else if(iso_time.size() == 19) {
+    std::string add_str = "+00:00";
+    in.str(iso_time + add_str);
+  } else if(iso_time.size() == 25){
+    in.str(iso_time);
+  } else {
+    return 0;
+  }
+
+  in >> date::parse("%FT%T%Ez", time_point);
+
+  if (in.fail())
+    return 0;
+
+  return static_cast<uint64_t>(time_point.time_since_epoch().count() - offset_min * 60000);
+
   }
 
   template <typename T>

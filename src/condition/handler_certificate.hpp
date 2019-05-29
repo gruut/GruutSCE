@@ -1,6 +1,8 @@
 #ifndef TETHYS_SCE_HANDLER_CERTIFICATE_HPP
 #define TETHYS_SCE_HANDLER_CERTIFICATE_HPP
 
+#include <botan-2/botan/oids.h>
+#include <botan-2/botan/rsa.h>
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
 
@@ -19,39 +21,49 @@ public:
 
     std::string pk = pk_node.attribute("value").value();
     std::string pk_type = pk_node.attribute("type").value();
-    if(pk.empty() || pk[0] != '$')
+
+    if(pk.empty()){
       return false;
-    else{
-      auto pk_temp = data_manager.get(pk);
-      if(!pk_temp.has_value())
+    } else {
+      pk = data_manager.eval(pk);
+      if(pk.empty())
         return false;
-      pk = pk_temp.value();
     }
 
-    std::string by = by_node.attribute("value").value();
+    std::string by_attr_val = by_node.attribute("value").value();
     std::string by_type = by_node.attribute("type").value();
-    if(by.empty())
+    std::string by_val = !by_attr_val.empty() ?  data_manager.eval(by_attr_val) : by_node.text().as_string();
+
+    if(by_val.empty())
       return false;
-    else if(by[0] == '$'){
-	  auto by_temp = data_manager.get(by);
-	  if(!by_temp.has_value())
-		return false;
-	  by = by_temp.value();
-    }
 
     //TODO : may be handled by type ( `PEM` / `DER` )
     //now just check `PEM`
     try {
-      Botan::DataSource_Memory by_cert_datasource(by);
-      Botan::X509_Certificate by_cert(by_cert_datasource);
-      Botan::ECDSA_PublicKey ecdsa_by_pk(by_cert.subject_public_key_algo(), by_cert.subject_public_key_bitstring());
-
+      Botan::DataSource_Memory by_cert_datasource(by_val);
       Botan::DataSource_Memory cert_datasource(pk);
+
+      Botan::X509_Certificate by_cert(by_cert_datasource);
       Botan::X509_Certificate cert(cert_datasource);
 
-      return cert.check_signature(ecdsa_by_pk);
+      std::string algo_name = Botan::OIDS::oid2str(by_cert.subject_public_key_algo().get_oid());
+
+      if(algo_name.size() < 3) {
+        return false;
+      }
+
+      ssize_t pos;
+      if ( (pos = algo_name.find("RSA")) != std::string::npos && pos == 0) {
+        Botan::RSA_PublicKey by_pk(by_cert.subject_public_key_algo(), by_cert.subject_public_key_bitstring());
+        return cert.check_signature(by_pk);
+      } else if ((pos = algo_name.find("ECDSA")) != std::string::npos && pos == 0) {
+        Botan::ECDSA_PublicKey by_pk(by_cert.subject_public_key_algo(), by_cert.subject_public_key_bitstring());
+        return cert.check_signature(by_pk);
+      } else {
+        return false; // not supported!
+      }
     }
-    catch(...){
+    catch(Botan::Exception &exception){
       return false;
     }
   }

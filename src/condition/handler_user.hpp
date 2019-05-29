@@ -32,7 +32,7 @@ public:
     case SecondaryConditionType::RECEIVER:
     case SecondaryConditionType::IF:
     case SecondaryConditionType::NIF: {
-      EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value());
+      EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value()).value_or(EvalRuleType::AND);
 
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
@@ -52,15 +52,12 @@ public:
       break;
     }
     case SecondaryConditionType::ID: {
-      std::string user_id_b58 = doc_node.text().as_string(); // <id>...</id>
-      tt::trim(user_id_b58);
+      std::string contract_user_id_b58 = doc_node.text().as_string(); // <id>...</id>
+      tt::trim(contract_user_id_b58);
 
-      auto data = data_manager.get(m_user_key);
-      if(!data.has_value()){
-        return false;
-      }
+      std::string user_id = data_manager.eval(m_user_key);
 
-      eval_result = (data.value() == user_id_b58);
+      eval_result = (user_id == contract_user_id_b58);
       break;
     }
     case SecondaryConditionType::LOCATION: {
@@ -68,10 +65,11 @@ public:
       // TODO : improve smarter
 
       std::string location = doc_node.attribute("country").value();
-      location += " ";
-      location += doc_node.attribute("state").value();
+      location.append(" ").append(doc_node.attribute("state").value());
 
-      auto data = data_manager.get(m_user_key + ".location");
+      tt::trim(location);
+
+      auto data = data_manager.evalOpt(m_user_key + ".location");
       if(!data.has_value()){
         return false;
       }
@@ -89,12 +87,12 @@ public:
 
       tt::trim(service_code);
 
-      auto type_data = data_manager.get(m_user_key + ".isc_type");
+      auto type_data = data_manager.evalOpt(m_user_key + ".isc_type");
       if(!type_data.has_value()){
         return false;
       }
 
-      auto code_data = data_manager.get(m_user_key + ".isc_code");
+      auto code_data = data_manager.evalOpt(m_user_key + ".isc_code");
       if(!code_data.has_value()){
         return false;
       }
@@ -105,6 +103,7 @@ public:
     }
 
     case SecondaryConditionType::AGE: {
+
       std::string age_after = doc_node.attribute("after").value();
       std::string age_before = doc_node.attribute("before").value();
 
@@ -114,46 +113,44 @@ public:
       if(age_after.empty() && age_before.empty())
         return false;
 
-      auto data = data_manager.get(m_user_key + ".birthday");
-      if(!data.has_value()) {
-        return false;
-      }
+      std::string birthday_str = data_manager.eval(m_user_key + ".birthday");
 
-      std::istringstream in{data.value()};
+      if(birthday_str.empty())
+        return false;
+
+      std::istringstream birthday_in{birthday_str};
       date::sys_time<std::chrono::milliseconds> birthday_time_point;
-      in >> date::parse("%F", birthday_time_point);
+      birthday_in >> date::parse("%F", birthday_time_point);
+
+      if(birthday_in.fail())
+        return false;
+
+      std::string now_str = data_manager.eval("$time"); // timestamp in second
+
+      auto now_int = tt::str2num<uint64_t>(now_str);
+
+      if(now_int == 0)
+        return false;
+
+      std::chrono::milliseconds now_chrono_ms(now_int * 1000);
+      date::sys_time<std::chrono::milliseconds> now_time_point(now_chrono_ms);
 
       auto birthday = date::year_month_day{floor<date::days>(birthday_time_point)};
-      auto today = date::year_month_day{floor<date::days>(std::chrono::system_clock::now())};
+      auto today = date::year_month_day{floor<date::days>(now_time_point)};
 
       if(age_before.empty()) {
-        try{
-          int age_after_int = std::stoi(age_after);
-          return (birthday + date::years{age_after_int} < today);
-        }
-        catch(...) {
-          return false;
-        }
+        int age_after_int = tt::str2num<int>(age_after);
+        return (birthday + date::years{age_after_int} < today);
       }
 
       if(age_after.empty()) {
-        try{
-          int age_before_int = std::stoi(age_before);
-          return (birthday + date::years{age_before_int} > today);
-        }
-        catch(...) {
-          return false;
-        }
+        int age_before_int = tt::str2num<int>(age_before);
+        return (birthday + date::years{age_before_int} > today);
       }
 
-      try{
-        int age_after_int = std::stoi(age_after);
-        int age_before_int = std::stoi(age_before);
-        return (birthday + date::years{age_after_int} < today && today < birthday + date::years{age_before_int});
-      }
-      catch(...) {
-        return false;
-      }
+      int age_after_int = tt::str2num<int>(age_after);
+      int age_before_int = tt::str2num<int>(age_before);
+      return (birthday + date::years{age_after_int} < today && today < birthday + date::years{age_before_int});
 
     }
     default: {

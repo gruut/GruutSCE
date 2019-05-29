@@ -25,7 +25,7 @@ public:
 
   bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
     PrimaryConditionType base_condition_type = getPrimaryConditionType(doc_node.name());
-    EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value());
+    EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value()).value_or(EvalRuleType::OR);
 
     bool eval_result = true;
 

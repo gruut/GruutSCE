@@ -14,11 +14,11 @@ public:
   virtual bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) = 0;
 
 protected:
-  EvalRuleType getEvalRule(std::string_view eval_str) {
-    if(eval_str.empty() || tt::toLower(eval_str) != "and")
-      return EvalRuleType::OR;
+  std::optional<EvalRuleType> getEvalRule(std::string_view eval_str) {
+    if(eval_str.empty())
+      return std::nullopt;
 
-    return EvalRuleType::AND;
+    return (tt::toLower(eval_str) == "or") ? EvalRuleType::OR : EvalRuleType::AND;
   }
 
   PrimaryConditionType getPrimaryConditionType(std::string_view condition_tag) {
