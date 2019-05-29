@@ -143,7 +143,8 @@ BOOST_AUTO_TEST_CASE(simple_time) {
     ConditionManager condition_manager;
     DataManager data_manager;
 
-    data_manager.updateValue("$time", "2019-01-02 23:59:59");
+    //data_manager.updateValue("$time", "2019-01-02 23:59:59");
+    data_manager.updateValue("$time", "1547542292"); // 2019-01-15 ~
 
     BOOST_TEST(condition_manager.evalue(doc_node,data_manager));
 

@@ -12,12 +12,11 @@ public:
 
   bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
 
-    auto data = data_manager.get("$time");
-    if(!data.has_value()) {
+    auto timestamp = data_manager.evalOpt("$time");
+    if(!timestamp)
       return false;
-    }
 
-    uint64_t current_timestamp = tt::timestr2timestamp(data.value());
+    uint64_t base_timestamp = tt::str2num<uint64_t>(timestamp.value()) * 1000;
 
     std::string time_after = doc_node.child("after").text().as_string();
     std::string time_before = doc_node.child("before").text().as_string();
@@ -29,12 +28,12 @@ public:
         return false;
 
     if(time_before.empty())
-        return (tt::timestr2timestamp(time_before) > current_timestamp);
+        return (tt::timestr2timestamp(time_before) > base_timestamp);
 
     if(time_before.empty())
-        return (tt::timestr2timestamp(time_after) < current_timestamp);
+        return (tt::timestr2timestamp(time_after) < base_timestamp);
 
-    return (tt::timestr2timestamp(time_after) < current_timestamp && current_timestamp < tt::timestr2timestamp(time_before));
+    return (tt::timestr2timestamp(time_after) < base_timestamp && base_timestamp < tt::timestr2timestamp(time_before));
 
   }
 };
