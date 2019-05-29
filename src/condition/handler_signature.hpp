@@ -193,43 +193,31 @@ private:
 
     } else {
       if (signature_type.empty() || signature_type == "GAMMA") {
-
-        // TODO : GAMMA
-
         /*
         AGS ags;
         return ags.verify(pk_or_pem, msg, signature);
          */
         return true;
       } else if (signature_type == "ECDSA") {
-
-        Botan::EC_Group group_domain("secp256k1");
-
-        // for PK case
-
         try {
           std::vector<uint8_t> vec_x(pk_or_pem.begin() + 1, pk_or_pem.begin() + pk_or_pem.size() / 2 + 1);
           std::vector<uint8_t> vec_y(pk_or_pem.begin() + pk_or_pem.size() / 2 + 1, pk_or_pem.end());
-          Botan::BigInt point_x(vec_x);
-          Botan::BigInt point_y(vec_y);
+          auto point_x = Botan::BigInt::decode(vec_x);
+          auto point_y = Botan::BigInt::decode(vec_y);
+          Botan::EC_Group group_domain("secp256k1");
 
-          Botan::PointGFp pk_point(group_domain.get_curve(),point_x,point_y);
-
-          Botan::ECDSA_PublicKey public_key(group_domain, pk_point);
+          Botan::ECDSA_PublicKey public_key(group_domain, group_domain.point(point_x, point_y));
           std::vector<uint8_t> msg_vec(msg.begin(), msg.end());
           std::vector<uint8_t> sig_vec(signature.begin(), signature.end());
           return ECDSA::doVerify(public_key, msg_vec, sig_vec);
         } catch (...) {
           return false;
         }
-
-      } else if(signature_type == "RSA"){
-
-        // TODO : RSA
-
+      } else if (signature_type == "RSA"){
+        //TODO: need `RSA` verification
         return false;
       } else {
-
+        return false;
       }
     }
   }

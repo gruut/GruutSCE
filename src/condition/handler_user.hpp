@@ -127,12 +127,12 @@ public:
 
       std::string now_str = data_manager.eval("$time"); // timestamp in second
 
-      auto now_int = tt::str2num<uint64_t>(now_str);
+      auto now_int = tt::str2num<uint64_t>(now_str) * 1000;
 
       if(now_int == 0)
         return false;
 
-      std::chrono::milliseconds now_chrono_ms(now_int * 1000);
+      std::chrono::milliseconds now_chrono_ms(now_int);
       date::sys_time<std::chrono::milliseconds> now_time_point(now_chrono_ms);
 
       auto birthday = date::year_month_day{floor<date::days>(birthday_time_point)};
