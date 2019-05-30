@@ -83,7 +83,10 @@ public:
 
         std::cout << "finished setContract()" << std::endl;
 
-        contract_runner.setTransaction(each_tx);
+        if(!contract_runner.setTransaction(each_tx)){
+          std::cout << "failed to setTransaction()" << std::endl;
+          continue;
+        }
 
         std::cout << "finished setTransaction()" << std::endl;
 
@@ -91,6 +94,8 @@ public:
           result_fail["info"] = TSCE_ERROR_MSG["NO_USER"];
           result_queries.emplace_back(result_fail);
         }
+
+        std::cout << "finished readUserAttributes()" << std::endl;
 
         auto res_query = contract_runner.run();
 
@@ -100,6 +105,8 @@ public:
           result_fail["info"] = TSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
+
+        std::cout << "finished run()" << std::endl;
 
         contract_runner.clear();
 

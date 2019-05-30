@@ -28,6 +28,9 @@ private:
 public:
   ElementParser() = default;
 
+
+  // Note: The contract node lost her name before it came to this. Why?
+
   bool setContract(pugi::xml_node &contract) {
     m_contract = contract;
     m_contract_if = contract.attribute("if").value();
@@ -98,6 +101,7 @@ public:
   }
 
 private:
+
   std::optional<std::pair<pugi::xml_node,std::string>> parseElement(const char * xpath) {
     std::vector<std::pair<pugi::xml_node,std::string>> elements = parseElements(xpath);
 
@@ -106,6 +110,8 @@ private:
     else
       return elements[0];
   }
+
+  // Note: When I used std::string and std::string::c_str() for this, function did not work properly.
 
   std::vector<std::pair<pugi::xml_node,std::string>> parseElements(const char * xpath) {
 

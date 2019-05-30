@@ -28,10 +28,10 @@ public:
         return false;
 
     if(time_before.empty())
-        return (tt::timestr2timestamp(time_before) > base_timestamp);
-
-    if(time_before.empty())
         return (tt::timestr2timestamp(time_after) < base_timestamp);
+
+    if(time_after.empty())
+        return (tt::timestr2timestamp(time_before) > base_timestamp);
 
     return (tt::timestr2timestamp(time_after) < base_timestamp && base_timestamp < tt::timestr2timestamp(time_before));
 

@@ -21,7 +21,7 @@ public:
       if(!condition_id.empty() && !condition_manager.getEvalResultById(condition_id))
         continue;
 
-      pugi::xpath_node_set var_nodes = get_node.select_nodes("/var");
+      pugi::xpath_node_set var_nodes = get_node.select_nodes("./var");
 
       for(auto &var_path : var_nodes){
         auto var_node = var_path.node();

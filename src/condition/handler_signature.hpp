@@ -39,7 +39,7 @@ public:
     }
 
     BytesBuilder bytes_builder;
-    pugi::xpath_node_set txt_val_nodes = text_node.select_nodes("/val");
+    pugi::xpath_node_set txt_val_nodes = text_node.select_nodes("./val");
     for (auto &each_node : txt_val_nodes) {
       pugi::xml_node val_node = each_node.node();
       std::string val_value = val_node.attribute("value").value();

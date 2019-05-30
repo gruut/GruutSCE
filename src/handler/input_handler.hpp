@@ -1,14 +1,16 @@
 #ifndef TETHYS_SCE_INPUT_HANDLER_HPP
 #define TETHYS_SCE_INPUT_HANDLER_HPP
 
-#include "../config.hpp"
-#include "../data/datamap.hpp"
-#include "../data/data_manager.hpp"
 #include <botan-2/botan/x509cert.h>
 #include <unordered_map>
 #include <cctype>
 #include <algorithm>
 #include <regex>
+
+#include "../config.hpp"
+#include "../data/datamap.hpp"
+#include "../data/data_manager.hpp"
+
 
 namespace tethys::tsce {
 
@@ -20,7 +22,7 @@ constexpr int TEXT_LEN = 65535;
 constexpr int MEDIUMTEXT_LEN = 16777215;
 const auto BOOL_REGEX = "^([Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee])$";
 const auto DATE_REGEX = "([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))";
-const auto DATE_TIME_REGEX = "(19|20)[0-9][0-9]-(0[0-9]|1[0-2])-(0[1-9]|([12][0-9]|3[01]))T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\+|-)[0-1][0-9]:[00]";
+const auto DATE_TIME_REGEX = "(19|20)[0-9]{2}-(0[0-9]|1[0-2])-(0[1-9]|([12][0-9]|3[01]))T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\+|-)[0-1][0-9]:[00]";
 const auto BASE64_REGEX = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
 const auto BASE58_REGEX = "^[A-HJ-NP-Za-km-z1-9]*$";
 const auto BIN_REGEX = "^[0-1]*$";
@@ -39,7 +41,7 @@ public:
   InputHandler() = default;
 
 
-  bool parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
+  bool parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_manager){
 
     if(input_json.empty())
       return false;
@@ -51,7 +53,8 @@ public:
     if(num_max > 10)
       return false;
 
-    pugi::xpath_node_set option_nodes = input_node.select_nodes("/option");
+
+    pugi::xpath_node_set option_nodes = input_node.select_nodes("./option");
 
     std::vector<InputOption> input_options;
     std::map<std::string, std::vector<std::string>> input_value_groups;
@@ -89,8 +92,8 @@ public:
           std::string data_key = "$tx.contract.input[" + to_string(i) + "]." + input_key;
           std::string short_key = "$" + to_string(i) + "." + input_key;
 
-          data_collector.updateValue(data_key,input_value);
-          data_collector.updateValue(short_key,input_value);
+          data_manager.updateValue(data_key,input_value);
+          data_manager.updateValue(short_key,input_value);
 
           input_value_groups[input_key].emplace_back(input_value);
 
@@ -106,15 +109,15 @@ public:
 
             auto data_key_prefix = "$tx.contract.input[" + to_string(i) + "].";
             auto short_key_prefix ="$" + to_string(i) + ".";
-            data_collector.updateValue(data_key_prefix + "notafter", not_after_str);
-            data_collector.updateValue(short_key_prefix + "notafter", not_after_str);
-            data_collector.updateValue(data_key_prefix + "notbefore", not_before_str);
-            data_collector.updateValue(short_key_prefix + "notbefore", not_before_str);
+            data_manager.updateValue(data_key_prefix + "notafter", not_after_str);
+            data_manager.updateValue(short_key_prefix + "notafter", not_after_str);
+            data_manager.updateValue(data_key_prefix + "notbefore", not_before_str);
+            data_manager.updateValue(short_key_prefix + "notbefore", not_before_str);
 
             auto sn = cert.serial_number();
             std::string sn_str(sn.begin(), sn.end());
-            data_collector.updateValue(data_key_prefix + "sn", sn_str);
-            data_collector.updateValue(short_key_prefix + "sn", sn_str);
+            data_manager.updateValue(data_key_prefix + "sn", sn_str);
+            data_manager.updateValue(short_key_prefix + "sn", sn_str);
           }
         }
       }
@@ -123,7 +126,7 @@ public:
     for(auto &it_map : input_value_groups) {
       std::string data_key = "$input@" + it_map.first;
       std::string data_value = nlohmann::json(it_map.second).dump();
-      data_collector.updateValue(data_key,data_value);
+      data_manager.updateValue(data_key,data_value);
     }
 
     return true;

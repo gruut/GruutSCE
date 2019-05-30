@@ -53,7 +53,6 @@ BOOST_AUTO_TEST_CASE(simple_run) {
 
     } else if(query_type == "contract.get") {
 
-
       std::string test_contract = R"(
 <contract>
   <head>
@@ -86,6 +85,20 @@ BOOST_AUTO_TEST_CASE(simple_run) {
 
       nlohmann::json record = nlohmann::json::array();
       record.emplace_back(test_contract);
+
+      result["data"].emplace_back(record);
+
+    } else if(query_type == "user.info.get"){
+
+      result["name"].emplace_back("register_day");
+      result["name"].emplace_back("register_code");
+      result["name"].emplace_back("gender");
+      result["name"].emplace_back("isc_type");
+      result["name"].emplace_back("isc_code");
+      result["name"].emplace_back("location");
+      result["name"].emplace_back("age_limit");
+
+      nlohmann::json record = {"1980-08-15", "", "MALE", "", "", "", ""};
 
       result["data"].emplace_back(record);
 

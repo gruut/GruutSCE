@@ -29,20 +29,20 @@ public:
 
   bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) {
 
-    m_info_node = doc_node.first_element_by_path("/info");
-    m_update_node = doc_node.first_element_by_path("/update");
+    m_info_node = doc_node.first_element_by_path("./info");
+    m_update_node = doc_node.first_element_by_path("./update");
     ConditionHandler condition_handler;
 
     return condition_handler.evalue(m_update_node,data_manager);
   }
 
   std::string getName() {
-    return m_info_node.first_element_by_path("/name").text().as_string();
+    return m_info_node.first_element_by_path("./name").text().as_string();
   }
 
   std::vector<std::string> getCword(){
     std::vector<std::string> ret_vec;
-    auto cword_node_paths = m_info_node.select_nodes("/cword");
+    auto cword_node_paths = m_info_node.select_nodes("./cword");
     for(auto &each_path : cword_node_paths){
       auto each_node = each_path.node();
       ret_vec.emplace_back(each_node.text().as_string());

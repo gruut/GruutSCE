@@ -59,33 +59,25 @@ public:
     return m_element_parser.setContract(contract_node);
   }
 
-  void setTransaction(Transaction &tx) {
-    nlohmann::json tx_agg_json = tx.getJson();
-    setTransaction(tx_agg_json);
-  }
-
   bool setTransaction(TransactionJson &tx_agg_json) {
 
     m_tx_json = tx_agg_json;
 
     auto time = json::get<std::string>(m_tx_json,"time");
-    auto cid = json::get<std::string>(m_tx_json,"cid");
-    auto receiver = json::get<std::string>(m_tx_json,"receiver");
-    auto fee = json::get<std::string>(m_tx_json,"fee");
+    auto cid = json::get<std::string>(m_tx_json["body"],"cid");
+    auto receiver = json::get<std::string>(m_tx_json["body"],"receiver");
+    auto fee = json::get<std::string>(m_tx_json["body"],"fee");
     auto user_id = json::get<std::string>(m_tx_json["user"],"id");
     auto txid = json::get<std::string>(m_tx_json,"txid");
-    auto world = json::get<std::string>(m_tx_json,"world");
-    auto chain = json::get<std::string>(m_tx_json,"chain");
 
-    if(!time || !cid || !receiver || !fee || !user_id || !txid || !world || !chain)
+    if(!time || !cid || !receiver || !fee || !user_id || !txid) {
       return false;
+    }
 
     auto user_pk = json::get<std::string>(tx_agg_json["user"],"pk");
 
     m_data_manager.updateValue("$tx.txid", txid.value());
     m_data_manager.updateValue("$txid", txid.value());
-    m_data_manager.updateValue("$tx.world", world.value());
-    m_data_manager.updateValue("$tx.chain",chain.value());
 
     m_data_manager.updateValue("$tx.time", time.value());
     m_data_manager.updateValue("$time", time.value());
@@ -158,21 +150,23 @@ public:
   std::optional<nlohmann::json> run() {
 
     nlohmann::json result_query = R"(
-      "txid":"",
-      "status":true,
-      "info":"",
-      "authority": {
-        "author": "",
-        "user": "",
-        "receiver": "",
-        "self": "",
-        "friend":[]
-      },
-      fee: {
-        "author": "",
-        "user": "",
-      },
-      "queries": [])"_json;
+      {
+        "txid":"",
+        "status":true,
+        "info":"",
+        "authority": {
+          "author": "",
+          "user": "",
+          "receiver": "",
+          "self": "",
+          "friend":[]
+        },
+        "fee": {
+          "author": "",
+          "user": ""
+        },
+        "queries": []
+      })"_json;
 
     auto& data_map = m_data_manager.getDatamap();
 

@@ -103,7 +103,7 @@ private:
 
     // 2) parsing all option entries
 
-    auto option_nodes = set_node.select_nodes("/option");
+    auto option_nodes = set_node.select_nodes("./option");
 
     for (auto &each_node : option_nodes) {
 
