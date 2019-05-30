@@ -9,7 +9,7 @@
 
 using namespace tethys::tsce;
 
-BOOST_AUTO_TEST_SUITE(test_compare_handler)
+BOOST_AUTO_TEST_SUITE(component_test)
 BOOST_AUTO_TEST_CASE(simple_compare) {
 
   std::string compare_condition = R"(

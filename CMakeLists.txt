@@ -48,9 +48,9 @@ target_link_libraries(TSCE
     ${BOTAN_LIBS}
 )
 
-add_executable(test test/component_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
-target_include_directories(test PRIVATE include/ /usr/local/include)
-target_link_libraries(test
+add_executable(comp_test test/component_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(comp_test PRIVATE include/ /usr/local/include)
+target_link_libraries(comp_test
     PRIVATE
     ${Boost_LIBRARIES}
     ${Boost_FILESYSTEM_LIBRARY}
@@ -58,3 +58,15 @@ target_link_libraries(test
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
     ${BOTAN_LIBS}
 )
+
+add_executable(run_test test/runner_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(run_test PRIVATE include/ /usr/local/include)
+target_link_libraries(run_test
+    PRIVATE
+    ${Boost_LIBRARIES}
+    ${Boost_FILESYSTEM_LIBRARY}
+    ${Boost_SYSTEM_LIBRARY}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${BOTAN_LIBS}
+)
+

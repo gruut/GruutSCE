@@ -129,7 +129,7 @@ enum class SecondaryConditionType : int {
   UNKNOWN
 };
 
-std::map<std::string,std::string> VSCE_ERROR_MSG = {
+std::map<std::string,std::string> TSCE_ERROR_MSG = {
     {"RUN_INPUT", "input is not met"},
     {"RUN_CONDITION", "condition is not met"},
     {"RUN_PERIOD", "runnable time period is not met"},
@@ -137,8 +137,7 @@ std::map<std::string,std::string> VSCE_ERROR_MSG = {
     {"NO_CONTRACT", "corresponding contract does not exist"},
     {"RUN_UNKNOWN", "unknown error occurred"},
     {"CONFIG_WORLD", "error on configuration of world and chain"},
-    {"NO_USER", "error on reading user attributes"},
-    {"INVALID_UPDATE_LV1", "error on updating state data in cache"}
+    {"NO_USER", "error on reading user attributes"}
 };
 
 using BlockJson = nlohmann::json;

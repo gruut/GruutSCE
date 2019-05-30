@@ -54,9 +54,9 @@ public:
     return true;
   }
 
-  void setContract(pugi::xml_node &contract_node) {
+  bool setContract(pugi::xml_node &contract_node) {
     m_contract_node = contract_node; // for future use
-    m_element_parser.setContract(contract_node);
+    return m_element_parser.setContract(contract_node);
   }
 
   void setTransaction(Transaction &tx) {
@@ -198,7 +198,7 @@ public:
 
       if (!m_condition_manager.getEvalResultById(head_node.second)) {
         result_query["status"] = false;
-        result_query["info"] = VSCE_ERROR_MSG["RUN_CONDITION"];
+        result_query["info"] = TSCE_ERROR_MSG["RUN_CONDITION"];
         return result_query;
       }
     }
@@ -206,7 +206,7 @@ public:
     TimeHandler contract_time_handler;
     if(!contract_time_handler.evalue(head_node.first,m_data_manager)) {
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["RUN_PERIOD"];
+      result_query["info"] = TSCE_ERROR_MSG["RUN_PERIOD"];
       return result_query;
     }
 
@@ -227,7 +227,7 @@ public:
     auto& input_node = m_element_parser.getNode("input");
     if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_data_manager)){
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["RUN_INPUT"];
+      result_query["info"] = TSCE_ERROR_MSG["RUN_INPUT"];
       return result_query;
     }
 
@@ -256,13 +256,13 @@ public:
 
     if(pay_from_user > 0 && m_data_manager.getUserKeyCurrency("$user") < pay_from_user) {
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (user)";
+      result_query["info"] = TSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (user)";
       return result_query;
     }
 
     if(pay_from_author > 0 && m_data_manager.getUserKeyCurrency("$author") < pay_from_author) {
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (author)";
+      result_query["info"] = TSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (author)";
       return result_query;
     }
 

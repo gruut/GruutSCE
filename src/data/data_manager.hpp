@@ -154,16 +154,11 @@ public:
     return queryIfAndParseData(query);
   }
 
-  template <typename S = std::string>
-  std::vector<DataAttribute> getUserInfo(S &&user_id_) {
+  std::vector<DataAttribute> getUserInfo(std::string_view user_id_) {
     if(user_id_.empty())
       return {};
 
-    std::string user_id = user_id_;
-
-    if(user_id[0] == '$') {
-      user_id = eval(user_id);
-    }
+    std::string user_id = eval(user_id_);
 
     nlohmann::json query = {
         {"type","user.info.get"},
@@ -175,16 +170,11 @@ public:
     return queryIfUserAttrAndParseData(query, user_id);
   }
 
-  template <typename S1 = std::string, typename S2 = std::string>
-  int64_t getUserKeyCurrency(S1 &&user_id_) {
+  int64_t getUserKeyCurrency(std::string_view user_id_) {
     if(user_id_.empty())
       return {};
 
-    std::string user_id = user_id_;
-
-    if(user_id[0] == '$') {
-      user_id = eval(user_id);
-    }
+    std::string user_id = eval(user_id_);
 
     std::vector<DataAttribute> ret_vec;
 

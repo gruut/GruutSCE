@@ -7,9 +7,11 @@ namespace tethys::tsce {
 
 class ElementParser {
 private:
-  std::pair<pugi::xml_node,std::string> m_contract;
+  pugi::xml_node m_contract;
+  std::string m_contract_if;
+
   std::pair<pugi::xml_node,std::string> m_head;
-  std::pair<pugi::xml_node,std::string> m_body;
+  //std::pair<pugi::xml_node,std::string> m_body;
   std::pair<pugi::xml_node,std::string> m_input;
   std::vector<std::pair<pugi::xml_node,std::string>> m_gets;
   std::vector<std::pair<pugi::xml_node,std::string>> m_sets;
@@ -26,12 +28,23 @@ private:
 public:
   ElementParser() = default;
 
-  void setContract(pugi::xml_node &contract) {
-    m_contract = {contract, contract.attribute("if").value()};
+  bool setContract(pugi::xml_node &contract) {
+    m_contract = contract;
+    m_contract_if = contract.attribute("if").value();
+    m_contract.set_name("contract"); // bug?!
 
-    m_head = parseElement("/contract/head");
-    m_body = parseElement("/contract/body");
-    m_input = parseElement("/contract/body/input");
+    auto head = parseElement("/contract/head");
+    //auto body = parseElement("/contract/body");
+    auto input = parseElement("/contract/body/input");
+
+    if(!head || !input) {
+      std::cout << "maybe not valid contract" << std::endl;
+      return false;
+    }
+
+    m_head = head.value();
+    //m_body = body.value();
+    m_input = input.value();
 
     m_gets = parseElements("/contract/body/get");
     m_sets = parseElements("/contract/body/set");
@@ -41,6 +54,8 @@ public:
     m_calls = parseElements("/contract/body/call");
     m_scripts = parseElements("/contract/script");
     m_fees = parseElements("/contract/fee");
+
+    return true;
   }
 
   template <typename S = std::string>
@@ -48,8 +63,8 @@ public:
 
     if(node_name == "head") {
       return m_head;
-    } else if(node_name == "body") {
-      return m_body;
+//    } else if(node_name == "body") {
+//      return m_body;
     } else if(node_name == "input") {
       return m_input;
     }
@@ -83,15 +98,20 @@ public:
   }
 
 private:
-  std::pair<pugi::xml_node,std::string> parseElement(const std::string &xpath) {
-    pugi::xml_node t_node = m_contract.first.first_element_by_path(xpath.c_str());
-    return {t_node, t_node.attribute("if").value() };
+  std::optional<std::pair<pugi::xml_node,std::string>> parseElement(const char * xpath) {
+    std::vector<std::pair<pugi::xml_node,std::string>> elements = parseElements(xpath);
+
+    if(elements.empty())
+      return std::nullopt;
+    else
+      return elements[0];
   }
 
-  std::vector<std::pair<pugi::xml_node,std::string>> parseElements(const std::string &xpath) {
+  std::vector<std::pair<pugi::xml_node,std::string>> parseElements(const char * xpath) {
 
     std::vector<std::pair<pugi::xml_node,std::string>> node_set;
-    pugi::xpath_node_set select_node_set = m_contract.first.select_nodes(xpath.c_str());
+    pugi::xpath_node_set select_node_set = m_contract.select_nodes(xpath);
+
     for(auto &each_node : select_node_set) {
       std::string if_str = each_node.node().attribute("if").value();
       node_set.emplace_back(std::make_pair(each_node.node(),if_str));

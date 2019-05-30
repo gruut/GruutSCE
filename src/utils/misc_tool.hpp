@@ -116,47 +116,9 @@ public:
 
   }
 
-  template <typename T>
-  inline static std::string encodeBase64(T &&t) {
-    try {
-      return Botan::base64_encode(std::vector<uint8_t>(begin(t), end(t)));
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename T>
-  inline static std::vector<std::byte> decodeBase64(T &&input) {
-    try {
-      auto s_vector = Botan::base64_decode(input);
-      return std::vector<std::byte>(s_vector.begin(), s_vector.end());
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename T>
-  inline static std::string encodeBase58(T &&t) {
-    try {
-      return Botan::base58_encode(std::vector<uint8_t>(begin(t), end(t)));
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename T>
-  inline static std::vector<std::byte> decodeBase58(T &&input) {
-    try {
-      auto s_vector = Botan::base58_decode(input);
-      return std::vector<std::byte>(s_vector.begin(), s_vector.end());
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename S1 = std::string, typename S2 = std::string>
-  static std::vector<std::string> split (S1 &&str, S2 &&delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+  template <typename S1 = std::string>
+  static std::vector<std::string> split (S1 &&str, std::string_view delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.size();
     std::string token;
     std::vector<std::string> res;
 

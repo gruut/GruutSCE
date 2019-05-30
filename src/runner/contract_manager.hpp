@@ -16,11 +16,15 @@ public:
   ContractManager() = default;
 
   void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> contract_storage_interface){
-    m_contract_storage_interface = std::move(contract_storage_interface);
+    m_contract_storage_interface = contract_storage_interface;
   }
 
   template <typename S = std::string>
   std::optional<pugi::xml_node> getContract(S &&cid) {
+
+    if(m_contract_storage_interface == nullptr) {
+      return std::nullopt;
+    }
 
     // TODO : validating of cid format
 
@@ -32,7 +36,7 @@ public:
       if(it_map->second.first.empty())
         return std::nullopt;
       else {
-        if(it_map->second.second::empty())
+        if(it_map->second.second.empty())
           return std::nullopt;
 
         return it_map->second.second;
@@ -48,12 +52,12 @@ public:
 
     nlohmann::json query_result = m_contract_storage_interface(query);
 
-    if(query_result.empty()) {
+    if(query_result.empty() || query_result["data"].empty() || query_result["data"][0].empty()) {
       m_contract_cache.insert({cid,{"",null_node}});
       return std::nullopt;
     }
 
-    auto xml_doc = query_result[0]["contract"].get<std::string>();
+    auto xml_doc = query_result["data"][0][0].get<std::string>();
 
     if(xml_doc.empty()) {
       m_contract_cache.insert({cid,{"",null_node}});
@@ -63,6 +67,7 @@ public:
     pugi::xml_document doc;
 
     if (doc.load_string(xml_doc.c_str(), pugi::parse_minimal)) {
+
       pugi::xml_node doc_node = doc.document_element();
       m_contract_cache.insert({cid,{xml_doc,doc_node}});
 
