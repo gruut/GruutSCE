@@ -11,8 +11,9 @@
 #include <unordered_map>
 
 // common include files
-#include <pugixml.hpp>
-#include <json.hpp>
+#include "../include/tinyxml2.h"
+#include "../include/json.hpp"
+#include "../include/date.hpp"
 
 #include "config/types.hpp"
 
@@ -27,6 +28,7 @@
 namespace tethys::tsce {
 
 constexpr int NUM_GSCE_THREAD = 4;
+constexpr int MAX_INPUT_SIZE = 5;
 
 }
 

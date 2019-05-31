@@ -16,7 +16,6 @@ namespace tethys::tsce {
 class ContractRunner {
 
 private:
-  pugi::xml_node m_contract_node;
   DataManager m_data_manager;
   ConditionManager m_condition_manager;
   InputHandler m_input_handler;
@@ -54,43 +53,34 @@ public:
     return true;
   }
 
-  void setContract(pugi::xml_node &contract_node) {
-    m_contract_node = contract_node; // for future use
-    m_element_parser.setContract(contract_node);
-  }
-
-  void setTransaction(Transaction &tx) {
-    nlohmann::json tx_agg_json = tx.getJson();
-    setTransaction(tx_agg_json);
+  bool setContract(std::string &xml_doc) {
+    return m_element_parser.setContract(xml_doc);
   }
 
   bool setTransaction(TransactionJson &tx_agg_json) {
 
     m_tx_json = tx_agg_json;
 
-    auto time = json::get<std::string>(m_tx_json,"time");
-    auto cid = json::get<std::string>(m_tx_json,"cid");
-    auto receiver = json::get<std::string>(m_tx_json,"receiver");
-    auto fee = json::get<std::string>(m_tx_json,"fee");
-    auto user_id = json::get<std::string>(m_tx_json["user"],"id");
-    auto txid = json::get<std::string>(m_tx_json,"txid");
-    auto world = json::get<std::string>(m_tx_json,"world");
-    auto chain = json::get<std::string>(m_tx_json,"chain");
+    auto time = JsonTool::get<std::string>(m_tx_json,"time");
+    auto cid = JsonTool::get<std::string>(m_tx_json["body"],"cid");
+    auto receiver = JsonTool::get<std::string>(m_tx_json["body"],"receiver");
+    auto fee = JsonTool::get<std::string>(m_tx_json["body"],"fee");
+    auto user_id = JsonTool::get<std::string>(m_tx_json["user"],"id");
+    auto txid = JsonTool::get<std::string>(m_tx_json,"txid");
 
-    if(!time || !cid || !receiver || !fee || !user_id || !txid || !world || !chain)
+    if(!time || !cid || !receiver || !fee || !user_id || !txid) {
       return false;
+    }
 
-    auto user_pk = json::get<std::string>(tx_agg_json["user"],"pk");
+    auto user_pk = JsonTool::get<std::string>(tx_agg_json["user"],"pk");
 
     m_data_manager.updateValue("$tx.txid", txid.value());
     m_data_manager.updateValue("$txid", txid.value());
-    m_data_manager.updateValue("$tx.world", world.value());
-    m_data_manager.updateValue("$tx.chain",chain.value());
 
     m_data_manager.updateValue("$tx.time", time.value());
     m_data_manager.updateValue("$time", time.value());
 
-    std::vector<std::string> cid_components = tt::split(cid.value(),"::");
+    std::vector<std::string> cid_components = mt::split(cid.value(),"::");
 
     m_data_manager.updateValue("$tx.body.cid", cid.value());
     m_data_manager.updateValue("$cid", cid.value());
@@ -113,8 +103,8 @@ public:
     for(int i = 0 ; i < tx_endorsers_json.size(); ++i){
       std::string id_key = "$tx.endorser[" + to_string(i) + "].id";
       std::string pk_key = "$tx.endorser[" + to_string(i) + "].pk";
-      m_data_manager.updateValue(id_key, json::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
-      m_data_manager.updateValue(pk_key, json::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
+      m_data_manager.updateValue(id_key, JsonTool::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
+      m_data_manager.updateValue(pk_key, JsonTool::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
     }
 
     m_data_manager.updateValue("$tx.endorser.count", std::to_string(tx_endorsers_json.size()));
@@ -158,55 +148,37 @@ public:
   std::optional<nlohmann::json> run() {
 
     nlohmann::json result_query = R"(
-      "txid":"",
-      "status":true,
-      "info":"",
-      "authority": {
-        "author": "",
-        "user": "",
-        "receiver": "",
-        "self": "",
-        "friend":[]
-      },
-      fee: {
-        "author": "",
-        "user": "",
-      },
-      "queries": [])"_json;
+      {
+        "txid":"",
+        "status":true,
+        "info":"",
+        "authority": {
+          "author": "",
+          "user": "",
+          "receiver": "",
+          "self": "",
+          "friend":[]
+        },
+        "fee": {
+          "author": "",
+          "user": ""
+        },
+        "queries": []
+      })"_json;
 
     auto& data_map = m_data_manager.getDatamap();
 
     result_query["txid"] = m_data_manager.eval("$tx.txid");
 
-    auto& head_node = m_element_parser.getNode("head");
+    auto head_node = m_element_parser.getNode("head");
     auto& condition_nodes = m_element_parser.getNodes("condition");
-
 
     // check if contract is runnable
 
-    if(!head_node.second.empty()) {
-
-      std::string condition_id = (head_node.second[0] == '~') ? head_node.second.substr(1) : head_node.second;
-
-      for (auto &each_condition : condition_nodes) {
-        std::string each_id = each_condition.first.attribute("id").value();
-        if(each_id == condition_id){
-          m_condition_manager.evalue(each_condition.first,m_data_manager);
-          break;
-        }
-      }
-
-      if (!m_condition_manager.getEvalResultById(head_node.second)) {
-        result_query["status"] = false;
-        result_query["info"] = VSCE_ERROR_MSG["RUN_CONDITION"];
-        return result_query;
-      }
-    }
-
     TimeHandler contract_time_handler;
-    if(!contract_time_handler.evalue(head_node.first,m_data_manager)) {
+    if(!contract_time_handler.evalue(head_node,m_data_manager)) {
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["RUN_PERIOD"];
+      result_query["info"] = TSCE_ERROR_MSG["RUN_PERIOD"];
       return result_query;
     }
 
@@ -224,10 +196,10 @@ public:
 
     // process input directive
 
-    auto& input_node = m_element_parser.getNode("input");
-    if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_data_manager)){
+    auto input_node = m_element_parser.getNode("input");
+    if(!m_input_handler.parseInput(m_tx_json["body"]["input"],input_node,m_data_manager)){
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["RUN_INPUT"];
+      result_query["info"] = TSCE_ERROR_MSG["RUN_INPUT"];
       return result_query;
     }
 
@@ -256,13 +228,13 @@ public:
 
     if(pay_from_user > 0 && m_data_manager.getUserKeyCurrency("$user") < pay_from_user) {
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (user)";
+      result_query["info"] = TSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (user)";
       return result_query;
     }
 
     if(pay_from_author > 0 && m_data_manager.getUserKeyCurrency("$author") < pay_from_author) {
       result_query["status"] = false;
-      result_query["info"] = VSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (author)";
+      result_query["info"] = TSCE_ERROR_MSG["NOT_ENOUGH_FEE"] + " (author)";
       return result_query;
     }
 
@@ -272,18 +244,17 @@ public:
     // process set directive
 
     auto& set_nodes = m_element_parser.getNodes("set");
+
     auto set_query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
 
     if(set_query.empty())
       return std::nullopt;
 
-    // TODO : set result validation
-
     nlohmann::json valid_set_query = nlohmann::json::array();
 
     for(auto &each_set_query : set_query) {
 
-      std::string set_type_str = json::get<std::string>(each_set_query,"type").value_or("");
+      std::string set_type_str = JsonTool::get<std::string>(each_set_query,"type").value_or("");
 
       if(set_type_str.empty())
         continue;
@@ -294,13 +265,17 @@ public:
       if(set_type == SetType::NONE)
         continue;
 
-
+      // TODO : set result validation
 
       valid_set_query.emplace_back(each_set_query);
     }
 
-
-    result_query["query"] = valid_set_query;
+    if(valid_set_query.empty()) {
+      result_query["status"] = false;
+      result_query["info"] = TSCE_ERROR_MSG["RUN_SET"];
+    } else {
+      result_query["queries"] = valid_set_query;
+    }
 
     return result_query;
   }

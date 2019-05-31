@@ -1,14 +1,15 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.14)
 project(TethysSCE)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(Boost REQUIRED COMPONENTS unit_test_framework system thread filesystem)
+find_package(Boost COMPONENTS unit_test_framework system thread filesystem REQUIRED)
 IF (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIR})
 ENDIF (Boost_FOUND)
 
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
+ADD_DEFINITIONS(-DBOOST_LOG_DYN_LINK)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -48,13 +49,21 @@ target_link_libraries(TSCE
     ${BOTAN_LIBS}
 )
 
-add_executable(test test/component_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
-target_include_directories(test PRIVATE include/ /usr/local/include)
-target_link_libraries(test
+add_executable(comp_test test/component_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(comp_test PRIVATE include/ /usr/local/include)
+target_link_libraries(comp_test
     PRIVATE
-    ${Boost_LIBRARIES}
-    ${Boost_FILESYSTEM_LIBRARY}
-    ${Boost_SYSTEM_LIBRARY}
     ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_LIBRARIES}
     ${BOTAN_LIBS}
 )
+
+add_executable(run_test test/runner_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(run_test PRIVATE include/ /usr/local/include)
+target_link_libraries(run_test
+    PRIVATE
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_LIBRARIES}
+    ${BOTAN_LIBS}
+)
+

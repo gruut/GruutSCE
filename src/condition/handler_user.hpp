@@ -21,9 +21,12 @@ public:
     }
   }
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
 
-    SecondaryConditionType base_condition_type = getSecondaryConditionType(doc_node.name());
+    if(doc_node == nullptr)
+      return false;
+
+    SecondaryConditionType base_condition_type = getSecondaryConditionType(mt::c2s(doc_node->Name()));
 
     bool eval_result;
 
@@ -32,28 +35,30 @@ public:
     case SecondaryConditionType::RECEIVER:
     case SecondaryConditionType::IF:
     case SecondaryConditionType::NIF: {
-      EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value()).value_or(EvalRuleType::AND);
+      EvalRuleType base_eval_rule = getEvalRule(mt::c2s(doc_node->Attribute("eval-rule"))).value_or(EvalRuleType::AND);
 
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
-        for (pugi::xml_node &tags: doc_node) {
-          eval_result &= evalue(tags, data_manager);
-          if (!eval_result)
-            break;
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          eval_result &= evalue(element_ptr, data_manager);
+          element_ptr = element_ptr->NextSiblingElement();
         }
       } else {
         eval_result = false;
-        for (pugi::xml_node &tags: doc_node) {
-          eval_result |= evalue(tags, data_manager);
-          if (eval_result)
-            break;
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          eval_result |= evalue(element_ptr, data_manager);
+          element_ptr = element_ptr->NextSiblingElement();
         }
       }
       break;
     }
     case SecondaryConditionType::ID: {
-      std::string contract_user_id_b58 = doc_node.text().as_string(); // <id>...</id>
-      tt::trim(contract_user_id_b58);
+      std::string contract_user_id_b58 = mt::c2s(doc_node->GetText()); // <id>...</id>
+      mt::trim(contract_user_id_b58);
 
       std::string user_id = data_manager.eval(m_user_key);
 
@@ -64,10 +69,10 @@ public:
 
       // TODO : improve smarter
 
-      std::string location = doc_node.attribute("country").value();
-      location.append(" ").append(doc_node.attribute("state").value());
+      std::string location = mt::c2s(doc_node->Attribute("country"));
+      location.append(" ").append(mt::c2s(doc_node->Attribute("state")));
 
-      tt::trim(location);
+      mt::trim(location);
 
       auto data = data_manager.evalOpt(m_user_key + ".location");
       if(!data.has_value()){
@@ -82,10 +87,10 @@ public:
 
       // TODO : improve smarter
 
-      std::string service_type = doc_node.attribute("type").value();
-      std::string service_code = doc_node.text().as_string();
+      std::string service_type = mt::c2s(doc_node->Attribute("type"));
+      std::string service_code = mt::c2s(doc_node->GetText());
 
-      tt::trim(service_code);
+      mt::trim(service_code);
 
       auto type_data = data_manager.evalOpt(m_user_key + ".isc_type");
       if(!type_data.has_value()){
@@ -104,11 +109,11 @@ public:
 
     case SecondaryConditionType::AGE: {
 
-      std::string age_after = doc_node.attribute("after").value();
-      std::string age_before = doc_node.attribute("before").value();
+      std::string age_after = mt::c2s(doc_node->Attribute("after"));
+      std::string age_before = mt::c2s(doc_node->Attribute("before"));
 
-      tt::trim(age_after);
-      tt::trim(age_before);
+      mt::trim(age_after);
+      mt::trim(age_before);
 
       if(age_after.empty() && age_before.empty())
         return false;
@@ -127,7 +132,7 @@ public:
 
       std::string now_str = data_manager.eval("$time"); // timestamp in second
 
-      auto now_int = tt::str2num<uint64_t>(now_str) * 1000;
+      auto now_int = mt::str2num<uint64_t>(now_str) * 1000;
 
       if(now_int == 0)
         return false;
@@ -139,17 +144,17 @@ public:
       auto today = date::year_month_day{floor<date::days>(now_time_point)};
 
       if(age_before.empty()) {
-        int age_after_int = tt::str2num<int>(age_after);
+        int age_after_int = mt::str2num<int>(age_after);
         return (birthday + date::years{age_after_int} < today);
       }
 
       if(age_after.empty()) {
-        int age_before_int = tt::str2num<int>(age_before);
+        int age_before_int = mt::str2num<int>(age_before);
         return (birthday + date::years{age_before_int} > today);
       }
 
-      int age_after_int = tt::str2num<int>(age_after);
-      int age_before_int = tt::str2num<int>(age_before);
+      int age_after_int = mt::str2num<int>(age_after);
+      int age_before_int = mt::str2num<int>(age_before);
       return (birthday + date::years{age_after_int} < today && today < birthday + date::years{age_before_int});
 
     }

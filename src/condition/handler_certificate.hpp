@@ -12,15 +12,18 @@ class CertificateHandler : public BaseConditionHandler {
 public:
   CertificateHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
-    auto pk_node = doc_node.child("pk");
-    auto by_node = doc_node.child("by");
-
-    if(pk_node.empty() || by_node.empty())
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
+    if(doc_node == nullptr)
       return false;
 
-    std::string pk = pk_node.attribute("value").value();
-    std::string pk_type = pk_node.attribute("type").value();
+    auto pk_node = doc_node->FirstChildElement("pk");
+    auto by_node = doc_node->FirstChildElement("by");
+
+    if(pk_node == nullptr || by_node == nullptr)
+      return false;
+
+    std::string pk = mt::c2s(pk_node->Attribute("value"));
+    std::string pk_type = mt::c2s(pk_node->Attribute("type"));
 
     if(pk.empty()){
       return false;
@@ -30,9 +33,9 @@ public:
         return false;
     }
 
-    std::string by_attr_val = by_node.attribute("value").value();
-    std::string by_type = by_node.attribute("type").value();
-    std::string by_val = !by_attr_val.empty() ?  data_manager.eval(by_attr_val) : by_node.text().as_string();
+    std::string by_attr_val = mt::c2s(by_node->Attribute("value"));
+    std::string by_type = mt::c2s(by_node->Attribute("type"));
+    std::string by_val = !by_attr_val.empty() ?  data_manager.eval(by_attr_val) : mt::c2s(by_node->GetText());
 
     if(by_val.empty())
       return false;
@@ -63,7 +66,7 @@ public:
         return false; // not supported!
       }
     }
-    catch(Botan::Exception &exception){
+    catch(...){
       return false;
     }
   }

@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE component_test
 
 #include <iostream>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 #include "../src/config.hpp"
 #include "../src/condition/condition_manager.hpp"
@@ -9,7 +9,7 @@
 
 using namespace tethys::tsce;
 
-BOOST_AUTO_TEST_SUITE(test_compare_handler)
+BOOST_AUTO_TEST_SUITE(component_test)
 BOOST_AUTO_TEST_CASE(simple_compare) {
 
   std::string compare_condition = R"(

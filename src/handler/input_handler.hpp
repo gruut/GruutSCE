@@ -1,14 +1,16 @@
 #ifndef TETHYS_SCE_INPUT_HANDLER_HPP
 #define TETHYS_SCE_INPUT_HANDLER_HPP
 
-#include "../config.hpp"
-#include "../data/datamap.hpp"
-#include "../data/data_manager.hpp"
 #include <botan-2/botan/x509cert.h>
 #include <unordered_map>
 #include <cctype>
 #include <algorithm>
 #include <regex>
+
+#include "../config.hpp"
+#include "../data/datamap.hpp"
+#include "../data/data_manager.hpp"
+
 
 namespace tethys::tsce {
 
@@ -20,17 +22,17 @@ constexpr int TEXT_LEN = 65535;
 constexpr int MEDIUMTEXT_LEN = 16777215;
 const auto BOOL_REGEX = "^([Tt][Rr][Uu][Ee]|[Ff][Aa][Ll][Ss][Ee])$";
 const auto DATE_REGEX = "([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))";
-const auto DATE_TIME_REGEX = "(19|20)[0-9][0-9]-(0[0-9]|1[0-2])-(0[1-9]|([12][0-9]|3[01]))T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\+|-)[0-1][0-9]:[00]";
+const auto DATE_TIME_REGEX = "(19|20)[0-9]{2}-(0[0-9]|1[0-2])-(0[1-9]|([12][0-9]|3[01]))T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\\+|-)[0-1][0-9]:[00]";
 const auto BASE64_REGEX = "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$";
 const auto BASE58_REGEX = "^[A-HJ-NP-Za-km-z1-9]*$";
 const auto BIN_REGEX = "^[0-1]*$";
 
 struct InputOption {
   std::string key;
-  std::string validation;
   std::string type;
-  InputOption(std::string key_, std::string validation_, std::string type_)
-      : key(std::move(key_)), validation(std::move(validation_)), type(std::move(type_)) {
+  std::string validation;
+  InputOption(std::string key_, std::string type_, std::string validation_)
+      : key(std::move(key_)), type(std::move(type_)), validation(std::move(validation_)) {
   }
 };
 
@@ -39,33 +41,32 @@ public:
   InputHandler() = default;
 
 
-  bool parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_collector){
+  bool parseInput(nlohmann::json &input_json, tinyxml2::XMLElement* input_node, DataManager &data_manager){
 
     if(input_json.empty())
       return false;
 
-    std::string max_str = input_node.attribute("max").value();
-    int num_max = tt::str2num<int>(max_str);
-    num_max = (input_json.size() < num_max) ? input_json.size() : num_max;
+    int num_input_max = input_node->IntAttribute("max");
 
-    if(num_max > 10)
+    if(num_input_max > MAX_INPUT_SIZE)
       return false;
 
-    pugi::xpath_node_set option_nodes = input_node.select_nodes("/option");
+    int num_input = num_input_max > input_json.size() ? input_json.size() : num_input_max;
+
+    auto option_nodes = XmlTool::parseChildrenFromNoIf(input_node,"option");
 
     std::vector<InputOption> input_options;
     std::map<std::string, std::vector<std::string>> input_value_groups;
 
-    for(auto &each_node : option_nodes) {
-      pugi::xml_node option_node = each_node.node();
-      std::string option_name = option_node.attribute("name").value();
-      std::string option_type = option_node.attribute("type").value();
-      std::string option_validation = option_node.attribute("validation").value();
+    for(auto each_node : option_nodes) {
+      std::string option_name = mt::c2s(each_node->Attribute("name"));
+      std::string option_type = mt::c2s(each_node->Attribute("type"));
+      std::string option_validation = mt::c2s(each_node->Attribute("validation"));
 
       input_options.emplace_back(option_name,option_type,option_validation); // TODO : check work well
     }
 
-    for(int i = 0; i < num_max; ++i) {
+    for(int i = 0; i < num_input; ++i) {
 
       for(auto &each_input : input_json[i]) {
         for(auto &each_item : each_input.items()) {
@@ -89,8 +90,8 @@ public:
           std::string data_key = "$tx.contract.input[" + to_string(i) + "]." + input_key;
           std::string short_key = "$" + to_string(i) + "." + input_key;
 
-          data_collector.updateValue(data_key,input_value);
-          data_collector.updateValue(short_key,input_value);
+          data_manager.updateValue(data_key,input_value);
+          data_manager.updateValue(short_key,input_value);
 
           input_value_groups[input_key].emplace_back(input_value);
 
@@ -106,15 +107,15 @@ public:
 
             auto data_key_prefix = "$tx.contract.input[" + to_string(i) + "].";
             auto short_key_prefix ="$" + to_string(i) + ".";
-            data_collector.updateValue(data_key_prefix + "notafter", not_after_str);
-            data_collector.updateValue(short_key_prefix + "notafter", not_after_str);
-            data_collector.updateValue(data_key_prefix + "notbefore", not_before_str);
-            data_collector.updateValue(short_key_prefix + "notbefore", not_before_str);
+            data_manager.updateValue(data_key_prefix + "notafter", not_after_str);
+            data_manager.updateValue(short_key_prefix + "notafter", not_after_str);
+            data_manager.updateValue(data_key_prefix + "notbefore", not_before_str);
+            data_manager.updateValue(short_key_prefix + "notbefore", not_before_str);
 
             auto sn = cert.serial_number();
             std::string sn_str(sn.begin(), sn.end());
-            data_collector.updateValue(data_key_prefix + "sn", sn_str);
-            data_collector.updateValue(short_key_prefix + "sn", sn_str);
+            data_manager.updateValue(data_key_prefix + "sn", sn_str);
+            data_manager.updateValue(short_key_prefix + "sn", sn_str);
           }
         }
       }
@@ -123,7 +124,7 @@ public:
     for(auto &it_map : input_value_groups) {
       std::string data_key = "$input@" + it_map.first;
       std::string data_value = nlohmann::json(it_map.second).dump();
-      data_collector.updateValue(data_key,data_value);
+      data_manager.updateValue(data_key,data_value);
     }
 
     return true;
@@ -139,7 +140,7 @@ private:
       case EnumAll::INT: {
         if (value.length() > INT_LENGTH)
           return false;
-        auto val = std::stoll(value);
+        int64_t val = mt::str2num<int64_t>(value);
         if(!(val >= MIN_INT && val <= MAX_INT))
           return false;
         break;
@@ -147,7 +148,7 @@ private:
       case EnumAll::PINT: {
         if (value.length() > INT_LENGTH)
           return false;
-        auto val = std::stoll(value);
+        uint64_t val = mt::str2num<uint64_t>(value);
         if(!(val >= 1 && val <= MAX_INT))
           return false;
         break;
@@ -155,22 +156,26 @@ private:
       case EnumAll::NINT: {
         if (value.length() > INT_LENGTH)
           return false;
-        auto val = std::stoll(value);
+        int64_t val = mt::str2num<int64_t>(value);
         if(!(val >= MIN_INT && val <= -1))
           return false;
         break;
       }
       case EnumAll::FLOAT: {
-        std::stod(value);
+        try {
+          auto f = std::stold(value);
+        }
+        catch(...) {
+          return false;
+        }
         break;
       }
       case EnumAll::BOOL: {
         std::regex rgx(BOOL_REGEX);
-        if (regex_match(value, rgx))
-          return true;
-        auto val = std::stoi(value);
-        if(val < 0 )
+        if (!std::regex_match(value, rgx))
           return false;
+//        if(mt::str2num<int64_t>(value) < 0 )
+//          return false;
         break;
       }
       case EnumAll::TINYTEXT: {
@@ -229,12 +234,12 @@ private:
         break;
       }
       case EnumAll::ENUMV: {
-        if(!(value == "GRU" || value == "FIAT" || value == "COIN" || value == "XCOIN"))
+        if(!mt::inArray(value,{"KEYC","FIAT","COIN","XCOIN"}))
           return false;
         break;
       }
       case EnumAll::ENUMGENDER: {
-        if(!(value == "MALE" || value == "FEMALE" || value == "OTHER"))
+        if(!mt::inArray(value, {"MALE","FEMALE","OTHER"}))
           return false;
         break;
       }
@@ -259,10 +264,14 @@ private:
       }
       case EnumAll::XML:
       case EnumAll::CONTRACT: {
-        pugi::xml_document doc;
-        pugi::xml_parse_result result = doc.load_string(value.data());
-        if(!result)
+
+        tinyxml2::XMLDocument tmp_doc;
+
+        tmp_doc.Parse(value.c_str());
+
+        if(tmp_doc.Error())
           return false;
+
         if(var_type == EnumAll::XML)
           break;
         else{
@@ -281,10 +290,12 @@ private:
       default:
         return false;
       }
+
       if(!validation.empty()){
         std::regex rgx(validation);
         return std::regex_match(value, rgx);
       }
+
       return true;
     } catch(...){  // when exceptions occur //ex) stoll, stod, stoi ...
       return false;

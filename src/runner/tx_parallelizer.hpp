@@ -19,7 +19,8 @@ public:
     int num_tx = block["tx"].size();
 
     for(int i = 0; i < num_tx; ++i) {
-      TransactionJson this_tx = nlohmann::json::from_cbor(tt::decodeBase64(block["tx"][i].get<std::string>()));
+
+      TransactionJson this_tx = nlohmann::json::from_cbor(TypeConverter::decodeBase<64>(block["tx"][i].get<std::string>()));
       auto user = this_tx["user"]["id"].get<std::string>();
       auto receiver = this_tx["body"]["receiver"].get<std::string>();
 

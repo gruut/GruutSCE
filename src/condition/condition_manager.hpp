@@ -17,9 +17,12 @@ private:
 public:
   ConditionManager() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) {
 
-    std::string condition_id = doc_node.attribute("id").value();
+    if(doc_node == nullptr)
+      return false;
+
+    std::string condition_id = mt::c2s(doc_node->Attribute("id"));
     if(condition_id.empty())
       return true;
 
@@ -32,10 +35,10 @@ public:
       hash_kv = getHashKV(it_map->second,data_manager);
     }
     else { // we don't know any keywords!
-      std::function<void(pugi::xml_node &doc_node,std::vector<std::string> &)> keyword_search;
-      keyword_search = [=,&keyword_search](pugi::xml_node &doc_node,std::vector<std::string> &keywords){
+      std::function<void(tinyxml2::XMLElement*,std::vector<std::string> &)> keyword_search;
+      keyword_search = [=,&keyword_search](tinyxml2::XMLElement*,std::vector<std::string> &keywords){
 
-        std::string tag_name = doc_node.name();
+        std::string tag_name = mt::c2s(doc_node->Name());
 
         if(tag_name == "compare") {
           checkAndPush(doc_node, "src", keywords);
@@ -53,8 +56,11 @@ public:
           checkAndPush(doc_node, "value", keywords);
         }
 
-        for(auto &child_node : doc_node) {
-          keyword_search(child_node, keywords);
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          keyword_search(element_ptr, keywords);
+          element_ptr = element_ptr->NextSiblingElement();
         }
 
       };
@@ -122,8 +128,8 @@ private:
     return Sha256::hash(kv_string);
   }
 
-  void checkAndPush(pugi::xml_node &doc_node, const std::string &attr_name, std::vector<std::string> &keywords) {
-    std::string attr_value = doc_node.attribute(attr_name.c_str()).value();
+  void checkAndPush(tinyxml2::XMLElement *doc_node, const std::string &attr_name, std::vector<std::string> &keywords) {
+    std::string attr_value = mt::c2s(doc_node->Attribute(attr_name.c_str()));
     if(attr_value.empty())
       return;
 

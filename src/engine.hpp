@@ -13,80 +13,105 @@
 namespace tethys::tsce {
 
 
-class Block;
-
-class Engine {
+class ContractEngine {
 private:
   ContractManager m_contract_manager;
   QueryComposer m_query_composer;
+  std::function<nlohmann::json(nlohmann::json&)> m_storage_interface;
 
 public:
-  Engine() = default;
+  ContractEngine() = default;
+
+  void attachReadInterface(std::function<nlohmann::json(nlohmann::json&)> read_storage_interface){
+    m_storage_interface = read_storage_interface;
+    m_contract_manager.attachReadInterface(read_storage_interface);
+  }
 
   // TODO : change argument from json to Block object
 
-  nlohmann::json procBlock(Block &block) {
+  std::optional<nlohmann::json> procBlock(nlohmann::json &block) {
 
-    // TODO : attach real interface
+    if(m_storage_interface == nullptr)
+      return std::nullopt;
 
-    std::function<nlohmann::json(nlohmann::json&)> read_storage_interface = [&](nlohmann::json& query){
-      nlohmann::json result;
-      return result;
-    };
-
-
-    // TODO : replace real information
-    uint64_t block_hgt = 1;
-    std::string block_id;
+    uint64_t block_hgt = mt::str2num<uint64_t>(JsonTool::get<std::string>(block["block"],"height").value_or(""));
+    std::string block_id = JsonTool::get<std::string>(block["block"],"id").value_or("");
 
     std::vector<nlohmann::json> result_queries;
 
     ContractRunner contract_runner;
+    contract_runner.attachReadInterface(m_storage_interface);
 
-    if(!contract_runner.setWorldChain()){
-      return m_query_composer.compose(result_queries, block_id, block_hgt);
-    }
+    if(!contract_runner.setWorldChain())
+      return std::nullopt;
 
-    contract_runner.attachReadInterface(read_storage_interface);
+    if(!block["tx"].is_array())
+      return std::nullopt;
 
-    for(int i = 0; i < 10; ++i){ // TODO : change block to each each_tx
+    for (auto &each_tx_cbor : block["tx"]) {
 
-      Transaction each_tx;
+      nlohmann::json each_tx;
+
+      try {
+        each_tx = nlohmann::json::from_cbor(TypeConverter::decodeBase<64>(each_tx_cbor.get<std::string>()));
+      }
+      catch (...) {
+        continue;
+      }
+
+      auto txid = JsonTool::get<std::string>(each_tx, "txid");
+      auto cid = JsonTool::get<std::string>(each_tx["body"], "cid");
+
+      if (!txid || !cid)
+        continue;
 
       nlohmann::json result_fail;
       result_fail["status"] = false;
-      result_fail["txid"] = each_tx.getTxid();
+      result_fail["txid"] = txid.value();
 
-      auto contract = m_contract_manager.getContract(each_tx.getTxid());
+      std::cout << "txid = " << txid.value() << std::endl;
+      std::cout << "cid = " << cid.value() << std::endl;
+
+      auto contract = m_contract_manager.getContract(cid.value());
 
       if (contract.has_value()) {
 
-        contract_runner.setContract(contract.value());
-        contract_runner.setTransaction(each_tx);
+        if(!contract_runner.setContract(contract.value())) {
+          std::cout << "failed to setContract()" << std::endl;
+          continue;
+        }
+
+        std::cout << "finished setContract()" << std::endl;
+
+        if(!contract_runner.setTransaction(each_tx)){
+          std::cout << "failed to setTransaction()" << std::endl;
+          continue;
+        }
+
+        std::cout << "finished setTransaction()" << std::endl;
 
         if (!contract_runner.readUserAttributes()) {
-          result_fail["info"] = VSCE_ERROR_MSG["NO_USER"];
+          result_fail["info"] = TSCE_ERROR_MSG["NO_USER"];
           result_queries.emplace_back(result_fail);
         }
+
+        std::cout << "finished readUserAttributes()" << std::endl;
 
         auto res_query = contract_runner.run();
 
         if (res_query.has_value()) {
-          if (contract_runner.update(res_query.value())) {
-            result_queries.emplace_back(res_query.value());
-          } else {
-            result_fail["info"] = VSCE_ERROR_MSG["INVALID_UPDATE_LV1"];
-            result_queries.emplace_back(result_fail);
-          }
+          result_queries.emplace_back(res_query.value());
+          std::cout << "finished run()" << std::endl;
         } else {
-          result_fail["info"] = VSCE_ERROR_MSG["RUN_UNKNOWN"];
+          std::cout << "failed to run()" << std::endl;
+          result_fail["info"] = TSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
 
         contract_runner.clear();
 
       } else {
-        result_fail["info"] = VSCE_ERROR_MSG["NO_CONTRACT"];
+        result_fail["info"] = TSCE_ERROR_MSG["NO_CONTRACT"];
         result_queries.emplace_back(result_fail);
       }
 

@@ -8,14 +8,9 @@
 #include <cctype>
 #include <locale>
 
-#include <botan-2/botan/base58.h>
-#include <botan-2/botan/base64.h>
-#include <botan-2/botan/exceptn.h>
-#include <botan-2/botan/secmem.h>
-
 #include "date.hpp"
 
-class tt {
+class mt {
 public:
 
 #if 0
@@ -116,47 +111,9 @@ public:
 
   }
 
-  template <typename T>
-  inline static std::string encodeBase64(T &&t) {
-    try {
-      return Botan::base64_encode(std::vector<uint8_t>(begin(t), end(t)));
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename T>
-  inline static std::vector<std::byte> decodeBase64(T &&input) {
-    try {
-      auto s_vector = Botan::base64_decode(input);
-      return std::vector<std::byte>(s_vector.begin(), s_vector.end());
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename T>
-  inline static std::string encodeBase58(T &&t) {
-    try {
-      return Botan::base58_encode(std::vector<uint8_t>(begin(t), end(t)));
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename T>
-  inline static std::vector<std::byte> decodeBase58(T &&input) {
-    try {
-      auto s_vector = Botan::base58_decode(input);
-      return std::vector<std::byte>(s_vector.begin(), s_vector.end());
-    } catch (...) {
-      return {};
-    }
-  }
-
-  template <typename S1 = std::string, typename S2 = std::string>
-  static std::vector<std::string> split (S1 &&str, S2 &&delimiter) {
-    size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+  template <typename S1 = std::string>
+  static std::vector<std::string> split (S1 &&str, std::string_view delimiter) {
+    size_t pos_start = 0, pos_end, delim_len = delimiter.size();
     std::string token;
     std::vector<std::string> res;
 
@@ -185,6 +142,21 @@ public:
     return ret_val;
   }
 
+  template <typename S = std::string>
+  static double str2float (S &&s) {
+    double ret_val = 0;
+    if(!s.empty()) {
+      try{
+        ret_val = std::stod(s);
+      }
+      catch (...){
+        ret_val = 0;
+      }
+    }
+
+    return ret_val;
+  }
+
   static bool isDigit(std::string_view data) {
     return std::all_of(data.begin(), data.end(), ::isdigit);
   }
@@ -200,6 +172,22 @@ public:
 
   static bool inArray(const std::vector<std::string_view> &array, std::string_view data) {
     return inArray(data,array);
+  }
+
+  static std::string c2s(const char *str_ptr) {
+    if(str_ptr == nullptr)
+      return {};
+
+    std::string ret_str;
+
+    try{
+      ret_str.assign(str_ptr);
+    }
+    catch(...) {
+      return {};
+    }
+
+    return ret_str;
   }
 
 };

@@ -11,9 +11,11 @@ class FeeHandler {
 public:
   FeeHandler() = default;
 
-  std::pair<int,int> parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_storage) {
-    if(fee_nodes.empty())
-      return {0,0};
+  std::pair<int,int> parseGet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_manager) {
+    if(fee_nodes.empty()) {
+      std::cout << "empty fee nodes!" << std::endl;
+      return {0, 0};
+    }
 
     int pay_from_user = 0;
     int pay_from_author = 0;
@@ -23,29 +25,17 @@ public:
       if(!condition_id.empty() && !condition_manager.getEvalResultById(condition_id))
         continue;
 
-      pugi::xpath_node_set pay_nodes = fee_node.select_nodes("/pay");
+      auto pay_nodes = XmlTool::parseChildrenFromNoIf(fee_node,"pay");
 
-      for(auto &pay_path : pay_nodes) {
-        auto pay_node = pay_path.node();
-
-        std::string from = pay_node.attribute("from").value();
-        std::string value = pay_node.attribute("value").value();
+      for(auto &pay_node : pay_nodes) {
+        std::string from = mt::c2s(pay_node->Attribute("from"));
+        std::string value = mt::c2s(pay_node->Attribute("value"));
 
         if(from == "user") {
-          value = data_storage.eval(value);
-          try {
-            pay_from_user = std::stoi(value);
-          }
-          catch(...) {
-
-          }
+          value = data_manager.eval(value);
+          pay_from_user = mt::str2num<int>(value);
         } else {
-          try {
-            pay_from_author = std::stoi(value);
-          }
-          catch(...){
-
-          }
+          pay_from_author = mt::str2num<int>(value);
         }
 
       }
