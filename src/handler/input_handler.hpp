@@ -41,17 +41,12 @@ public:
   InputHandler() = default;
 
 
-  bool parseInput(nlohmann::json &input_json, pugi::xml_node &input_node, DataManager &data_manager){
+  bool parseInput(nlohmann::json &input_json, tinyxml2::XMLElement* input_node, DataManager &data_manager){
 
     if(input_json.empty())
       return false;
 
-    std::string max_str = input_node.attribute("max").value();
-    MiscTool::trim(max_str);
-
-    int num_input_max = 1;
-    if(!max_str.empty())
-      num_input_max = MiscTool::str2num<int>(max_str);
+    int num_input_max = input_node->IntAttribute("max");
 
     if(num_input_max > MAX_INPUT_SIZE)
       return false;
@@ -63,10 +58,10 @@ public:
     std::vector<InputOption> input_options;
     std::map<std::string, std::vector<std::string>> input_value_groups;
 
-    for(auto &each_node : option_nodes) {
-      std::string option_name = each_node.attribute("name").value();
-      std::string option_type = each_node.attribute("type").value();
-      std::string option_validation = each_node.attribute("validation").value();
+    for(auto each_node : option_nodes) {
+      std::string option_name = mt::c2s(each_node->Attribute("name"));
+      std::string option_type = mt::c2s(each_node->Attribute("type"));
+      std::string option_validation = mt::c2s(each_node->Attribute("validation"));
 
       input_options.emplace_back(option_name,option_type,option_validation); // TODO : check work well
     }
@@ -145,7 +140,7 @@ private:
       case EnumAll::INT: {
         if (value.length() > INT_LENGTH)
           return false;
-        int64_t val = MiscTool::str2num<int64_t>(value);
+        int64_t val = mt::str2num<int64_t>(value);
         if(!(val >= MIN_INT && val <= MAX_INT))
           return false;
         break;
@@ -153,7 +148,7 @@ private:
       case EnumAll::PINT: {
         if (value.length() > INT_LENGTH)
           return false;
-        uint64_t val = MiscTool::str2num<uint64_t>(value);
+        uint64_t val = mt::str2num<uint64_t>(value);
         if(!(val >= 1 && val <= MAX_INT))
           return false;
         break;
@@ -161,7 +156,7 @@ private:
       case EnumAll::NINT: {
         if (value.length() > INT_LENGTH)
           return false;
-        int64_t val = MiscTool::str2num<int64_t>(value);
+        int64_t val = mt::str2num<int64_t>(value);
         if(!(val >= MIN_INT && val <= -1))
           return false;
         break;
@@ -179,7 +174,7 @@ private:
         std::regex rgx(BOOL_REGEX);
         if (!std::regex_match(value, rgx))
           return false;
-//        if(MiscTool::str2num<int64_t>(value) < 0 )
+//        if(mt::str2num<int64_t>(value) < 0 )
 //          return false;
         break;
       }
@@ -239,12 +234,12 @@ private:
         break;
       }
       case EnumAll::ENUMV: {
-        if(!MiscTool::inArray(value,{"KEYC","FIAT","COIN","XCOIN"}))
+        if(!mt::inArray(value,{"KEYC","FIAT","COIN","XCOIN"}))
           return false;
         break;
       }
       case EnumAll::ENUMGENDER: {
-        if(!MiscTool::inArray(value, {"MALE","FEMALE","OTHER"}))
+        if(!mt::inArray(value, {"MALE","FEMALE","OTHER"}))
           return false;
         break;
       }
@@ -269,10 +264,14 @@ private:
       }
       case EnumAll::XML:
       case EnumAll::CONTRACT: {
-        pugi::xml_document doc;
-        pugi::xml_parse_result result = doc.load_string(value.data());
-        if(!result)
+
+        tinyxml2::XMLDocument tmp_doc;
+
+        tmp_doc.Parse(value.c_str());
+
+        if(tmp_doc.Error())
           return false;
+
         if(var_type == EnumAll::XML)
           break;
         else{

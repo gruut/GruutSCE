@@ -23,9 +23,13 @@ class ConditionHandler : BaseConditionHandler {
 public:
   ConditionHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
-    PrimaryConditionType base_condition_type = getPrimaryConditionType(doc_node.name());
-    EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value()).value_or(EvalRuleType::OR);
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
+
+    if(doc_node == nullptr)
+      return false;
+
+    PrimaryConditionType base_condition_type = getPrimaryConditionType(mt::c2s(doc_node->Name()));
+    EvalRuleType base_eval_rule = getEvalRule(mt::c2s(doc_node->Attribute("eval-rule"))).value_or(EvalRuleType::OR);
 
     bool eval_result = true;
 
@@ -33,19 +37,22 @@ public:
     case PrimaryConditionType::ROOT:
     case PrimaryConditionType::IF:
     case PrimaryConditionType::NIF: {
+
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
-        for (pugi::xml_node &tags: doc_node) {
-          eval_result &= evalue(tags, data_manager);
-          if (!eval_result)
-            break;
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          eval_result &= evalue(element_ptr, data_manager);
+          element_ptr = element_ptr->NextSiblingElement();
         }
       } else {
         eval_result = false;
-        for (pugi::xml_node &tags: doc_node) {
-          eval_result |= evalue(tags, data_manager);
-          if (eval_result)
-            break;
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          eval_result |= evalue(element_ptr, data_manager);
+          element_ptr = element_ptr->NextSiblingElement();
         }
       }
       break;

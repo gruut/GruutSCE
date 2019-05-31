@@ -10,9 +10,13 @@ class EndorserHandler : public BaseConditionHandler {
 public:
   EndorserHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
 
-    SecondaryConditionType base_condition_type = getSecondaryConditionType(doc_node.name());
+    if(doc_node == nullptr)
+      return false;
+
+
+    SecondaryConditionType base_condition_type = getSecondaryConditionType(mt::c2s(doc_node->Name()));
 
     bool eval_result = false;
 
@@ -20,38 +24,39 @@ public:
     case SecondaryConditionType::ENDORSER:
     case SecondaryConditionType::IF:
     case SecondaryConditionType::NIF: {
-      EvalRuleType base_eval_rule = getEvalRule(doc_node.attribute("eval-rule").value()).value_or(EvalRuleType::AND);
+      EvalRuleType base_eval_rule = getEvalRule(mt::c2s(doc_node->Attribute("eval-rule"))).value_or(EvalRuleType::AND);
 
       if (base_eval_rule == EvalRuleType::AND) {
         eval_result = true;
-        for (pugi::xml_node &tags: doc_node) {
-
-          eval_result &= evalue(tags, data_manager);
-          if (!eval_result)
-            break;
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          eval_result &= evalue(element_ptr, data_manager);
+          element_ptr = element_ptr->NextSiblingElement();
         }
       } else {
         eval_result = false;
-        for (pugi::xml_node &tags: doc_node) {
-          eval_result |= evalue(tags, data_manager);
-          if (eval_result)
-            break;
+        tinyxml2::XMLElement *element_ptr;
+        element_ptr = doc_node->FirstChildElement();
+        while(element_ptr) {
+          eval_result |= evalue(element_ptr, data_manager);
+          element_ptr = element_ptr->NextSiblingElement();
         }
       }
       break;
     }
     case SecondaryConditionType::ID: {
 
-      std::string endorser_id_b58 = doc_node.text().as_string();
+      std::string endorser_id_b58 = mt::c2s(doc_node->GetText());
 
-      MiscTool::trim(endorser_id_b58);
+      mt::trim(endorser_id_b58);
 
       auto data = data_manager.evalOpt("$tx.endorser.count");
       if(!data.has_value()){
         return false;
       }
 
-      int num_endorsers = MiscTool::str2num<int>(data.value());
+      int num_endorsers = mt::str2num<int>(data.value());
 
       if(num_endorsers <= 0) {
         return false;

@@ -39,18 +39,18 @@ public:
 
     m_tx_json = tx_json;
 
-    m_txid = json::get<string>(tx_json, "txid").value();
-    m_tx_time = static_cast<tethys::timestamp_t>(stoll(json::get<string>(tx_json, "time").value()));
-    m_seed = json::get<string>(tx_json, "txid").value();
+    m_txid = JsonTool::get<string>(tx_json, "txid").value();
+    m_tx_time = static_cast<tethys::timestamp_t>(stoll(JsonTool::get<string>(tx_json, "time").value()));
+    m_seed = JsonTool::get<string>(tx_json, "txid").value();
 
-    m_contract_id = json::get<string>(tx_json["body"], "cid").value(); // 현재 cid 관련 내용은 message에 없음
-    m_receiver_id = json::get<string>(tx_json["body"], "receiver").value();
-    m_fee = stoi(json::get<string>(tx_json["body"], "fee").value());
+    m_contract_id = JsonTool::get<string>(tx_json["body"], "cid").value(); // 현재 cid 관련 내용은 message에 없음
+    m_receiver_id = JsonTool::get<string>(tx_json["body"], "receiver").value();
+    m_fee = stoi(JsonTool::get<string>(tx_json["body"], "fee").value());
     setTxInputCbor(tx_json["body"]["input"]);
 
-    m_tx_user_id = json::get<string>(tx_json["user"], "id").value();
-    m_tx_user_pk = json::get<string>(tx_json["user"], "pk").value();
-    m_tx_user_sig = json::get<string>(tx_json["user"], "agga").value();
+    m_tx_user_id = JsonTool::get<string>(tx_json["user"], "id").value();
+    m_tx_user_pk = JsonTool::get<string>(tx_json["user"], "pk").value();
+    m_tx_user_sig = JsonTool::get<string>(tx_json["user"], "agga").value();
 
     setEndorsers(tx_json["endorser"]);
 
@@ -72,9 +72,9 @@ public:
     m_tx_endorsers.clear();
     for (auto &each_endorser : endorser_array) {
       Endorser tmp;
-      tmp.endorser_id = json::get<string>(each_endorser, "id").value();
-      tmp.endorser_pk = json::get<string>(each_endorser, "pk").value();
-      tmp.endorser_signature = json::get<string>(each_endorser, "sig").value();
+      tmp.endorser_id = JsonTool::get<string>(each_endorser, "id").value();
+      tmp.endorser_pk = JsonTool::get<string>(each_endorser, "pk").value();
+      tmp.endorser_signature = JsonTool::get<string>(each_endorser, "sig").value();
       m_tx_endorsers.emplace_back(tmp);
     }
     return true;

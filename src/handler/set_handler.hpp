@@ -49,17 +49,17 @@ class SetHandler {
 public:
   SetHandler() = default;
 
-  std::vector<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
+  std::vector<nlohmann::json> parseSet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
     std::vector<nlohmann::json> set_query;
 
     for(auto &[set_node, if_id] : set_nodes){
-      if(set_node.empty())
+      if(set_node == nullptr)
         continue;
 
       if(!if_id.empty() && !condition_manager.getEvalResultById(if_id))
         continue;
 
-      std::string type_str = set_node.attribute("type").value();
+      std::string type_str = mt::c2s(set_node->Attribute("type"));
 
       auto it = SET_TYPE_MAP.find(type_str);
       auto set_type = (it == SET_TYPE_MAP.end() ? SetType::NONE : it->second);
@@ -80,7 +80,7 @@ public:
 
 private:
 
-  std::optional<nlohmann::json> handle(SetType set_type, pugi::xml_node &set_node, DataManager &data_manager) {
+  std::optional<nlohmann::json> handle(SetType set_type, tinyxml2::XMLElement* set_node, DataManager &data_manager) {
 
     // 1) parsing node attributes
 
@@ -90,15 +90,15 @@ private:
     std::string for_att;
 
     if(set_type == SetType::SCOPE_USER) {
-      for_att = set_node.attribute("for").value();
-      if (for_att.empty() || !MiscTool::inArray(for_att,{"user","author"}))
+      for_att = mt::c2s(set_node->Attribute("for"));
+      if (for_att.empty() || !mt::inArray(for_att,{"user","author"}))
         return std::nullopt;
 
       contents["for"] = for_att;
     }
     else if(set_type == SetType::V_TRANSFER) {
-      from_att = set_node.attribute("from").value();
-      if (from_att.empty() || !MiscTool::inArray(from_att,{"user","author","contract"}))
+      from_att = mt::c2s(set_node->Attribute("from"));
+      if (from_att.empty() || !mt::inArray(from_att,{"user","author","contract"}))
         return std::nullopt;
 
       contents["from"] = from_att;
@@ -110,12 +110,12 @@ private:
 
     for (auto &option_node : option_nodes) {
 
-      std::string option_name = option_node.attribute("name").value();
-      std::string option_value = option_node.attribute("value").value();
+      std::string option_name = mt::c2s(option_node->Attribute("name"));
+      std::string option_value = mt::c2s(option_node->Attribute("value"));
       std::string data = data_manager.eval(option_value);
 
-      MiscTool::trim(data);
-      MiscTool::toLower(option_name);
+      mt::trim(data);
+      mt::toLower(option_name);
 
       if (option_name.empty() || data.empty())
         continue;
@@ -124,14 +124,14 @@ private:
 
       case SetType::USER_JOIN: {
         if (option_name == "gender") {
-          data = MiscTool::toUpper(data);
-          if (!MiscTool::inArray(data,{"MALE","FEMALE","OTHER"}))
+          data = mt::toUpper(data);
+          if (!mt::inArray(data,{"MALE","FEMALE","OTHER"}))
             data.clear(); // for company or something other cases
         }
 
         if (option_name == "register_day") {
           // TODO : fix to YYYY-MM-DD format
-          if (!MiscTool::isDigit(data))
+          if (!mt::isDigit(data))
             data.clear();
         }
 
@@ -139,9 +139,9 @@ private:
       }
 
       case SetType::USER_CERT: {
-        if (MiscTool::inArray(option_name,{"notbefore","notafter"})) {
+        if (mt::inArray(option_name,{"notbefore","notafter"})) {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!MiscTool::isDigit(data))
+          if (!mt::isDigit(data))
             data.clear();
         }
 
@@ -165,13 +165,13 @@ private:
 
       case SetType::V_CREATE: {
         if (option_name == "amount") {
-          if (MiscTool::str2num<int>(data) <= 0)
+          if (mt::str2num<int>(data) <= 0)
             data.clear();
         }
 
         if (option_name == "type") {
-          MiscTool::toUpper(data);
-          if (!MiscTool::inArray(data,{"KEYC","FIAT","COIN","XCOIN","MILE"}))
+          mt::toUpper(data);
+          if (!mt::inArray(data,{"KEYC","FIAT","COIN","XCOIN","MILE"}))
             data.clear();
         }
 
@@ -209,9 +209,9 @@ private:
 
 
       case SetType::CONTRACT_NEW: {
-        if (MiscTool::inArray(option_name, {"before","after"})) {
+        if (mt::inArray(option_name, {"before","after"})) {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!MiscTool::isDigit(data))
+          if (!mt::isDigit(data))
             data.clear();
         }
         break;
@@ -230,8 +230,8 @@ private:
 
           if (option_name == "amount") {
 
-            MiscTool::trim(data);
-            if (MiscTool::str2num<int>(data) <= 0)
+            mt::trim(data);
+            if (mt::str2num<int>(data) <= 0)
               data.clear();
 
           }
@@ -242,13 +242,13 @@ private:
 
       case SetType::RUN_QUERY: {
         if (option_name == "type") {
-          if (!MiscTool::inArray(data, {"run.query","user.cert"}))
+          if (!mt::inArray(data, {"run.query","user.cert"}))
             data.clear();
         }
 
         if (option_name == "after") {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!MiscTool::isDigit(data))
+          if (!mt::isDigit(data))
             data.clear();
         }
 
@@ -260,7 +260,7 @@ private:
           //TODO : check 'cid'
         if (option_name == "after") {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!MiscTool::isDigit(data))
+          if (!mt::isDigit(data))
             data.clear();
         }
 
@@ -281,8 +281,8 @@ private:
     case SetType::SCOPE_USER: {
 
       std::string id = data_manager.eval("$" + for_att);
-      std::string pid = json::get<std::string>(contents,"pid").value_or("");
-      std::string name = json::get<std::string>(contents,"unit").value_or("");
+      std::string pid = JsonTool::get<std::string>(contents,"pid").value_or("");
+      std::string name = JsonTool::get<std::string>(contents,"unit").value_or("");
 
       if(!pid.empty()) {
         auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
@@ -305,8 +305,8 @@ private:
 
       if (from_att == "user" || from_att == "author") {
         std::string id = data_manager.eval("$" + from_att);
-        std::string pid = json::get<std::string>(contents, "pid").value_or("");
-        std::string name = json::get<std::string>(contents, "name").value_or("");
+        std::string pid = JsonTool::get<std::string>(contents, "pid").value_or("");
+        std::string name = JsonTool::get<std::string>(contents, "name").value_or("");
 
         if (!pid.empty()) {
           auto record = data_manager.getUserScopeRecordByPid(id, name, pid);

@@ -9,27 +9,31 @@ class VarHandler : public BaseConditionHandler {
 public:
   VarHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
 
-    std::string scope_str = doc_node.attribute("scope").value();
-    std::string id_str = doc_node.attribute("id").value();
-    std::string name_str = doc_node.attribute("name").value();
-    std::string ref_str = doc_node.attribute("ref").value();
-    std::string type_str = doc_node.attribute("type").value();
-    std::string abs_str = doc_node.attribute("abs").value();
-
-    if(MiscTool::trim(name_str) == "*")
+    if(doc_node == nullptr)
       return false;
 
-    pugi::xml_node compare_node;
-    compare_node.set_name("compare");
-    compare_node.append_attribute("ref") = ref_str.c_str();
-    compare_node.append_attribute("type") = type_str.c_str();
-    compare_node.append_attribute("abs") = abs_str.c_str();
+    std::string scope_str = mt::c2s(doc_node->Attribute("scope"));
+    std::string id_str = mt::c2s(doc_node->Attribute("id"));
+    std::string name_str = mt::c2s(doc_node->Attribute("name"));
+    std::string ref_str = mt::c2s(doc_node->Attribute("ref"));
+    std::string type_str = mt::c2s(doc_node->Attribute("type"));
+    std::string abs_str = mt::c2s(doc_node->Attribute("abs"));
+
+    if(mt::trim(name_str) == "*")
+      return false;
+
+    tinyxml2::XMLDocument compare_doc; // to keep data
+
+    tinyxml2::XMLElement* compare_node = compare_doc.NewElement("compare");
+    compare_node->SetAttribute("ref", ref_str.c_str());
+    compare_node->SetAttribute("type", type_str.c_str());
+    compare_node->SetAttribute("abs", abs_str.c_str());
 
     CompareHandler compare_handler;
 
-    if(MiscTool::inArray(scope_str,{"user","author", "receiver","contract"})) {
+    if(mt::inArray(scope_str,{"user","author", "receiver","contract"})) {
 
       id_str = data_manager.eval(id_str);
       std::string real_scope = (scope_str == "contract") ? "contract" : "user";
@@ -37,7 +41,7 @@ public:
       if (return_val.empty())
         return false;
 
-      compare_node.append_attribute("src") = return_val[0].value.c_str();
+      compare_node->SetAttribute("src", return_val[0].value.c_str());
 
       return compare_handler.evalue(compare_node,data_manager);
 
@@ -53,14 +57,14 @@ public:
 
       std::string keyw = "$world." + name_str;
       std::string src_val = data_manager.eval(keyw);
-      compare_node.append_attribute("src") = src_val.c_str();
+      compare_node->SetAttribute("src", src_val.c_str());
       return compare_handler.evalue(compare_node,data_manager);
 
     } else if(scope_str == "chain") {
 
       std::string keyw = "$chain." + name_str;
       std::string src_val = data_manager.eval(keyw);
-      compare_node.append_attribute("src") = src_val.c_str();
+      compare_node->SetAttribute("src", src_val.c_str());
       return compare_handler.evalue(compare_node,data_manager);
     } else {
       return false;

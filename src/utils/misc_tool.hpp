@@ -10,7 +10,7 @@
 
 #include "date.hpp"
 
-class MiscTool {
+class mt {
 public:
 
 #if 0
@@ -172,6 +172,22 @@ public:
 
   static bool inArray(const std::vector<std::string_view> &array, std::string_view data) {
     return inArray(data,array);
+  }
+
+  static std::string c2s(const char *str_ptr) {
+    if(str_ptr == nullptr)
+      return {};
+
+    std::string ret_str;
+
+    try{
+      ret_str.assign(str_ptr);
+    }
+    catch(...) {
+      return {};
+    }
+
+    return ret_str;
   }
 
 };

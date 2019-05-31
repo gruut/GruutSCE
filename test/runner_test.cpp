@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE runner_test
 
 #include <iostream>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include "../src/engine.hpp"
 
 BOOST_AUTO_TEST_SUITE(runner_test)
@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(simple_run) {
         "data": []
     })"_json;
 
-    std::string query_type = json::get<std::string>(query,"type").value_or("");
+    std::string query_type = JsonTool::get<std::string>(query,"type").value_or("");
 
     if(query_type == "world.get") {
 
@@ -53,8 +53,7 @@ BOOST_AUTO_TEST_CASE(simple_run) {
 
     } else if(query_type == "contract.get") {
 
-      std::string test_contract = R"(
-<contract>
+      std::string test_contract = R"(<contract>
   <head>
     <cid>VALUE-TRANSFER::5g9CMGLSXbNAKJMbWqBNp7rm78BJCMKhLzZVukBNGHSF::SEOUL@KR::TETHYS19</cid>
     <after>2018-01-01T00:00:00+09:00</after>
@@ -78,8 +77,7 @@ BOOST_AUTO_TEST_CASE(simple_run) {
   <fee>
     <pay from="user" value="$fee" />
   </fee>
-</contract>
-)";
+</contract>)";
 
       result["name"].emplace_back("contract");
 
@@ -113,7 +111,7 @@ BOOST_AUTO_TEST_CASE(simple_run) {
       result["name"].emplace_back("tag");
       result["name"].emplace_back("pid");
 
-      if(json::get<std::string>(query["where"],"name").value_or("") == "KEYC" && json::get<std::string>(query["where"],"type").value_or("") == "KEYC" && json::get<bool>(query["where"],"notag").value_or(false)) {
+      if(JsonTool::get<std::string>(query["where"],"name").value_or("") == "KEYC" && JsonTool::get<std::string>(query["where"],"type").value_or("") == "KEYC" && JsonTool::get<bool>(query["where"],"notag").value_or(false)) {
         nlohmann::json record = {"KEYC", "1000", "KEYC", "0", "0", "", "", "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDE="};
         result["data"].emplace_back(record);
       }

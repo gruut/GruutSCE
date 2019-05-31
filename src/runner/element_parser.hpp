@@ -2,40 +2,43 @@
 #define TETHYS_SCE_ELEMENT_PARSER_HPP
 
 #include "../config.hpp"
-#include "../utils/pugixml_tool.hpp"
+#include "../utils/xml_tool.hpp"
 
 namespace tethys::tsce {
 
 
 class ElementParser {
 private:
-  pugi::xml_node m_contract;
+  tinyxml2::XMLDocument m_contract_doc;
+  tinyxml2::XMLElement* m_contract;
 
-  pugi::xml_node m_head;
-  pugi::xml_node m_body;
-  pugi::xml_node m_input;
+  tinyxml2::XMLElement* m_head;
+  tinyxml2::XMLElement* m_body;
+  tinyxml2::XMLElement* m_input;
 
-  std::vector<std::pair<pugi::xml_node,std::string>> m_gets;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_sets;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_conditions;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_oracles;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_displays;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_calls;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_fees;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_scripts;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_gets;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_sets;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_conditions;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_oracles;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_displays;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_calls;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_fees;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_scripts;
 
-  pugi::xml_node m_single_dummy;
-  std::vector<std::pair<pugi::xml_node,std::string>> m_multi_dummy;
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>> m_multi_dummy;
 
 public:
   ElementParser() = default;
 
+  bool setContract(std::string &xml_doc) {
 
-  // Note: The contract node lost her name before it came here. Why?
+    m_contract_doc.Clear();
+    m_contract_doc.Parse(xml_doc.c_str());
 
-  bool setContract(pugi::xml_node &contract) {
-    m_contract = contract;
-    m_contract.set_name("contract"); // bug?!
+    if(m_contract_doc.Error())
+      return false;
+
+    m_contract = m_contract_doc.RootElement();
 
     auto head = XmlTool::parseChildFrom(m_contract, "head");
     auto body = XmlTool::parseChildFrom(m_contract, "body");
@@ -68,7 +71,7 @@ public:
     return true;
   }
 
-  pugi::xml_node& getNode(std::string_view node_name) {
+  tinyxml2::XMLElement* getNode(std::string_view node_name) {
 
     if(node_name == "head") {
       return m_head;
@@ -76,10 +79,10 @@ public:
       return m_input;
     }
 
-    return m_single_dummy;
+    return nullptr;
   }
 
-  std::vector<std::pair<pugi::xml_node,std::string>>& getNodes(std::string_view node_name) {
+  std::vector<std::pair<tinyxml2::XMLElement*,std::string>>& getNodes(std::string_view node_name) {
 
     if(node_name == "get") {
       return m_gets;
@@ -101,8 +104,6 @@ public:
 
     return m_multi_dummy;
   }
-
-private:
 
 
 };

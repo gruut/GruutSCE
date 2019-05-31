@@ -53,26 +53,26 @@ public:
     return true;
   }
 
-  bool setContract(pugi::xml_node &contract_node) {
-    return m_element_parser.setContract(contract_node);
+  bool setContract(std::string &xml_doc) {
+    return m_element_parser.setContract(xml_doc);
   }
 
   bool setTransaction(TransactionJson &tx_agg_json) {
 
     m_tx_json = tx_agg_json;
 
-    auto time = json::get<std::string>(m_tx_json,"time");
-    auto cid = json::get<std::string>(m_tx_json["body"],"cid");
-    auto receiver = json::get<std::string>(m_tx_json["body"],"receiver");
-    auto fee = json::get<std::string>(m_tx_json["body"],"fee");
-    auto user_id = json::get<std::string>(m_tx_json["user"],"id");
-    auto txid = json::get<std::string>(m_tx_json,"txid");
+    auto time = JsonTool::get<std::string>(m_tx_json,"time");
+    auto cid = JsonTool::get<std::string>(m_tx_json["body"],"cid");
+    auto receiver = JsonTool::get<std::string>(m_tx_json["body"],"receiver");
+    auto fee = JsonTool::get<std::string>(m_tx_json["body"],"fee");
+    auto user_id = JsonTool::get<std::string>(m_tx_json["user"],"id");
+    auto txid = JsonTool::get<std::string>(m_tx_json,"txid");
 
     if(!time || !cid || !receiver || !fee || !user_id || !txid) {
       return false;
     }
 
-    auto user_pk = json::get<std::string>(tx_agg_json["user"],"pk");
+    auto user_pk = JsonTool::get<std::string>(tx_agg_json["user"],"pk");
 
     m_data_manager.updateValue("$tx.txid", txid.value());
     m_data_manager.updateValue("$txid", txid.value());
@@ -80,7 +80,7 @@ public:
     m_data_manager.updateValue("$tx.time", time.value());
     m_data_manager.updateValue("$time", time.value());
 
-    std::vector<std::string> cid_components = MiscTool::split(cid.value(),"::");
+    std::vector<std::string> cid_components = mt::split(cid.value(),"::");
 
     m_data_manager.updateValue("$tx.body.cid", cid.value());
     m_data_manager.updateValue("$cid", cid.value());
@@ -103,8 +103,8 @@ public:
     for(int i = 0 ; i < tx_endorsers_json.size(); ++i){
       std::string id_key = "$tx.endorser[" + to_string(i) + "].id";
       std::string pk_key = "$tx.endorser[" + to_string(i) + "].pk";
-      m_data_manager.updateValue(id_key, json::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
-      m_data_manager.updateValue(pk_key, json::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
+      m_data_manager.updateValue(id_key, JsonTool::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
+      m_data_manager.updateValue(pk_key, JsonTool::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
     }
 
     m_data_manager.updateValue("$tx.endorser.count", std::to_string(tx_endorsers_json.size()));
@@ -170,7 +170,7 @@ public:
 
     result_query["txid"] = m_data_manager.eval("$tx.txid");
 
-    auto& head_node = m_element_parser.getNode("head");
+    auto head_node = m_element_parser.getNode("head");
     auto& condition_nodes = m_element_parser.getNodes("condition");
 
     // check if contract is runnable
@@ -196,7 +196,7 @@ public:
 
     // process input directive
 
-    auto& input_node = m_element_parser.getNode("input");
+    auto input_node = m_element_parser.getNode("input");
     if(!m_input_handler.parseInput(m_tx_json["body"]["input"],input_node,m_data_manager)){
       result_query["status"] = false;
       result_query["info"] = TSCE_ERROR_MSG["RUN_INPUT"];
@@ -254,7 +254,7 @@ public:
 
     for(auto &each_set_query : set_query) {
 
-      std::string set_type_str = json::get<std::string>(each_set_query,"type").value_or("");
+      std::string set_type_str = JsonTool::get<std::string>(each_set_query,"type").value_or("");
 
       if(set_type_str.empty())
         continue;

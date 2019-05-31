@@ -11,7 +11,7 @@ class FeeHandler {
 public:
   FeeHandler() = default;
 
-  std::pair<int,int> parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_manager) {
+  std::pair<int,int> parseGet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_manager) {
     if(fee_nodes.empty()) {
       std::cout << "empty fee nodes!" << std::endl;
       return {0, 0};
@@ -28,14 +28,14 @@ public:
       auto pay_nodes = XmlTool::parseChildrenFromNoIf(fee_node,"pay");
 
       for(auto &pay_node : pay_nodes) {
-        std::string from = pay_node.attribute("from").value();
-        std::string value = pay_node.attribute("value").value();
+        std::string from = mt::c2s(pay_node->Attribute("from"));
+        std::string value = mt::c2s(pay_node->Attribute("value"));
 
         if(from == "user") {
           value = data_manager.eval(value);
-          pay_from_user = MiscTool::str2num<int>(value);
+          pay_from_user = mt::str2num<int>(value);
         } else {
-          pay_from_author = MiscTool::str2num<int>(value);
+          pay_from_author = mt::str2num<int>(value);
         }
 
       }

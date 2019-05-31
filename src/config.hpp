@@ -11,7 +11,7 @@
 #include <unordered_map>
 
 // common include files
-#include "../include/pugixml.hpp"
+#include "../include/tinyxml2.h"
 #include "../include/json.hpp"
 #include "../include/date.hpp"
 

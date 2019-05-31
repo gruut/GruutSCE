@@ -10,30 +10,42 @@ class TimeHandler : public BaseConditionHandler {
 public:
   TimeHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
+
+    if(doc_node == nullptr)
+      return false;
 
     auto timestamp = data_manager.evalOpt("$time");
     if(!timestamp)
       return false;
 
-    uint64_t base_timestamp = MiscTool::str2num<uint64_t>(timestamp.value()) * 1000;
+    uint64_t base_timestamp = mt::str2num<uint64_t>(timestamp.value()) * 1000;
 
-    std::string time_after = doc_node.child("after").text().as_string();
-    std::string time_before = doc_node.child("before").text().as_string();
+    auto after_node = doc_node->FirstChildElement("after");
+    auto before_node = doc_node->FirstChildElement("before");
 
-    MiscTool::trim(time_after);
-    MiscTool::trim(time_before);
+    std::string time_after;
+    std::string time_before;
+
+    if(after_node != nullptr)
+      time_after = mt::c2s(after_node->GetText());
+
+    if(before_node != nullptr)
+      time_before = mt::c2s(before_node->GetText());
+
+    mt::trim(time_after);
+    mt::trim(time_before);
 
     if(time_after.empty() && time_before.empty())
         return false;
 
     if(time_before.empty())
-        return (MiscTool::timestr2timestamp(time_after) < base_timestamp);
+        return (mt::timestr2timestamp(time_after) < base_timestamp);
 
     if(time_after.empty())
-        return (MiscTool::timestr2timestamp(time_before) > base_timestamp);
+        return (mt::timestr2timestamp(time_before) > base_timestamp);
 
-    return (MiscTool::timestr2timestamp(time_after) < base_timestamp && base_timestamp < MiscTool::timestr2timestamp(time_before));
+    return (mt::timestr2timestamp(time_after) < base_timestamp && base_timestamp < mt::timestr2timestamp(time_before));
 
   }
 };

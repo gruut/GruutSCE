@@ -3,7 +3,7 @@
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
-#include "../utils/pugixml_tool.hpp"
+#include "../utils/xml_tool.hpp"
 #include <algorithm>
 #include <cstring>
 #include <array>
@@ -14,22 +14,26 @@ class SignatureHandler : public BaseConditionHandler {
 public:
   SignatureHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
-    auto signature_type = doc_node.attribute("type").value(); // GAMMA / ECDSA / .... default = GAMMA
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
 
-    auto sig_node = doc_node.child("sig");
-    auto pk_node = doc_node.child("pk");
-    auto text_node = doc_node.child("text");
-    if (sig_node.empty() || pk_node.empty() || text_node.empty())
+    if(doc_node == nullptr)
       return false;
 
-    std::string sig_val = sig_node.attribute("value").value();
-    std::string sig_contents_type = sig_node.attribute("type").value();
+    auto signature_type = mt::c2s(doc_node->Attribute("type")); // GAMMA / ECDSA / .... default = GAMMA
+
+    auto sig_node = doc_node->FirstChildElement("sig");
+    auto pk_node = doc_node->FirstChildElement("pk");
+    auto text_node = doc_node->FirstChildElement("text");
+    if (sig_node == nullptr || pk_node == nullptr || text_node == nullptr)
+      return false;
+
+    std::string sig_val = mt::c2s(sig_node->Attribute("value"));
+    std::string sig_contents_type = mt::c2s(sig_node->Attribute("type"));
     if (sig_val.empty() || sig_val[0] != '$')
       return false;
 
-    std::string pk_val = sig_node.attribute("value").value();
-    std::string pk_type = sig_node.attribute("type").value(); // PEM / ENCODED-PK ...
+    std::string pk_val = mt::c2s(sig_node->Attribute("value"));
+    std::string pk_type = mt::c2s(sig_node->Attribute("type")); // PEM / ENCODED-PK ...
     if (pk_val.empty())
       return false;
     else if (pk_val[0] == '$') {
@@ -42,8 +46,8 @@ public:
     BytesBuilder bytes_builder;
     auto txt_val_nodes = XmlTool::parseChildrenFromNoIf(text_node,"val");
     for (auto &each_node : txt_val_nodes) {
-      std::string val_value = each_node.attribute("value").value();
-      std::string val_type = each_node.attribute("type").value();
+      std::string val_value = mt::c2s(each_node->Attribute("value"));
+      std::string val_type = mt::c2s(each_node->Attribute("type"));
 
       if (val_value.empty())
         continue;
@@ -85,7 +89,7 @@ private:
         auto num = std::stoi(data);
         (num > 0) ? bool_data.push_back(1) : bool_data.push_back(0);
       } else {
-        std::string bool_str = MiscTool::toLower(data);
+        std::string bool_str = mt::toLower(data);
         std::istringstream iss(bool_str);
         bool b;
         iss >> std::boolalpha >> b;
@@ -101,12 +105,12 @@ private:
       break;
     }
     case EnumAll::DATETIME: {
-      auto t = MiscTool::timestr2timestamp(data);
+      auto t = mt::timestr2timestamp(data);
       bytes_builder.appendDec(t);
       break;
     }
     case EnumAll::DATE: {
-      auto t = MiscTool::timestr2timestamp(data);
+      auto t = mt::timestr2timestamp(data);
       bytes_builder.appendDec(t);
       break;
     }

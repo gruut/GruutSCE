@@ -12,39 +12,47 @@
 namespace tethys::tsce {
 
 class TagHandler {
-  pugi::xml_node m_info_node;
-  pugi::xml_node m_update_node;
+  tinyxml2::XMLElement* m_info_node;
+  tinyxml2::XMLElement* m_update_node;
 
 public:
   TagHandler() = default;
 
   bool evalue(std::string &tag_str, DataManager &data_manager)  {
-    pugi::xml_document doc;
-    if (!doc.load_string(tag_str.c_str(), pugi::parse_minimal))
+
+    tinyxml2::XMLDocument tag_doc;
+
+    tag_doc.Parse(tag_str.c_str());
+
+    if(tag_doc.Error())
       return false;
 
-    pugi::xml_node doc_node = doc.document_element();
-    return evalue(doc_node, data_manager);
+    tinyxml2::XMLElement* tag_element = tag_doc.RootElement();
+
+    return evalue(tag_element, data_manager);
   }
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) {
 
-    m_info_node = doc_node.first_element_by_path("./info");
-    m_update_node = doc_node.first_element_by_path("./update");
+    if(doc_node == nullptr)
+      return false;
+
+    m_info_node = doc_node->FirstChildElement("info");
+    m_update_node = doc_node->FirstChildElement("update");
     ConditionHandler condition_handler;
 
     return condition_handler.evalue(m_update_node,data_manager);
   }
 
   std::string getName() {
-    return m_info_node.first_element_by_path("./name").text().as_string();
+    return mt::c2s(m_info_node->Name());
   }
 
   std::vector<std::string> getCword(){
     std::vector<std::string> ret_vec;
     auto cword_node = XmlTool::parseChildrenFromNoIf(m_info_node,"cword");
     for(auto &each_node : cword_node){
-      ret_vec.emplace_back(each_node.text().as_string());
+      ret_vec.emplace_back(mt::c2s(each_node->GetText()));
     }
 
     return ret_vec;

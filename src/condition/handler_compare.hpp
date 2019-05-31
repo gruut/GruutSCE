@@ -24,14 +24,18 @@ class CompareHandler : public BaseConditionHandler {
 public:
   CompareHandler() = default;
 
-  bool evalue(pugi::xml_node &doc_node, DataManager &data_manager) override {
+  bool evalue(tinyxml2::XMLElement* doc_node, DataManager &data_manager) override {
 
-    std::string src_str = doc_node.attribute("src").value();
-    std::string ref_str = doc_node.attribute("ref").value();
-    CompareType comp_type = getCompareType(doc_node.attribute("type").value());
+    if(doc_node == nullptr)
+      return false;
 
-    MiscTool::trim(src_str);
-    MiscTool::trim(ref_str);
+
+    std::string src_str = mt::c2s(doc_node->Attribute("src"));
+    std::string ref_str = mt::c2s(doc_node->Attribute("ref"));
+    CompareType comp_type = getCompareType(mt::c2s(doc_node->Attribute("type")));
+
+    mt::trim(src_str);
+    mt::trim(ref_str);
 
     if(src_str.empty() || ref_str.empty()) {
       return false;
@@ -57,12 +61,12 @@ public:
       eval_result = (src_str != ref_str);
     } else {
 
-      std::string abs_str = doc_node.attribute("abs").value();
-      MiscTool::trim(abs_str);
+      std::string abs_str = mt::c2s(doc_node->Attribute("abs"));
+      mt::trim(abs_str);
 
-      int src_int = MiscTool::str2num<int>(src_str);
-      int ref_int = MiscTool::str2num<int>(ref_str);
-      int abs_val = MiscTool::str2num<int>(abs_str);
+      int src_int = mt::str2num<int>(src_str);
+      int ref_int = mt::str2num<int>(ref_str);
+      int abs_val = mt::str2num<int>(abs_str);
 
       switch (comp_type) {
       case CompareType::GE:
@@ -99,7 +103,7 @@ public:
 
 private:
   CompareType getCompareType(std::string_view type_str){
-    std::string type_str_lower = MiscTool::toUpper(type_str);
+    std::string type_str_lower = mt::toUpper(type_str);
 
     static std::map<std::string, CompareType> tag_to_type_map = {
         {"EQ", CompareType::EQ},

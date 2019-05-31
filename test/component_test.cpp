@@ -1,7 +1,7 @@
 #define BOOST_TEST_MODULE component_test
 
 #include <iostream>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 #include "../src/config.hpp"
 #include "../src/condition/condition_manager.hpp"

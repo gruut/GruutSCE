@@ -12,7 +12,7 @@ class GetHandler {
 public:
   GetHandler() = default;
 
-  void parseGet(std::vector<std::pair<pugi::xml_node,std::string>> &get_nodes, ConditionManager &condition_manager, DataManager &data_storage){
+  void parseGet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &get_nodes, ConditionManager &condition_manager, DataManager &data_storage){
     if(get_nodes.empty())
       return;
 
@@ -23,16 +23,16 @@ public:
 
       auto var_nodes = XmlTool::parseChildrenFromNoIf(get_node,"var");
 
-      for(auto &var_node : var_nodes){
-        std::string scope = var_node.attribute("scope").value();
+      for(auto var_node : var_nodes){
+        std::string scope = mt::c2s(var_node->Attribute("scope"));
 
-        if(!MiscTool::inArray(scope,{"author","user","contract"}))
+        if(!mt::inArray(scope,{"author","user","contract"}))
           continue;
 
-        std::string id = var_node.attribute("id").value();
-        std::string id_as = var_node.attribute("id-as").value();
-        std::string name = var_node.attribute("name").value();
-        std::string name_as = var_node.attribute("as").value();
+        std::string id = mt::c2s(var_node->Attribute("id"));
+        std::string id_as = mt::c2s(var_node->Attribute("id-as"));
+        std::string name = mt::c2s(var_node->Attribute("name"));
+        std::string name_as = mt::c2s(var_node->Attribute("as"));
 
         id = data_storage.eval(id);
         name = data_storage.eval(name);

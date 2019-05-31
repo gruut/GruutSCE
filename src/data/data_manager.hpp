@@ -89,7 +89,7 @@ public:
   }
 
   std::string eval(std::string &expr){
-    MiscTool::trim(expr);
+    mt::trim(expr);
 
     if(expr.empty())
       return {};
@@ -110,7 +110,7 @@ public:
   }
 
   std::optional<std::string> evalOpt(std::string &expr){
-    MiscTool::trim(expr);
+    mt::trim(expr);
 
     if(expr.empty())
       return {};
@@ -185,7 +185,7 @@ public:
     if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
       for(auto &each_row : it_tbl->second) {
         if(each_row.tag.empty() && each_row.var_type == EnumAll::KEYC && each_row.var_name == "KEYC") {
-          keyc_amount = MiscTool::str2num<int64_t>(each_row.var_value);
+          keyc_amount = mt::str2num<int64_t>(each_row.var_value);
           break;
         }
       }
@@ -211,7 +211,7 @@ public:
     auto result = queryIfUserScopeAndParseData(query, user_id);
 
     if(!result.empty() && result[0].name == "KEYC"){
-      keyc_amount = MiscTool::str2num<uint64_t>(result[0].value);
+      keyc_amount = mt::str2num<uint64_t>(result[0].value);
     }
 
     return keyc_amount;
@@ -445,9 +445,9 @@ private:
           if (result_name[i] == "sn")
             buf_record.sn = each_row[i].get<std::string>();
           else if (result_name[i] == "after")
-            buf_record.nvbefore = MiscTool::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.nvbefore = mt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "before")
-            buf_record.nvafter = MiscTool::str2num<uint64_t>(each_row[i].get<std::string>());
+            buf_record.nvafter = mt::str2num<uint64_t>(each_row[i].get<std::string>());
           else if (result_name[i] == "cert")
             buf_record.x509 = each_row[i].get<std::string>();
 
@@ -484,7 +484,7 @@ private:
         else if (result_name[i] == "register_code")
           buf_record.register_code = col_data;
         else if (result_name[i] == "gender")
-          buf_record.gender = static_cast<EnumGender>(MiscTool::str2num<uint8_t>(col_data));
+          buf_record.gender = static_cast<EnumGender>(mt::str2num<uint8_t>(col_data));
         else if (result_name[i] == "isc_type")
           buf_record.isc_type = col_data;
         else if (result_name[i] == "isc_code")
@@ -492,7 +492,7 @@ private:
         else if (result_name[i] == "location")
           buf_record.location = col_data;
         else if (result_name[i] == "age_limit")
-          buf_record.age_limit = MiscTool::str2num<int>(col_data);
+          buf_record.age_limit = mt::str2num<int>(col_data);
 
         ret_vec.emplace_back(result_name[i],col_data);
       }
@@ -524,13 +524,13 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = col_data;
           else if (result_name[i] == "var_type")
-            buf_record.var_type = static_cast<EnumAll>(MiscTool::str2num<uint8_t>(col_data));
+            buf_record.var_type = static_cast<EnumAll>(mt::str2num<uint8_t>(col_data));
           else if (result_name[i] == "var_owner")
             buf_record.var_owner = col_data;
           else if (result_name[i] == "up_time")
-            buf_record.up_time = MiscTool::str2num<uint64_t>(col_data);
+            buf_record.up_time = mt::str2num<uint64_t>(col_data);
           else if (result_name[i] == "up_block")
-            buf_record.up_block = MiscTool::str2num<uint64_t>(col_data);
+            buf_record.up_block = mt::str2num<uint64_t>(col_data);
           else if (result_name[i] == "tag")
             buf_record.tag = col_data;
           else if (result_name[i] == "pid")
@@ -596,13 +596,13 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = col_data;
           else if (result_name[i] == "var_type")
-            buf_record.var_type = static_cast<EnumAll>(MiscTool::str2num<uint8_t>(col_data));
+            buf_record.var_type = static_cast<EnumAll>(mt::str2num<uint8_t>(col_data));
           else if (result_name[i] == "contract_id")
             buf_record.contract_id = col_data;
           else if (result_name[i] == "up_time")
-            buf_record.up_time = MiscTool::str2num<uint64_t>(col_data);
+            buf_record.up_time = mt::str2num<uint64_t>(col_data);
           else if (result_name[i] == "up_block")
-            buf_record.up_block = MiscTool::str2num<uint64_t>(col_data);
+            buf_record.up_block = mt::str2num<uint64_t>(col_data);
           else if (result_name[i] == "pid")
             buf_record.pid = col_data;
         }
@@ -635,8 +635,8 @@ private:
       m_query_cache[query_key] = query_result;
     }
 
-    auto query_result_name = json::get<nlohmann::json>(query_result,"name");
-    auto query_result_data = json::get<nlohmann::json>(query_result,"data");
+    auto query_result_name = JsonTool::get<nlohmann::json>(query_result,"name");
+    auto query_result_data = JsonTool::get<nlohmann::json>(query_result,"data");
 
     if(!query_result_name || !query_result_data)
       return {};

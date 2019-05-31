@@ -34,8 +34,8 @@ public:
     if(m_storage_interface == nullptr)
       return std::nullopt;
 
-    uint64_t block_hgt = MiscTool::str2num<uint64_t>(json::get<std::string>(block["block"],"height").value_or(""));
-    std::string block_id = json::get<std::string>(block["block"],"id").value_or("");
+    uint64_t block_hgt = mt::str2num<uint64_t>(JsonTool::get<std::string>(block["block"],"height").value_or(""));
+    std::string block_id = JsonTool::get<std::string>(block["block"],"id").value_or("");
 
     std::vector<nlohmann::json> result_queries;
 
@@ -59,8 +59,8 @@ public:
         continue;
       }
 
-      auto txid = json::get<std::string>(each_tx, "txid");
-      auto cid = json::get<std::string>(each_tx["body"], "cid");
+      auto txid = JsonTool::get<std::string>(each_tx, "txid");
+      auto cid = JsonTool::get<std::string>(each_tx["body"], "cid");
 
       if (!txid || !cid)
         continue;

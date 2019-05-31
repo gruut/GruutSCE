@@ -18,7 +18,7 @@ public:
     result["results"] = nlohmann::json::array();
 
     for(auto &res : result_queries){
-      if(json::get<bool>(res, "status").value())
+      if(JsonTool::get<bool>(res, "status").value())
         res.erase("info");
       else{
         res.erase("authority");
