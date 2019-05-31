@@ -28,6 +28,7 @@
 namespace tethys::tsce {
 
 constexpr int NUM_GSCE_THREAD = 4;
+constexpr int MAX_INPUT_SIZE = 5;
 
 }
 

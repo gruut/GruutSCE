@@ -8,14 +8,9 @@
 #include <cctype>
 #include <locale>
 
-#include <botan-2/botan/base58.h>
-#include <botan-2/botan/base64.h>
-#include <botan-2/botan/exceptn.h>
-#include <botan-2/botan/secmem.h>
-
 #include "date.hpp"
 
-class tt {
+class MiscTool {
 public:
 
 #if 0
@@ -138,6 +133,21 @@ public:
     if(!s.empty()) {
       try{
         ret_val = (T) std::stoll(s);
+      }
+      catch (...){
+        ret_val = 0;
+      }
+    }
+
+    return ret_val;
+  }
+
+  template <typename S = std::string>
+  static double str2float (S &&s) {
+    double ret_val = 0;
+    if(!s.empty()) {
+      try{
+        ret_val = std::stod(s);
       }
       catch (...){
         ret_val = 0;

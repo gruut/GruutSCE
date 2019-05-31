@@ -18,14 +18,14 @@ protected:
     if(eval_str.empty())
       return std::nullopt;
 
-    return (tt::toLower(eval_str) == "or") ? EvalRuleType::OR : EvalRuleType::AND;
+    return (MiscTool::toLower(eval_str) == "or") ? EvalRuleType::OR : EvalRuleType::AND;
   }
 
   PrimaryConditionType getPrimaryConditionType(std::string_view condition_tag) {
     if(condition_tag.empty())
       return PrimaryConditionType::UNKNOWN;
 
-    std::string cond_tag_lower = tt::toLower(condition_tag);
+    std::string cond_tag_lower = MiscTool::toLower(condition_tag);
 
     static std::map<std::string, PrimaryConditionType> tag_to_type_map = {
         {"condition", PrimaryConditionType::ROOT},
@@ -55,7 +55,7 @@ protected:
     if(condition_tag.empty())
       return SecondaryConditionType::UNKNOWN;
 
-    std::string cond_tag_lower = tt::toLower(condition_tag);
+    std::string cond_tag_lower = MiscTool::toLower(condition_tag);
 
     static std::map<std::string, SecondaryConditionType> tag_to_type_map = {
         {"if", SecondaryConditionType::IF},

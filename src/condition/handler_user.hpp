@@ -53,7 +53,7 @@ public:
     }
     case SecondaryConditionType::ID: {
       std::string contract_user_id_b58 = doc_node.text().as_string(); // <id>...</id>
-      tt::trim(contract_user_id_b58);
+      MiscTool::trim(contract_user_id_b58);
 
       std::string user_id = data_manager.eval(m_user_key);
 
@@ -67,7 +67,7 @@ public:
       std::string location = doc_node.attribute("country").value();
       location.append(" ").append(doc_node.attribute("state").value());
 
-      tt::trim(location);
+      MiscTool::trim(location);
 
       auto data = data_manager.evalOpt(m_user_key + ".location");
       if(!data.has_value()){
@@ -85,7 +85,7 @@ public:
       std::string service_type = doc_node.attribute("type").value();
       std::string service_code = doc_node.text().as_string();
 
-      tt::trim(service_code);
+      MiscTool::trim(service_code);
 
       auto type_data = data_manager.evalOpt(m_user_key + ".isc_type");
       if(!type_data.has_value()){
@@ -107,8 +107,8 @@ public:
       std::string age_after = doc_node.attribute("after").value();
       std::string age_before = doc_node.attribute("before").value();
 
-      tt::trim(age_after);
-      tt::trim(age_before);
+      MiscTool::trim(age_after);
+      MiscTool::trim(age_before);
 
       if(age_after.empty() && age_before.empty())
         return false;
@@ -127,7 +127,7 @@ public:
 
       std::string now_str = data_manager.eval("$time"); // timestamp in second
 
-      auto now_int = tt::str2num<uint64_t>(now_str) * 1000;
+      auto now_int = MiscTool::str2num<uint64_t>(now_str) * 1000;
 
       if(now_int == 0)
         return false;
@@ -139,17 +139,17 @@ public:
       auto today = date::year_month_day{floor<date::days>(now_time_point)};
 
       if(age_before.empty()) {
-        int age_after_int = tt::str2num<int>(age_after);
+        int age_after_int = MiscTool::str2num<int>(age_after);
         return (birthday + date::years{age_after_int} < today);
       }
 
       if(age_after.empty()) {
-        int age_before_int = tt::str2num<int>(age_before);
+        int age_before_int = MiscTool::str2num<int>(age_before);
         return (birthday + date::years{age_before_int} > today);
       }
 
-      int age_after_int = tt::str2num<int>(age_after);
-      int age_before_int = tt::str2num<int>(age_before);
+      int age_after_int = MiscTool::str2num<int>(age_after);
+      int age_before_int = MiscTool::str2num<int>(age_before);
       return (birthday + date::years{age_after_int} < today && today < birthday + date::years{age_before_int});
 
     }

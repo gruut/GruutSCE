@@ -29,10 +29,10 @@ const auto BIN_REGEX = "^[0-1]*$";
 
 struct InputOption {
   std::string key;
-  std::string validation;
   std::string type;
-  InputOption(std::string key_, std::string validation_, std::string type_)
-      : key(std::move(key_)), validation(std::move(validation_)), type(std::move(type_)) {
+  std::string validation;
+  InputOption(std::string key_, std::string type_, std::string validation_)
+      : key(std::move(key_)), type(std::move(type_)), validation(std::move(validation_)) {
   }
 };
 
@@ -47,28 +47,31 @@ public:
       return false;
 
     std::string max_str = input_node.attribute("max").value();
-    int num_max = tt::str2num<int>(max_str);
-    num_max = (input_json.size() < num_max) ? input_json.size() : num_max;
+    MiscTool::trim(max_str);
 
-    if(num_max > 10)
+    int num_input_max = 1;
+    if(!max_str.empty())
+      num_input_max = MiscTool::str2num<int>(max_str);
+
+    if(num_input_max > MAX_INPUT_SIZE)
       return false;
 
+    int num_input = num_input_max > input_json.size() ? input_json.size() : num_input_max;
 
-    pugi::xpath_node_set option_nodes = input_node.select_nodes("./option");
+    auto option_nodes = XmlTool::parseChildrenFromNoIf(input_node,"option");
 
     std::vector<InputOption> input_options;
     std::map<std::string, std::vector<std::string>> input_value_groups;
 
     for(auto &each_node : option_nodes) {
-      pugi::xml_node option_node = each_node.node();
-      std::string option_name = option_node.attribute("name").value();
-      std::string option_type = option_node.attribute("type").value();
-      std::string option_validation = option_node.attribute("validation").value();
+      std::string option_name = each_node.attribute("name").value();
+      std::string option_type = each_node.attribute("type").value();
+      std::string option_validation = each_node.attribute("validation").value();
 
       input_options.emplace_back(option_name,option_type,option_validation); // TODO : check work well
     }
 
-    for(int i = 0; i < num_max; ++i) {
+    for(int i = 0; i < num_input; ++i) {
 
       for(auto &each_input : input_json[i]) {
         for(auto &each_item : each_input.items()) {
@@ -142,7 +145,7 @@ private:
       case EnumAll::INT: {
         if (value.length() > INT_LENGTH)
           return false;
-        auto val = std::stoll(value);
+        int64_t val = MiscTool::str2num<int64_t>(value);
         if(!(val >= MIN_INT && val <= MAX_INT))
           return false;
         break;
@@ -150,7 +153,7 @@ private:
       case EnumAll::PINT: {
         if (value.length() > INT_LENGTH)
           return false;
-        auto val = std::stoll(value);
+        uint64_t val = MiscTool::str2num<uint64_t>(value);
         if(!(val >= 1 && val <= MAX_INT))
           return false;
         break;
@@ -158,22 +161,26 @@ private:
       case EnumAll::NINT: {
         if (value.length() > INT_LENGTH)
           return false;
-        auto val = std::stoll(value);
+        int64_t val = MiscTool::str2num<int64_t>(value);
         if(!(val >= MIN_INT && val <= -1))
           return false;
         break;
       }
       case EnumAll::FLOAT: {
-        std::stod(value);
+        try {
+          auto f = std::stold(value);
+        }
+        catch(...) {
+          return false;
+        }
         break;
       }
       case EnumAll::BOOL: {
         std::regex rgx(BOOL_REGEX);
-        if (regex_match(value, rgx))
-          return true;
-        auto val = std::stoi(value);
-        if(val < 0 )
+        if (!std::regex_match(value, rgx))
           return false;
+//        if(MiscTool::str2num<int64_t>(value) < 0 )
+//          return false;
         break;
       }
       case EnumAll::TINYTEXT: {
@@ -232,12 +239,12 @@ private:
         break;
       }
       case EnumAll::ENUMV: {
-        if(!(value == "GRU" || value == "FIAT" || value == "COIN" || value == "XCOIN"))
+        if(!MiscTool::inArray(value,{"KEYC","FIAT","COIN","XCOIN"}))
           return false;
         break;
       }
       case EnumAll::ENUMGENDER: {
-        if(!(value == "MALE" || value == "FEMALE" || value == "OTHER"))
+        if(!MiscTool::inArray(value, {"MALE","FEMALE","OTHER"}))
           return false;
         break;
       }
@@ -284,10 +291,12 @@ private:
       default:
         return false;
       }
+
       if(!validation.empty()){
         std::regex rgx(validation);
         return std::regex_match(value, rgx);
       }
+
       return true;
     } catch(...){  // when exceptions occur //ex) stoll, stod, stoi ...
       return false;

@@ -42,9 +42,8 @@ public:
 
   std::vector<std::string> getCword(){
     std::vector<std::string> ret_vec;
-    auto cword_node_paths = m_info_node.select_nodes("./cword");
-    for(auto &each_path : cword_node_paths){
-      auto each_node = each_path.node();
+    auto cword_node = XmlTool::parseChildrenFromNoIf(m_info_node,"cword");
+    for(auto &each_node : cword_node){
       ret_vec.emplace_back(each_node.text().as_string());
     }
 

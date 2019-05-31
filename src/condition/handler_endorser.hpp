@@ -44,14 +44,14 @@ public:
 
       std::string endorser_id_b58 = doc_node.text().as_string();
 
-      tt::trim(endorser_id_b58);
+      MiscTool::trim(endorser_id_b58);
 
       auto data = data_manager.evalOpt("$tx.endorser.count");
       if(!data.has_value()){
         return false;
       }
 
-      int num_endorsers = tt::str2num<int>(data.value());
+      int num_endorsers = MiscTool::str2num<int>(data.value());
 
       if(num_endorsers <= 0) {
         return false;

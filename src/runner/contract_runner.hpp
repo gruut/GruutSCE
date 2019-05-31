@@ -16,7 +16,6 @@ namespace tethys::tsce {
 class ContractRunner {
 
 private:
-  pugi::xml_node m_contract_node;
   DataManager m_data_manager;
   ConditionManager m_condition_manager;
   InputHandler m_input_handler;
@@ -55,7 +54,6 @@ public:
   }
 
   bool setContract(pugi::xml_node &contract_node) {
-    m_contract_node = contract_node; // for future use
     return m_element_parser.setContract(contract_node);
   }
 
@@ -82,7 +80,7 @@ public:
     m_data_manager.updateValue("$tx.time", time.value());
     m_data_manager.updateValue("$time", time.value());
 
-    std::vector<std::string> cid_components = tt::split(cid.value(),"::");
+    std::vector<std::string> cid_components = MiscTool::split(cid.value(),"::");
 
     m_data_manager.updateValue("$tx.body.cid", cid.value());
     m_data_manager.updateValue("$cid", cid.value());
@@ -175,30 +173,10 @@ public:
     auto& head_node = m_element_parser.getNode("head");
     auto& condition_nodes = m_element_parser.getNodes("condition");
 
-
     // check if contract is runnable
 
-    if(!head_node.second.empty()) {
-
-      std::string condition_id = (head_node.second[0] == '~') ? head_node.second.substr(1) : head_node.second;
-
-      for (auto &each_condition : condition_nodes) {
-        std::string each_id = each_condition.first.attribute("id").value();
-        if(each_id == condition_id){
-          m_condition_manager.evalue(each_condition.first,m_data_manager);
-          break;
-        }
-      }
-
-      if (!m_condition_manager.getEvalResultById(head_node.second)) {
-        result_query["status"] = false;
-        result_query["info"] = TSCE_ERROR_MSG["RUN_CONDITION"];
-        return result_query;
-      }
-    }
-
     TimeHandler contract_time_handler;
-    if(!contract_time_handler.evalue(head_node.first,m_data_manager)) {
+    if(!contract_time_handler.evalue(head_node,m_data_manager)) {
       result_query["status"] = false;
       result_query["info"] = TSCE_ERROR_MSG["RUN_PERIOD"];
       return result_query;
@@ -219,7 +197,7 @@ public:
     // process input directive
 
     auto& input_node = m_element_parser.getNode("input");
-    if(!m_input_handler.parseInput(m_tx_json,input_node.first,m_data_manager)){
+    if(!m_input_handler.parseInput(m_tx_json["body"]["input"],input_node,m_data_manager)){
       result_query["status"] = false;
       result_query["info"] = TSCE_ERROR_MSG["RUN_INPUT"];
       return result_query;
@@ -266,12 +244,11 @@ public:
     // process set directive
 
     auto& set_nodes = m_element_parser.getNodes("set");
+
     auto set_query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
 
     if(set_query.empty())
       return std::nullopt;
-
-    // TODO : set result validation
 
     nlohmann::json valid_set_query = nlohmann::json::array();
 
@@ -288,13 +265,17 @@ public:
       if(set_type == SetType::NONE)
         continue;
 
-
+      // TODO : set result validation
 
       valid_set_query.emplace_back(each_set_query);
     }
 
-
-    result_query["query"] = valid_set_query;
+    if(valid_set_query.empty()) {
+      result_query["status"] = false;
+      result_query["info"] = TSCE_ERROR_MSG["RUN_SET"];
+    } else {
+      result_query["queries"] = valid_set_query;
+    }
 
     return result_query;
   }

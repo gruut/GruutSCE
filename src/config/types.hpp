@@ -133,6 +133,7 @@ std::map<std::string,std::string> TSCE_ERROR_MSG = {
     {"RUN_INPUT", "input is not met"},
     {"RUN_CONDITION", "condition is not met"},
     {"RUN_PERIOD", "runnable time period is not met"},
+    {"RUN_SET", "invalid set directive"},
     {"NOT_ENOUGH_FEE", "transaction fee shortage"},
     {"NO_CONTRACT", "corresponding contract does not exist"},
     {"RUN_UNKNOWN", "unknown error occurred"},

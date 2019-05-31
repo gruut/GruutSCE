@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(simple_run) {
       <option name="pid" type="BASE64" desc="id of v-type variable for transfer" />
       <option name="tag" type="XML" desc="condition for use of this v-type value" />
     </input>
-    <set type="v.transfer" for="user">
+    <set type="v.transfer" from="user">
       <option name="to" value="$receiver" />
       <option name="amount" value="$0.amount" />
       <option name="unit" value="$0.unit" />
@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(simple_run) {
 
       result["data"].emplace_back(record);
 
-    } else if(query_type == "user.info.get"){
+    } else if(query_type == "user.info.get") {
 
       result["name"].emplace_back("register_day");
       result["name"].emplace_back("register_code");
@@ -101,6 +101,22 @@ BOOST_AUTO_TEST_CASE(simple_run) {
       nlohmann::json record = {"1980-08-15", "", "MALE", "", "", "", ""};
 
       result["data"].emplace_back(record);
+    } else if(query_type == "user.scope.get") {
+
+      std::cout << query << std::endl;
+
+      result["name"].emplace_back("var_name");
+      result["name"].emplace_back("var_value");
+      result["name"].emplace_back("var_type");
+      result["name"].emplace_back("up_time");
+      result["name"].emplace_back("up_block");
+      result["name"].emplace_back("tag");
+      result["name"].emplace_back("pid");
+
+      if(json::get<std::string>(query["where"],"name").value_or("") == "KEYC" && json::get<std::string>(query["where"],"type").value_or("") == "KEYC" && json::get<bool>(query["where"],"notag").value_or(false)) {
+        nlohmann::json record = {"KEYC", "1000", "KEYC", "0", "0", "", "", "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDE="};
+        result["data"].emplace_back(record);
+      }
 
     } else {
 

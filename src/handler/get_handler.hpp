@@ -21,13 +21,12 @@ public:
       if(!condition_id.empty() && !condition_manager.getEvalResultById(condition_id))
         continue;
 
-      pugi::xpath_node_set var_nodes = get_node.select_nodes("./var");
+      auto var_nodes = XmlTool::parseChildrenFromNoIf(get_node,"var");
 
-      for(auto &var_path : var_nodes){
-        auto var_node = var_path.node();
+      for(auto &var_node : var_nodes){
         std::string scope = var_node.attribute("scope").value();
 
-        if(!tt::inArray(scope,{"author","user","contract"}))
+        if(!MiscTool::inArray(scope,{"author","user","contract"}))
           continue;
 
         std::string id = var_node.attribute("id").value();

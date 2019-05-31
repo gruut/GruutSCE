@@ -34,7 +34,7 @@ public:
     if(m_storage_interface == nullptr)
       return std::nullopt;
 
-    uint64_t block_hgt = tt::str2num<uint64_t>(json::get<std::string>(block["block"],"height").value_or(""));
+    uint64_t block_hgt = MiscTool::str2num<uint64_t>(json::get<std::string>(block["block"],"height").value_or(""));
     std::string block_id = json::get<std::string>(block["block"],"id").value_or("");
 
     std::vector<nlohmann::json> result_queries;
@@ -101,12 +101,12 @@ public:
 
         if (res_query.has_value()) {
           result_queries.emplace_back(res_query.value());
+          std::cout << "finished run()" << std::endl;
         } else {
+          std::cout << "failed to run()" << std::endl;
           result_fail["info"] = TSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
-
-        std::cout << "finished run()" << std::endl;
 
         contract_runner.clear();
 

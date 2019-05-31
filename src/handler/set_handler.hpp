@@ -52,8 +52,11 @@ public:
   std::vector<nlohmann::json> parseSet(std::vector<std::pair<pugi::xml_node,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
     std::vector<nlohmann::json> set_query;
 
-    for(auto &[set_node, id] : set_nodes){
-      if(set_node.empty() || !condition_manager.getEvalResultById(id))
+    for(auto &[set_node, if_id] : set_nodes){
+      if(set_node.empty())
+        continue;
+
+      if(!if_id.empty() && !condition_manager.getEvalResultById(if_id))
         continue;
 
       std::string type_str = set_node.attribute("type").value();
@@ -88,14 +91,14 @@ private:
 
     if(set_type == SetType::SCOPE_USER) {
       for_att = set_node.attribute("for").value();
-      if (for_att.empty() || !tt::inArray(for_att,{"user","author"}))
+      if (for_att.empty() || !MiscTool::inArray(for_att,{"user","author"}))
         return std::nullopt;
 
       contents["for"] = for_att;
     }
     else if(set_type == SetType::V_TRANSFER) {
       from_att = set_node.attribute("from").value();
-      if (from_att.empty() || !tt::inArray(from_att,{"user","author","contract"}))
+      if (from_att.empty() || !MiscTool::inArray(from_att,{"user","author","contract"}))
         return std::nullopt;
 
       contents["from"] = from_att;
@@ -103,18 +106,16 @@ private:
 
     // 2) parsing all option entries
 
-    auto option_nodes = set_node.select_nodes("./option");
+    auto option_nodes = XmlTool::parseChildrenFromNoIf(set_node,"option");
 
-    for (auto &each_node : option_nodes) {
-
-      auto option_node = each_node.node();
+    for (auto &option_node : option_nodes) {
 
       std::string option_name = option_node.attribute("name").value();
       std::string option_value = option_node.attribute("value").value();
       std::string data = data_manager.eval(option_value);
 
-      tt::trim(data);
-      tt::toLower(option_name);
+      MiscTool::trim(data);
+      MiscTool::toLower(option_name);
 
       if (option_name.empty() || data.empty())
         continue;
@@ -123,14 +124,14 @@ private:
 
       case SetType::USER_JOIN: {
         if (option_name == "gender") {
-          data = tt::toUpper(data);
-          if (!tt::inArray(data,{"MALE","FEMALE","OTHER"}))
+          data = MiscTool::toUpper(data);
+          if (!MiscTool::inArray(data,{"MALE","FEMALE","OTHER"}))
             data.clear(); // for company or something other cases
         }
 
         if (option_name == "register_day") {
           // TODO : fix to YYYY-MM-DD format
-          if (!tt::isDigit(data))
+          if (!MiscTool::isDigit(data))
             data.clear();
         }
 
@@ -138,9 +139,9 @@ private:
       }
 
       case SetType::USER_CERT: {
-        if (tt::inArray(option_name,{"notbefore","notafter"})) {
+        if (MiscTool::inArray(option_name,{"notbefore","notafter"})) {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!tt::isDigit(data))
+          if (!MiscTool::isDigit(data))
             data.clear();
         }
 
@@ -162,16 +163,15 @@ private:
         break;
       }
 
-
       case SetType::V_CREATE: {
         if (option_name == "amount") {
-          if (tt::str2num<int>(data) <= 0)
+          if (MiscTool::str2num<int>(data) <= 0)
             data.clear();
         }
 
         if (option_name == "type") {
-          tt::toUpper(data);
-          if (!tt::inArray(data,{"GRU","FIAT","COIN","XCOIN","MILE"}))
+          MiscTool::toUpper(data);
+          if (!MiscTool::inArray(data,{"KEYC","FIAT","COIN","XCOIN","MILE"}))
             data.clear();
         }
 
@@ -209,9 +209,9 @@ private:
 
 
       case SetType::CONTRACT_NEW: {
-        if (tt::inArray(option_name, {"before","after"})) {
+        if (MiscTool::inArray(option_name, {"before","after"})) {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!tt::isDigit(data))
+          if (!MiscTool::isDigit(data))
             data.clear();
         }
         break;
@@ -230,8 +230,8 @@ private:
 
           if (option_name == "amount") {
 
-            tt::trim(data);
-            if (tt::str2num<int>(data) <= 0)
+            MiscTool::trim(data);
+            if (MiscTool::str2num<int>(data) <= 0)
               data.clear();
 
           }
@@ -242,13 +242,13 @@ private:
 
       case SetType::RUN_QUERY: {
         if (option_name == "type") {
-          if (!tt::inArray(data, {"run.query","user.cert"}))
+          if (!MiscTool::inArray(data, {"run.query","user.cert"}))
             data.clear();
         }
 
         if (option_name == "after") {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!tt::isDigit(data))
+          if (!MiscTool::isDigit(data))
             data.clear();
         }
 
@@ -260,7 +260,7 @@ private:
           //TODO : check 'cid'
         if (option_name == "after") {
           // TODO : fix to allow both YYYY-MM-DD and timestamp
-          if (!tt::isDigit(data))
+          if (!MiscTool::isDigit(data))
             data.clear();
         }
 

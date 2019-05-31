@@ -3,6 +3,7 @@
 
 #include "../config.hpp"
 #include "base_condition_handler.hpp"
+#include "../utils/pugixml_tool.hpp"
 #include <algorithm>
 #include <cstring>
 #include <array>
@@ -39,11 +40,10 @@ public:
     }
 
     BytesBuilder bytes_builder;
-    pugi::xpath_node_set txt_val_nodes = text_node.select_nodes("./val");
+    auto txt_val_nodes = XmlTool::parseChildrenFromNoIf(text_node,"val");
     for (auto &each_node : txt_val_nodes) {
-      pugi::xml_node val_node = each_node.node();
-      std::string val_value = val_node.attribute("value").value();
-      std::string val_type = val_node.attribute("type").value();
+      std::string val_value = each_node.attribute("value").value();
+      std::string val_type = each_node.attribute("type").value();
 
       if (val_value.empty())
         continue;
@@ -85,7 +85,7 @@ private:
         auto num = std::stoi(data);
         (num > 0) ? bool_data.push_back(1) : bool_data.push_back(0);
       } else {
-        std::string bool_str = tt::toLower(data);
+        std::string bool_str = MiscTool::toLower(data);
         std::istringstream iss(bool_str);
         bool b;
         iss >> std::boolalpha >> b;
@@ -101,12 +101,12 @@ private:
       break;
     }
     case EnumAll::DATETIME: {
-      auto t = tt::timestr2timestamp(data);
+      auto t = MiscTool::timestr2timestamp(data);
       bytes_builder.appendDec(t);
       break;
     }
     case EnumAll::DATE: {
-      auto t = tt::timestr2timestamp(data);
+      auto t = MiscTool::timestr2timestamp(data);
       bytes_builder.appendDec(t);
       break;
     }
@@ -135,7 +135,7 @@ private:
     }
     case EnumAll::ENUMV: {
       int val;
-      if (data == "GRU")
+      if (data == "KEYC")
         val = static_cast<int>(EnumV::KEYC);
       else if (data == "FIAT")
         val = static_cast<int>(EnumV::FIAT);

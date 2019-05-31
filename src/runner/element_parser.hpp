@@ -2,17 +2,19 @@
 #define TETHYS_SCE_ELEMENT_PARSER_HPP
 
 #include "../config.hpp"
+#include "../utils/pugixml_tool.hpp"
 
 namespace tethys::tsce {
+
 
 class ElementParser {
 private:
   pugi::xml_node m_contract;
-  std::string m_contract_if;
 
-  std::pair<pugi::xml_node,std::string> m_head;
-  //std::pair<pugi::xml_node,std::string> m_body;
-  std::pair<pugi::xml_node,std::string> m_input;
+  pugi::xml_node m_head;
+  pugi::xml_node m_body;
+  pugi::xml_node m_input;
+
   std::vector<std::pair<pugi::xml_node,std::string>> m_gets;
   std::vector<std::pair<pugi::xml_node,std::string>> m_sets;
   std::vector<std::pair<pugi::xml_node,std::string>> m_conditions;
@@ -22,62 +24,62 @@ private:
   std::vector<std::pair<pugi::xml_node,std::string>> m_fees;
   std::vector<std::pair<pugi::xml_node,std::string>> m_scripts;
 
-  std::pair<pugi::xml_node,std::string> m_single_dummy;
+  pugi::xml_node m_single_dummy;
   std::vector<std::pair<pugi::xml_node,std::string>> m_multi_dummy;
 
 public:
   ElementParser() = default;
 
 
-  // Note: The contract node lost her name before it came to this. Why?
+  // Note: The contract node lost her name before it came here. Why?
 
   bool setContract(pugi::xml_node &contract) {
     m_contract = contract;
-    m_contract_if = contract.attribute("if").value();
     m_contract.set_name("contract"); // bug?!
 
-    auto head = parseElement("/contract/head");
-    //auto body = parseElement("/contract/body");
-    auto input = parseElement("/contract/body/input");
+    auto head = XmlTool::parseChildFrom(m_contract, "head");
+    auto body = XmlTool::parseChildFrom(m_contract, "body");
 
-    if(!head || !input) {
-      std::cout << "maybe not valid contract" << std::endl;
+    if(!head || !body) {
       return false;
     }
 
     m_head = head.value();
-    //m_body = body.value();
-    m_input = input.value();
+    m_body = body.value();
 
-    m_gets = parseElements("/contract/body/get");
-    m_sets = parseElements("/contract/body/set");
-    m_conditions = parseElements("/contract/body/condition");
-    m_oracles = parseElements("/contract/body/oracle");
-    m_displays = parseElements("/contract/body/display");
-    m_calls = parseElements("/contract/body/call");
-    m_scripts = parseElements("/contract/script");
-    m_fees = parseElements("/contract/fee");
+    auto input = XmlTool::parseChildrenFrom(m_body, "input");
+
+    if(input.empty()) {
+      return false;
+    }
+
+    m_input = input[0].first;
+
+    m_gets = XmlTool::parseChildrenFrom(m_body, "get");
+    m_sets = XmlTool::parseChildrenFrom(m_body, "set");
+    m_conditions = XmlTool::parseChildrenFrom(m_body, "condition");
+    m_oracles = XmlTool::parseChildrenFrom(m_body, "oracle");
+    m_displays = XmlTool::parseChildrenFrom(m_body, "display");
+    m_calls = XmlTool::parseChildrenFrom(m_body, "call");
+    m_scripts = XmlTool::parseChildrenFrom(m_contract, "script");
+
+    m_fees = XmlTool::parseChildrenFrom(m_contract, "fee");
 
     return true;
   }
 
-  template <typename S = std::string>
-  std::pair<pugi::xml_node,std::string> &getNode(S &&node_name) {
+  pugi::xml_node& getNode(std::string_view node_name) {
 
     if(node_name == "head") {
       return m_head;
-//    } else if(node_name == "body") {
-//      return m_body;
     } else if(node_name == "input") {
       return m_input;
     }
 
     return m_single_dummy;
-
   }
 
-  template <typename S = std::string>
-  std::vector<std::pair<pugi::xml_node,std::string>>& getNodes(S &&node_name) {
+  std::vector<std::pair<pugi::xml_node,std::string>>& getNodes(std::string_view node_name) {
 
     if(node_name == "get") {
       return m_gets;
@@ -102,29 +104,6 @@ public:
 
 private:
 
-  std::optional<std::pair<pugi::xml_node,std::string>> parseElement(const char * xpath) {
-    std::vector<std::pair<pugi::xml_node,std::string>> elements = parseElements(xpath);
-
-    if(elements.empty())
-      return std::nullopt;
-    else
-      return elements[0];
-  }
-
-  // Note: When I used std::string and std::string::c_str() for this, function did not work properly.
-
-  std::vector<std::pair<pugi::xml_node,std::string>> parseElements(const char * xpath) {
-
-    std::vector<std::pair<pugi::xml_node,std::string>> node_set;
-    pugi::xpath_node_set select_node_set = m_contract.select_nodes(xpath);
-
-    for(auto &each_node : select_node_set) {
-      std::string if_str = each_node.node().attribute("if").value();
-      node_set.emplace_back(std::make_pair(each_node.node(),if_str));
-    }
-
-    return node_set;
-  }
 
 };
 

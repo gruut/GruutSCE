@@ -18,7 +18,7 @@ public:
     std::string type_str = doc_node.attribute("type").value();
     std::string abs_str = doc_node.attribute("abs").value();
 
-    if(tt::trim(name_str) == "*")
+    if(MiscTool::trim(name_str) == "*")
       return false;
 
     pugi::xml_node compare_node;
@@ -29,7 +29,7 @@ public:
 
     CompareHandler compare_handler;
 
-    if(tt::inArray(scope_str,{"user","author", "receiver","contract"})) {
+    if(MiscTool::inArray(scope_str,{"user","author", "receiver","contract"})) {
 
       id_str = data_manager.eval(id_str);
       std::string real_scope = (scope_str == "contract") ? "contract" : "user";
