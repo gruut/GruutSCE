@@ -287,7 +287,7 @@ private:
 
       std::string id = data_manager.eval("$" + for_att);
       std::string pid = JsonTool::get<std::string>(contents,"pid").value_or("");
-      std::string name = JsonTool::get<std::string>(contents,"unit").value_or("");
+      std::string name = JsonTool::get<std::string>(contents,"name").value_or("");
 
       if(!pid.empty()) {
         auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
@@ -308,10 +308,14 @@ private:
 
     case SetType::V_TRANSFER: {
 
+      // for user tag handling
+
       if (from_att == "user" || from_att == "author") {
         std::string id = data_manager.eval("$" + from_att);
         std::string pid = JsonTool::get<std::string>(contents, "pid").value_or("");
-        std::string name = JsonTool::get<std::string>(contents, "name").value_or("");
+        std::string name = JsonTool::get<std::string>(contents, "unit").value_or("");
+
+        std::cout << id << " " << pid << " " << name << std::endl;
 
         if (!pid.empty()) {
           auto record = data_manager.getUserScopeRecordByPid(id, name, pid);

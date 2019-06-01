@@ -63,7 +63,7 @@ public:
       std::string option_type = mt::c2s(each_node->Attribute("type"));
       std::string option_validation = mt::c2s(each_node->Attribute("validation"));
 
-      input_options.emplace_back(option_name,option_type,option_validation); // TODO : check work well
+      input_options.emplace_back(option_name,option_type,option_validation);
     }
 
     for(int i = 0; i < num_input; ++i) {

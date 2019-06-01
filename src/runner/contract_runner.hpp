@@ -50,6 +50,8 @@ public:
     attrToMap(world_attr, "$world");
     attrToMap(chain_attr, "$chain");
 
+    m_data_manager.setKeyCurrencyName(m_data_manager.eval("$world.keyc_name"));
+
     return true;
   }
 
