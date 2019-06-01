@@ -1,6 +1,6 @@
 # Tethys Standard Contract Engine
 
-> The name of this engine has been changed to Tethys Standard Contract ContractEngine (TSCE) because the name of the blockchain projecft has been changed.
+> The name of this engine has been changed to Tethys Standard Contract ContractEngine (TSCE) according to the change of the project name.
 > The original name was "Gruut Standard Contract Engine."
 
 ### 1. Basic Structure of Tethys Standard Contract 
@@ -25,8 +25,8 @@
 ### 2. Libraries
 
 #### 2.1. Open Source License
-- JSON for Modern C++ (by Niels Lohmann)
-- pugixml parser (Arseny Kapoulkine)
+- JSON for Modern C++ (Niels Lohmann)
+- TinyXml2 (Lee Thomason)
 - Date (Howard Hinnant et al.)
 
 #### 2.2. Non-open Source License
