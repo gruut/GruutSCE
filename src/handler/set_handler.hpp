@@ -50,7 +50,7 @@ public:
   SetHandler() = default;
 
   std::vector<nlohmann::json> parseSet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &set_nodes, ConditionManager &condition_manager, DataManager &data_manager){
-    std::vector<nlohmann::json> set_query;
+    std::vector<nlohmann::json> set_queries;
 
     for(auto &[set_node, if_id] : set_nodes){
       if(set_node == nullptr)
@@ -66,16 +66,21 @@ public:
 
       if(set_type != SetType::NONE) {
 
+        nlohmann::json set_query;
+        set_query["type"] = type_str;
+
         auto contents = handle(set_type, set_node, data_manager);
 
         if (!contents)
           continue;
 
-        set_query.emplace_back(contents.value());
+        set_query["option"] = contents.value();
+
+        set_queries.emplace_back(set_query);
       }
     }
 
-    return set_query;
+    return set_queries;
   }
 
 private:

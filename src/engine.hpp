@@ -69,41 +69,28 @@ public:
       result_fail["status"] = false;
       result_fail["txid"] = txid.value();
 
-      std::cout << "txid = " << txid.value() << std::endl;
-      std::cout << "cid = " << cid.value() << std::endl;
-
       auto contract = m_contract_manager.getContract(cid.value());
 
       if (contract.has_value()) {
 
         if(!contract_runner.setContract(contract.value())) {
-          std::cout << "failed to setContract()" << std::endl;
           continue;
         }
-
-        std::cout << "finished setContract()" << std::endl;
 
         if(!contract_runner.setTransaction(each_tx)){
-          std::cout << "failed to setTransaction()" << std::endl;
           continue;
         }
-
-        std::cout << "finished setTransaction()" << std::endl;
 
         if (!contract_runner.readUserAttributes()) {
           result_fail["info"] = TSCE_ERROR_MSG["NO_USER"];
           result_queries.emplace_back(result_fail);
         }
 
-        std::cout << "finished readUserAttributes()" << std::endl;
-
         auto res_query = contract_runner.run();
 
         if (res_query.has_value()) {
           result_queries.emplace_back(res_query.value());
-          std::cout << "finished run()" << std::endl;
         } else {
-          std::cout << "failed to run()" << std::endl;
           result_fail["info"] = TSCE_ERROR_MSG["RUN_UNKNOWN"];
           result_queries.emplace_back(result_fail);
         }
