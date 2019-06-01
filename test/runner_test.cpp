@@ -101,8 +101,6 @@ BOOST_AUTO_TEST_CASE(simple_run) {
       result["data"].emplace_back(record);
     } else if(query_type == "user.scope.get") {
 
-      std::cout << query << std::endl;
-
       result["name"].emplace_back("var_name");
       result["name"].emplace_back("var_value");
       result["name"].emplace_back("var_type");

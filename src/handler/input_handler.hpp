@@ -46,7 +46,7 @@ public:
     if(input_json.empty())
       return false;
 
-    int num_input_max = input_node->IntAttribute("max");
+    int num_input_max = input_node->IntAttribute("max",1);
 
     if(num_input_max > MAX_INPUT_SIZE)
       return false;
