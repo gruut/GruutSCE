@@ -12,7 +12,7 @@ struct DataAttribute {
   std::string name;
   std::string value;
   DataAttribute() = default;
-  DataAttribute(std::string &name_, std::string &value_) : name (name_), value (value_) {}
+  DataAttribute(const std::string &name_, const std::string &value_) : name (name_), value (value_) {}
 };
 
 struct UserScopeRecord {
@@ -59,6 +59,7 @@ struct UserCertRecord {
 class DataManager {
 private:
   Datamap m_tx_datamap; // set of { keyword : value }
+  std::string m_keyc_name{"KEYC"};
   std::unordered_map<std::string, nlohmann::json> m_query_cache;
 
   // TODO : replace cache tables to real cache
@@ -81,6 +82,10 @@ public:
   template <typename S1 = std::string, typename S2 = std::string>
   void updateValue(S1 &&key,S2 &&value) {
     m_tx_datamap.set(key,value);
+  }
+
+  void setKeyCurrencyName(std::string_view keyc_name){
+    m_keyc_name = keyc_name;
   }
 
   std::string eval(std::string_view expr_view){
@@ -137,20 +142,14 @@ public:
   }
 
   std::vector<DataAttribute> getWorld() {
-    nlohmann::json query = {
-        {"type","world.get"},
-        {"where",{}}
-    };
-
+    nlohmann::json query;
+    query["type"] = "world.get";
     return queryIfAndParseData(query);
   }
 
   std::vector<DataAttribute> getChain() {
-    nlohmann::json query = {
-        {"type","chain.get"},
-        {"where",{}}
-    };
-
+    nlohmann::json query;
+    query["type"] = "chain.get";
     return queryIfAndParseData(query);
   }
 
@@ -160,12 +159,22 @@ public:
 
     std::string user_id = eval(user_id_);
 
-    nlohmann::json query = {
-        {"type","user.info.get"},
-        {"where",
-          {"uid",user_id}
-        }
-    };
+    auto it_tbl = m_user_attr_table.find(user_id);
+    if(it_tbl != m_user_attr_table.end()) {
+      std::vector<DataAttribute> ret_vec;
+      ret_vec.emplace_back("register_day",it_tbl->second.register_day);
+      ret_vec.emplace_back("register_code",it_tbl->second.register_code);
+      ret_vec.emplace_back("gender", getEnumString(it_tbl->second.gender));
+      ret_vec.emplace_back("isc_type",it_tbl->second.isc_type);
+      ret_vec.emplace_back("isc_code",it_tbl->second.isc_code);
+      ret_vec.emplace_back("location",it_tbl->second.location);
+      ret_vec.emplace_back("age_limit",std::to_string(it_tbl->second.age_limit));
+      return ret_vec;
+    }
+
+    nlohmann::json query;
+    query["type"] = "user.info.get";
+    query["where"]["uid"] = user_id;
 
     return queryIfUserAttrAndParseData(query, user_id);
   }
@@ -180,11 +189,11 @@ public:
 
     uint64_t keyc_amount = 0;
 
-    std::string scope_key = user_id + "KEYC";
+    std::string scope_key = user_id + m_keyc_name;
     auto it_tbl = m_user_scope_table.find(scope_key);
     if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
       for(auto &each_row : it_tbl->second) {
-        if(each_row.tag.empty() && each_row.var_type == EnumAll::KEYC && each_row.var_name == "KEYC") {
+        if(each_row.tag.empty() && each_row.var_type == EnumAll::KEYC && each_row.var_name == m_keyc_name) {
           keyc_amount = mt::str2num<int64_t>(each_row.var_value);
           break;
         }
@@ -194,23 +203,16 @@ public:
     if(!ret_vec.empty())
       return keyc_amount;
 
-    nlohmann::json query = R"(
-      {
-        "type" : "user.scope.get",
-        "where" : {
-          "uid": "",
-          "name": "KEYC",
-          "type": "KEYC",
-          "notag": true
-        }
-      }
-    )"_json;
-
+    nlohmann::json query;
+    query["type"] = "user.scope.get";
     query["where"]["uid"] = user_id;
+    query["where"]["name"] = m_keyc_name;
+    query["where"]["type"] = getEnumString(EnumV::KEYC);
+    query["where"]["notag"] = true;
 
     auto result = queryIfUserScopeAndParseData(query, user_id);
 
-    if(!result.empty() && result[0].name == "KEYC"){
+    if(!result.empty() && result[0].name == m_keyc_name){
       keyc_amount = mt::str2num<uint64_t>(result[0].value);
     }
 
@@ -229,67 +231,58 @@ public:
       user_id = eval(user_id);
     }
 
-    nlohmann::json query = {
-        {"type","user.cert.get"},
-        {"where",
-         {"uid",user_id}
-        }
-    };
+    nlohmann::json query;
+    query["type"] = "user.cert.get";
+    query["where"]["uid"] = user_id;
 
     return queryIfUserCertAndParseData(query, user_id);
   }
 
   template <typename S1 = std::string, typename S2 = std::string>
-  std::optional<UserScopeRecord> getUserScopeRecordByName(S1 &&id, S2 &&name) {
+  std::optional<UserScopeRecord> getUserScopeRecordByName(S1 &&user_id, S2 &&var_name) {
 
-    if(name == "*")
+    if(var_name == "*")
       return std::nullopt;
 
-    std::string scope_key = id + name;
+    std::string scope_key = user_id + var_name;
 
-    auto ret_record = findUserScopeTableByName(id,name);
-
-    if(ret_record)
-      return ret_record;
-
-    nlohmann::json query = {
-        {"type", "user.scope.get"},
-        {"where",
-         {"uid", id},
-         {"name", name}
-        }
-    };
-
-    queryIfUserScopeAndParseData(query, id, "", false); // try to cache - ignore return value;
-
-    return findUserScopeTableByName(id,name);
-  }
-
-  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
-  std::optional<UserScopeRecord> getUserScopeRecordByPid(S1 &&id, S2 &&name, S3 &&pid) {
-
-    std::string scope_key = id + name;
-
-    auto ret_record = findUserScopeTableByPid(id,name,pid);
+    auto ret_record = findUserScopeTableByName(user_id,var_name);
 
     if(ret_record)
       return ret_record;
 
-    nlohmann::json query = {
-        {"type", "user.scope.get"},
-        {"where",
-         {"uid", id},
-         {"pid", pid}
-        }
-    };
+    nlohmann::json query;
+    query["type"] = "user.scope.get";
+    query["where"]["uid"] = user_id;
+    query["where"]["name"] = var_name;
 
-    queryIfUserScopeAndParseData(query, id, "", false); // try to cache - ignore return value;
+    queryIfUserScopeAndParseData(query, user_id, "", false); // try to cache - ignore return value;
 
-    return findUserScopeTableByPid(id,name,pid);
+    return findUserScopeTableByName(user_id,var_name);
   }
 
   template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
-  std::vector<DataAttribute> getScopeVariables(S1 &&scope, S2 &&id, S3 &&name){
+  std::optional<UserScopeRecord> getUserScopeRecordByPid(S1 &&user_id, S2 &&var_name, S3 &&pid) {
+
+    std::string scope_key = user_id + var_name;
+
+    auto ret_record = findUserScopeTableByPid(user_id,var_name,pid);
+
+    if(ret_record)
+      return ret_record;
+
+    nlohmann::json query;
+    query["type"] = "user.scope.get";
+    query["where"]["uid"] = user_id;
+    query["where"]["pid"] = pid;
+
+    queryIfUserScopeAndParseData(query, user_id, "", false); // try to cache - ignore return value;
+
+    return findUserScopeTableByPid(user_id,var_name,pid);
+  }
+
+  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
+  std::vector<DataAttribute> getScopeVariables(std::string_view scope, S2 &&id, S3 &&name){
 
     if(scope.empty() || id.empty() || name.empty() || !(scope == "user" || scope == "contract"))
       return {};
@@ -340,13 +333,10 @@ public:
 
     // NOT IN SCOPE CACHE TABLE!
 
-    nlohmann::json query = {
-        {"type", scope == "user" ? "user.scope.get" : "contract.scope.get"},
-        {"where",
-          {"uid", id},
-          {"notag", true}
-        }
-    };
+    nlohmann::json query;
+    query["type"] = scope == "user" ? "user.scope.get" : "contract.scope.get";
+    query["where"]["uid"] = id;
+    query["where"]["notag"] = true;
 
     if(!name.empty() && name != "*")
       query["where"]["name"] = name;
@@ -360,9 +350,12 @@ public:
 
 
 private:
-  template <typename S1 = std::string, typename S2 = std::string>
-  std::optional<UserScopeRecord> findUserScopeTableByName(S1 &&id, S2 &&name){
-    std::string scope_key = id + name;
+    std::optional<UserScopeRecord> findUserScopeTableByName(std::string_view user_id, std::string_view var_name){
+
+    std::cout << "called findUserScopeTableByName" << std::endl;
+
+    std::string scope_key(user_id);
+    scope_key.append(var_name);
 
     bool null_tag = false;
     bool found = false;
@@ -372,7 +365,7 @@ private:
     auto it_tbl = m_user_scope_table.find(scope_key);
     if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
       for(auto &each_row : it_tbl->second) {
-        if(each_row.var_name == name) {
+        if(each_row.var_name == var_name) {
           found = true;
 
           if(each_row.tag.empty()) {
@@ -392,15 +385,20 @@ private:
     return std::nullopt;
   }
 
-  template <typename S1 = std::string, typename S2 = std::string, typename S3 = std::string>
-  std::optional<UserScopeRecord> findUserScopeTableByPid(S1 &&id, S2 &&name, S3 &&pid){
+  std::optional<UserScopeRecord> findUserScopeTableByPid(std::string_view user_id, std::string_view var_name, std::string_view pid){
 
-    std::string scope_key = id + name;
+    std::cout << "called findUserScopeTableByPid" << std::endl;
+
+    std::string scope_key(user_id);
+    scope_key.append(var_name);
+
+    std::cout << scope_key << std::endl;
 
     auto it_tbl = m_user_scope_table.find(scope_key);
     if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
       for(auto &each_row : it_tbl->second) {
         if(each_row.pid == pid) {
+          std::cout << "found in m_user_scope_table" << std::endl;
           return each_row;
         }
       }
@@ -411,6 +409,7 @@ private:
 
 
   std::vector<DataAttribute> queryIfAndParseData(nlohmann::json &query) {
+    std::cout << "called queryIfAndParseData" << std::endl;
     auto [result_name,result_data] = queryAndCache(query);
 
     std::vector<DataAttribute> ret_vec;
@@ -429,6 +428,7 @@ private:
   }
 
   std::vector<DataAttribute> queryIfUserCertAndParseData(nlohmann::json &query, const std::string &id) {
+    std::cout << "called queryIfUserCertAndParseData" << std::endl;
     auto [result_name,result_data] = queryAndCache(query);
 
     std::vector<DataAttribute> ret_vec;
@@ -464,7 +464,8 @@ private:
     return ret_vec;
   }
 
-  std::vector<DataAttribute> queryIfUserAttrAndParseData(nlohmann::json &query, const std::string &id){
+  std::vector<DataAttribute> queryIfUserAttrAndParseData(nlohmann::json &query, const std::string &user_id){
+    std::cout << "called queryIfUserAttrAndParseData" << std::endl;
     auto [result_name,result_data] = queryAndCache(query);
 
     std::vector<DataAttribute> ret_vec;
@@ -497,14 +498,16 @@ private:
         ret_vec.emplace_back(result_name[i],col_data);
       }
 
-      m_user_attr_table[id] = buf_record;
+      m_user_attr_table[user_id] = buf_record;
 
     }
 
     return ret_vec;
   }
 
-  std::vector<DataAttribute> queryIfUserScopeAndParseData(nlohmann::json &query, const std::string &id, const std::string &pid = "", bool get_val = true){
+  std::vector<DataAttribute> queryIfUserScopeAndParseData(nlohmann::json &query, std::string_view user_id, string_view pid = "", bool get_val = true){
+    std::cout << "called queryIfUserScopeAndParseData" << std::endl;
+
     auto [result_name,result_data] = queryAndCache(query);
 
     std::vector<DataAttribute> ret_vec;
@@ -524,7 +527,7 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = col_data;
           else if (result_name[i] == "var_type")
-            buf_record.var_type = static_cast<EnumAll>(mt::str2num<uint8_t>(col_data));
+            buf_record.var_type = getEnumAll(col_data);
           else if (result_name[i] == "var_owner")
             buf_record.var_owner = col_data;
           else if (result_name[i] == "up_time")
@@ -541,7 +544,7 @@ private:
           continue;
 
         if(buf_record.var_owner.empty())
-          buf_record.var_owner = id;
+          buf_record.var_owner = user_id;
 
         if(get_val) {
           if (pid.empty()) {
@@ -555,7 +558,8 @@ private:
 
         // update cache
 
-        std::string scope_key = id + buf_record.var_name;
+        std::string scope_key(user_id);
+        scope_key.append(buf_record.var_name);
 
         bool is_new = true;
 
@@ -576,7 +580,7 @@ private:
   }
 
   std::vector<DataAttribute> queryIfContractScopeAndParseData(nlohmann::json &query, const std::string &cid){
-
+    std::cout << "called queryIfContractScopeAndParseData" << std::endl;
     auto [result_name,result_data] = queryAndCache(query);
 
     std::vector<DataAttribute> ret_vec;
@@ -596,7 +600,7 @@ private:
           else if (result_name[i] == "var_value")
             buf_record.var_value = col_data;
           else if (result_name[i] == "var_type")
-            buf_record.var_type = static_cast<EnumAll>(mt::str2num<uint8_t>(col_data));
+            buf_record.var_type = getEnumAll(col_data);
           else if (result_name[i] == "contract_id")
             buf_record.contract_id = col_data;
           else if (result_name[i] == "up_time")
@@ -624,8 +628,11 @@ private:
   }
 
   std::pair<std::vector<std::string>,nlohmann::json> queryAndCache(nlohmann::json &query) {
+    std::cout << "called queryAndCache" << std::endl;
     std::string query_key = TypeConverter::toString(nlohmann::json::to_cbor(query));
     nlohmann::json query_result;
+
+    std::cout << "query = " << query << std::endl;
 
     auto it_cache = m_query_cache.find(query_key);
     if(it_cache != m_query_cache.end()) {
@@ -634,6 +641,8 @@ private:
       query_result = m_read_storage_interface(query);
       m_query_cache[query_key] = query_result;
     }
+
+    std::cout << "result = " << query_result << std::endl << std::endl;
 
     auto query_result_name = JsonTool::get<nlohmann::json>(query_result,"name");
     auto query_result_data = JsonTool::get<nlohmann::json>(query_result,"data");
@@ -646,6 +655,39 @@ private:
       data_name.push_back(each_name.get<std::string>());
 
     return {data_name, query_result_data.value()};
+  }
+
+  inline std::string getEnumString(EnumGender gender_code) {
+    return getEnumString(static_cast<EnumAll>(gender_code));
+  }
+
+
+  inline std::string getEnumString(EnumV v_code) {
+    return getEnumString(static_cast<EnumAll>(v_code));
+  }
+
+  inline std::string getEnumString(EnumAll enum_code) {
+    for (auto&[key, val] : INPUT_OPTION_TYPE_MAP){
+      if(val == enum_code)
+        return key;
+    }
+
+    return {};
+  }
+
+  inline EnumGender getEnumGender(const std::string& enum_str) {
+    auto it = INPUT_OPTION_TYPE_MAP.find(enum_str);
+    return (it == INPUT_OPTION_TYPE_MAP.end() ? EnumGender::NONE : static_cast<EnumGender>(it->second));
+  }
+
+  inline EnumV getEnumV(const std::string& enum_str) {
+    auto it = INPUT_OPTION_TYPE_MAP.find(enum_str);
+    return (it == INPUT_OPTION_TYPE_MAP.end() ? EnumV::NONE : static_cast<EnumV>(it->second));
+  }
+
+  inline EnumAll getEnumAll(const std::string& enum_str) {
+    auto it = INPUT_OPTION_TYPE_MAP.find(enum_str);
+    return (it == INPUT_OPTION_TYPE_MAP.end() ? EnumAll::NONE : it->second);
   }
 
 };

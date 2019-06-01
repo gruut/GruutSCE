@@ -72,14 +72,11 @@ public:
       auto contract = m_contract_manager.getContract(cid.value());
 
       if (contract.has_value()) {
-
-        if(!contract_runner.setContract(contract.value())) {
+        if(!contract_runner.setContract(contract.value()))
           continue;
-        }
 
-        if(!contract_runner.setTransaction(each_tx)){
+        if(!contract_runner.setTransaction(each_tx))
           continue;
-        }
 
         if (!contract_runner.readUserAttributes()) {
           result_fail["info"] = TSCE_ERROR_MSG["NO_USER"];

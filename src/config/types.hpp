@@ -49,16 +49,18 @@ enum class EnumV : int {
   FIAT = 1,
   COIN = 2,
   XCOIN = 3,
-  MILE = 4
+  MILE = 4,
+  NONE = 255
 };
 
 enum class EnumGender : int {
   MALE = 90,
   FEMALE = 91,
-  OTHER = 92
+  OTHER = 92,
+  NONE = 255
 };
 
-const std::unordered_map<EnumAll, EnumV> ENUM_ALL_V_MAP = {
+const std::map<EnumAll, EnumV> ENUM_ALL_V_MAP = {
     {EnumAll::KEYC,EnumV::KEYC},
     {EnumAll::FIAT,EnumV::FIAT},
     {EnumAll::COIN,EnumV::COIN},
@@ -66,13 +68,13 @@ const std::unordered_map<EnumAll, EnumV> ENUM_ALL_V_MAP = {
     {EnumAll::MILE,EnumV::MILE}
 };
 
-const std::unordered_map<EnumAll, EnumGender> ENUM_ALL_GENDER_MAP = {
+const std::map<EnumAll, EnumGender> ENUM_ALL_GENDER_MAP = {
     {EnumAll::MALE,EnumGender::MALE},
     {EnumAll::FEMALE,EnumGender::FEMALE},
     {EnumAll::OTHER,EnumGender::OTHER}
 };
 
-const std::unordered_map<std::string, EnumAll> INPUT_OPTION_TYPE_MAP = {
+const std::map<std::string, EnumAll> INPUT_OPTION_TYPE_MAP = {
     {"INT", EnumAll::INT},
     {"PINT", EnumAll::PINT},
     {"NINT", EnumAll::NINT},
@@ -93,7 +95,15 @@ const std::unordered_map<std::string, EnumAll> INPUT_OPTION_TYPE_MAP = {
     {"ENUMGENDER", EnumAll::ENUMGENDER},
     {"ENUMALL", EnumAll::ENUMALL},
     {"CONTRACT", EnumAll::CONTRACT},
-    {"XML", EnumAll::XML}
+    {"MALE", EnumAll::MALE},
+    {"FEMALE", EnumAll::FEMALE},
+    {"OTHER", EnumAll::OTHER},
+    {"XML", EnumAll::XML},
+    {"KEYC", EnumAll::KEYC},
+    {"FIAT", EnumAll::FIAT},
+    {"COIN", EnumAll::COIN},
+    {"XCOIN", EnumAll::XCOIN},
+    {"MILE", EnumAll::MILE}
 };
 
 enum class EvalRuleType : int {
