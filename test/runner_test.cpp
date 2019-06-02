@@ -37,12 +37,12 @@ BOOST_AUTO_TEST_CASE(simple_run) {
     "body": {
       "cid": "VALUE-TRANSFER::5g9CMGLSXbNAKJMbWqBNp7rm78BJCMKhLzZVukBNGHSF::SEOUL@KR::TETHYS19",
       "receiver": "5g9CMGLSXbNAKJMbWqBNp7rm78BJCMKhLzZVukBNGHSF",
-      "fee": "10",
+      "fee": "20",
       "input": [
         [
           {"amount": "100"},
           {"unit": "THY"},
-          {"pid": "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDE="},
+          {"pid": "8CJ8YhBwwgNGKAdzGl1qkKstJi+rUQ7ow8gMHIF3RHU="},
           {"tag": ""}
         ]
       ]
@@ -62,6 +62,8 @@ BOOST_AUTO_TEST_CASE(simple_run) {
       }
     ]
   })"_json;
+
+  // time = 2019-05-30T13:44:20+09:00
 
   msg_block["tx"].emplace_back(TypeConverter::encodeBase<64>(nlohmann::json::to_cbor(msg_tx)));
 

@@ -24,6 +24,9 @@ public:
         res.erase("authority");
         //res.erase("fee");
         res.erase("queries");
+
+        res["fee"]["author"] = 0;
+        res["fee"]["user"] = MIN_USER_FEE;
       }
       result["results"].emplace_back(res);
     }

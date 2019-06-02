@@ -75,9 +75,8 @@ public:
       mt::trim(location);
 
       auto data = data_manager.evalOpt(m_user_key + ".location");
-      if(!data.has_value()){
+      if(!data.has_value())
         return false;
-      }
 
       eval_result = (data.value() == location);
       break;
@@ -93,18 +92,32 @@ public:
       mt::trim(service_code);
 
       auto type_data = data_manager.evalOpt(m_user_key + ".isc_type");
-      if(!type_data.has_value()){
+      if(!type_data.has_value())
         return false;
-      }
 
       auto code_data = data_manager.evalOpt(m_user_key + ".isc_code");
-      if(!code_data.has_value()){
+      if(!code_data.has_value())
         return false;
-      }
 
       eval_result = (type_data.value() == service_type && code_data.value() == service_code);
       break;
 
+    }
+
+    case SecondaryConditionType::GENDER: {
+
+      std::string gender_str = mt::c2s(doc_node->GetText());
+      mt::trim(gender_str);
+      mt::toUpper(gender_str);
+
+      auto gender_data = data_manager.evalOpt(m_user_key + ".gender");
+
+      if(!gender_data.has_value())
+        return false;
+
+      eval_result = (gender_str == gender_data.value());
+
+      break;
     }
 
     case SecondaryConditionType::AGE: {

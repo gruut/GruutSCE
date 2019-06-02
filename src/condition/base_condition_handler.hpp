@@ -30,7 +30,6 @@ protected:
     static std::map<std::string, PrimaryConditionType> tag_to_type_map = {
         {"condition", PrimaryConditionType::ROOT},
         {"update", PrimaryConditionType::ROOT},
-        {"delete", PrimaryConditionType::ROOT},
         {"if", PrimaryConditionType::IF},
         {"nif", PrimaryConditionType::NIF},
         {"compare", PrimaryConditionType::COMPARE},
@@ -61,6 +60,7 @@ protected:
         {"if", SecondaryConditionType::IF},
         {"nif", SecondaryConditionType::NIF},
         {"age", SecondaryConditionType::AGE},
+        {"gender", SecondaryConditionType::GENDER},
         {"service",SecondaryConditionType::SERVICE},
         {"id", SecondaryConditionType::ID},
         {"location", SecondaryConditionType::LOCATION},

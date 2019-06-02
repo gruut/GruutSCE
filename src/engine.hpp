@@ -50,6 +50,8 @@ public:
 
     for (auto &each_tx_cbor : block["tx"]) {
 
+      contract_runner.clear();
+
       nlohmann::json each_tx;
 
       try {
@@ -62,42 +64,46 @@ public:
       auto txid = JsonTool::get<std::string>(each_tx, "txid");
       auto cid = JsonTool::get<std::string>(each_tx["body"], "cid");
 
-      if (!txid || !cid)
-        continue;
+      std::string error;
 
       nlohmann::json result_fail;
       result_fail["status"] = false;
       result_fail["txid"] = txid.value();
 
+      if (!txid || !cid) {
+        result_fail["info"] = TSCE_ERROR_MSG["INVALID_TX"];
+        result_queries.emplace_back(result_fail);
+        continue;
+      }
+
       auto contract = m_contract_manager.getContract(cid.value());
 
-      if (contract.has_value()) {
-        if(!contract_runner.setContract(contract.value()))
-          continue;
-
-        if(!contract_runner.setTransaction(each_tx))
-          continue;
-
-        if (!contract_runner.readUserAttributes()) {
-          result_fail["info"] = TSCE_ERROR_MSG["NO_USER"];
-          result_queries.emplace_back(result_fail);
-        }
-
-        auto res_query = contract_runner.run();
-
-        if (res_query.has_value()) {
-          result_queries.emplace_back(res_query.value());
-        } else {
-          result_fail["info"] = TSCE_ERROR_MSG["RUN_UNKNOWN"];
-          result_queries.emplace_back(result_fail);
-        }
-
-        contract_runner.clear();
-
-      } else {
+      if (!contract.has_value()) {
         result_fail["info"] = TSCE_ERROR_MSG["NO_CONTRACT"];
         result_queries.emplace_back(result_fail);
+        continue;
       }
+
+      if(!contract_runner.setContract(contract.value())) {
+        result_fail["info"] = TSCE_ERROR_MSG["NO_CONTRACT"];
+        result_queries.emplace_back(result_fail);
+        continue;
+      }
+
+      if(!contract_runner.setTransaction(each_tx, error)) {
+        result_fail["info"] = TSCE_ERROR_MSG["INVALID_TX"] + " (" + error + ")";
+        result_queries.emplace_back(result_fail);
+        continue;
+      }
+
+      if (!contract_runner.readUserAttributes()) {
+        result_fail["info"] = TSCE_ERROR_MSG["NO_USER"];
+        result_queries.emplace_back(result_fail);
+        continue;
+      }
+
+      auto res_query = contract_runner.run();
+      result_queries.emplace_back(res_query);
 
     }
 

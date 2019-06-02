@@ -136,6 +136,7 @@ enum class SecondaryConditionType : int {
   LOCATION,
   SERVICE,
   AGE,
+  GENDER,
   UNKNOWN
 };
 
@@ -144,8 +145,12 @@ std::map<std::string,std::string> TSCE_ERROR_MSG = {
     {"RUN_CONDITION", "condition is not met"},
     {"RUN_PERIOD", "runnable time period is not met"},
     {"RUN_SET", "invalid set directive"},
+    {"RUN_FEE", "invalid set directive"},
     {"NOT_ENOUGH_FEE", "transaction fee shortage"},
+    {"NO_RECORD", "no record for given pid"},
+    {"RUN_TAG", "tag is not met"},
     {"NO_CONTRACT", "corresponding contract does not exist"},
+    {"INVALID_TX", "transaction is not valid"},
     {"RUN_UNKNOWN", "unknown error occurred"},
     {"CONFIG_WORLD", "error on configuration of world and chain"},
     {"NO_USER", "error on reading user attributes"}
