@@ -167,6 +167,7 @@ using string = std::string;
 using bytes = std::vector<uint8_t>;
 using hash_t = std::vector<uint8_t>;
 using timestamp_t = uint64_t;
+using block_height_type = uint64_t;
 
 using txagg_cbor_b64 = std::string;
 using alphanumeric_type = std::string;
