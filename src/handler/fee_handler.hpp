@@ -11,10 +11,9 @@ class FeeHandler {
 public:
   FeeHandler() = default;
 
-  std::pair<int,int> parseGet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_manager) {
+  std::optional<std::pair<int,int>> parseGet(std::vector<std::pair<tinyxml2::XMLElement*,std::string>> &fee_nodes, ConditionManager &condition_manager, DataManager &data_manager) {
     if(fee_nodes.empty()) {
-      std::cout << "empty fee nodes!" << std::endl;
-      return {0, 0};
+      return std::nullopt;
     }
 
     int pay_from_user = 0;
@@ -44,7 +43,7 @@ public:
 
     // if there is multiple valid fee nodes, the last valid fee node will work
 
-    return {pay_from_user,pay_from_author};
+    return std::make_pair(pay_from_user,pay_from_author);
   }
 
 };

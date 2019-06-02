@@ -75,10 +75,24 @@ std::function<nlohmann::json(nlohmann::json&)> read_storage_interface = [](nlohm
 
     result["name"] = {"var_name","var_value","var_type","up_time","up_block","tag","pid"};
 
-    if(JsonTool::get<std::string>(query["where"],"name").value_or("") == "THY" &&
-    JsonTool::get<std::string>(query["where"],"type").value_or("") == "KEYC" &&
-    JsonTool::get<bool>(query["where"],"notag").value_or(false)) {
+    if(JsonTool::get<std::string>(query["where"],"name").value_or("") == "THY" && JsonTool::get<std::string>(query["where"],"type").value_or("") == "KEYC" && JsonTool::get<bool>(query["where"],"notag").value_or(false)) {
       nlohmann::json record = {"THY", "1000", "KEYC", "0", "0", "", "VGhlIHF1aWNrIGJyb3duIGZveCBqdW1wcyBvdmVyIDE="};
+      result["data"].emplace_back(record);
+    }
+
+    if(JsonTool::get<std::string>(query["where"],"pid").value_or("") == "8CJ8YhBwwgNGKAdzGl1qkKstJi+rUQ7ow8gMHIF3RHU=") {
+      std::string tag = R"(<tag>
+  <info>
+    <name>Fafa's Love</name>
+    <cword>Flower</cword>
+  </info>
+  <update>
+    <time>
+      <after>2019-05-30T13:44:19+09:00</after>
+    </time>
+  </update>
+</tag>)";
+      nlohmann::json record = {"THY", "90", "KEYC", "0", "0", tag, "8CJ8YhBwwgNGKAdzGl1qkKstJi+rUQ7ow8gMHIF3RHU="};
       result["data"].emplace_back(record);
     }
 

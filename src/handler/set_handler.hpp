@@ -69,14 +69,16 @@ public:
         nlohmann::json set_query;
         set_query["type"] = type_str;
 
-        auto contents = handle(set_type, set_node, data_manager);
+        std::string error;
+
+        auto contents = handle(set_type, set_node, data_manager, error);
 
         if (!contents)
           continue;
 
         set_query["option"] = contents.value();
-
         set_queries.emplace_back(set_query);
+
       }
     }
 
@@ -85,7 +87,7 @@ public:
 
 private:
 
-  std::optional<nlohmann::json> handle(SetType set_type, tinyxml2::XMLElement* set_node, DataManager &data_manager) {
+  std::optional<nlohmann::json> handle(SetType set_type, tinyxml2::XMLElement* set_node, DataManager &data_manager, std::string &error) {
 
     // 1) parsing node attributes
 
@@ -96,15 +98,19 @@ private:
 
     if(set_type == SetType::SCOPE_USER) {
       for_att = mt::c2s(set_node->Attribute("for"));
-      if (for_att.empty() || !mt::inArray(for_att,{"user","author"}))
+      if (for_att.empty() || !mt::inArray(for_att,{"user","author"})) {
+        error = TSCE_ERROR_MSG["RUN_SET"];
         return std::nullopt;
+      }
 
       contents["for"] = for_att;
     }
     else if(set_type == SetType::V_TRANSFER) {
       from_att = mt::c2s(set_node->Attribute("from"));
-      if (from_att.empty() || !mt::inArray(from_att,{"user","author","contract"}))
+      if (from_att.empty() || !mt::inArray(from_att,{"user","author","contract"})) {
+        error = TSCE_ERROR_MSG["RUN_SET"];
         return std::nullopt;
+      }
 
       contents["from"] = from_att;
     }
@@ -279,68 +285,32 @@ private:
         contents[option_name] = data;
     }
 
-    // after parsing all option entries
-    // TODO : check missing fields
+    // checking tag condition
 
-    switch(set_type) {
-    case SetType::SCOPE_USER: {
+    if(set_type == SetType::SCOPE_USER || (set_type == SetType::V_TRANSFER  && (from_att == "user" || from_att == "author"))) {
+      std::string id = data_manager.eval("$" + from_att);
+      std::string pid = JsonTool::get<std::string>(contents, "pid").value_or("");
+      std::string name = (set_type == SetType::SCOPE_USER) ? JsonTool::get<std::string>(contents, "name").value_or("") : JsonTool::get<std::string>(contents,"unit").value_or("");
 
-      std::string id = data_manager.eval("$" + for_att);
-      std::string pid = JsonTool::get<std::string>(contents,"pid").value_or("");
-      std::string name = JsonTool::get<std::string>(contents,"name").value_or("");
-
-      if(!pid.empty()) {
+      if (!pid.empty()) {
         auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
 
-        if (!record)
+        if (!record) {
+          error = TSCE_ERROR_MSG["NO_RECORD"];
           return std::nullopt;
+        }
 
-        if(!record.value().tag.empty()) {
+        if (!record.value().tag.empty()) {
 
           TagHandler tag_handler;
           if(!tag_handler.evalue(record.value().tag,data_manager)) {
+            error = TSCE_ERROR_MSG["RUN_TAG"];
             return std::nullopt;
           }
+
         }
       }
     }
-    break;
-
-    case SetType::V_TRANSFER: {
-
-      // for user tag handling
-
-      if (from_att == "user" || from_att == "author") {
-        std::string id = data_manager.eval("$" + from_att);
-        std::string pid = JsonTool::get<std::string>(contents, "pid").value_or("");
-        std::string name = JsonTool::get<std::string>(contents, "unit").value_or("");
-
-        std::cout << id << " " << pid << " " << name << std::endl;
-
-        if (!pid.empty()) {
-          auto record = data_manager.getUserScopeRecordByPid(id, name, pid);
-
-          if (!record)
-            return std::nullopt;
-
-          if (!record.value().tag.empty()) {
-
-            TagHandler tag_handler;
-            if(!tag_handler.evalue(record.value().tag,data_manager)) {
-              return std::nullopt;
-            }
-
-          }
-        }
-      }
-    }
-    break;
-
-    default:
-      break;
-    }
-
-
 
     return contents;
   }

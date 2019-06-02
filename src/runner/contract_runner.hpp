@@ -59,7 +59,7 @@ public:
     return m_element_parser.setContract(xml_doc);
   }
 
-  bool setTransaction(TransactionJson &tx_agg_json) {
+  bool setTransaction(TransactionJson &tx_agg_json, std::string &error) {
 
     m_tx_json = tx_agg_json;
 
@@ -71,6 +71,12 @@ public:
     auto txid = JsonTool::get<std::string>(m_tx_json,"txid");
 
     if(!time || !cid || !receiver || !fee || !user_id || !txid) {
+      error = "missing elements";
+      return false;
+    }
+
+    if(mt::str2num<int64_t>(fee.value()) < MIN_USER_FEE) {
+      error = "less than minimum user fee";
       return false;
     }
 
@@ -147,7 +153,7 @@ public:
 #endif
   }
 
-  std::optional<nlohmann::json> run() {
+  nlohmann::json run() {
 
     nlohmann::json result_query = R"(
       {
@@ -226,7 +232,16 @@ public:
     // process fee directive
 
     auto &fee_nodes = m_element_parser.getNodes("fee");
-    auto [pay_from_user, pay_from_author] = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_data_manager);
+    //auto [pay_from_user, pay_from_author] = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_data_manager);
+    auto pay_from = m_fee_handler.parseGet(fee_nodes,m_condition_manager, m_data_manager);
+
+    if(!pay_from) {
+      result_query["status"] = false;
+      result_query["info"] = TSCE_ERROR_MSG["RUN_FEE"];
+      return result_query;
+    }
+
+    auto &[pay_from_user, pay_from_author] = pay_from.value();
 
     if(pay_from_user > 0 && m_data_manager.getUserKeyCurrency("$user") < pay_from_user) {
       result_query["status"] = false;
@@ -246,37 +261,13 @@ public:
     // process set directive
 
     auto& set_nodes = m_element_parser.getNodes("set");
+    auto set_queries = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
 
-    auto set_query = m_set_handler.parseSet(set_nodes, m_condition_manager, m_data_manager);
-
-    if(set_query.empty())
-      return std::nullopt;
-
-    nlohmann::json valid_set_query = nlohmann::json::array();
-
-    for(auto &each_set_query : set_query) {
-
-      std::string set_type_str = JsonTool::get<std::string>(each_set_query,"type").value_or("");
-
-      if(set_type_str.empty())
-        continue;
-
-      auto it = SET_TYPE_MAP.find(set_type_str);
-      auto set_type = (it == SET_TYPE_MAP.end() ? SetType::NONE : it->second);
-
-      if(set_type == SetType::NONE)
-        continue;
-
-      // TODO : set result validation
-
-      valid_set_query.emplace_back(each_set_query);
-    }
-
-    if(valid_set_query.empty()) {
+    if(set_queries.empty()) {
       result_query["status"] = false;
-      result_query["info"] = TSCE_ERROR_MSG["RUN_SET"];
+      result_query["info"] = TSCE_ERROR_MSG["RUN_SET"] + " or " + TSCE_ERROR_MSG["RUN_TAG"];
     } else {
-      result_query["queries"] = valid_set_query;
+      result_query["queries"] = set_queries;
     }
 
     return result_query;

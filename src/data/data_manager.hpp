@@ -386,19 +386,18 @@ private:
   }
 
   std::optional<UserScopeRecord> findUserScopeTableByPid(std::string_view user_id, std::string_view var_name, std::string_view pid){
-
     std::cout << "called findUserScopeTableByPid" << std::endl;
 
     std::string scope_key(user_id);
     scope_key.append(var_name);
 
-    std::cout << scope_key << std::endl;
+    //std::cout << scope_key << std::endl;
 
     auto it_tbl = m_user_scope_table.find(scope_key);
     if (it_tbl != m_user_scope_table.end() && !it_tbl->second.empty()) {
       for(auto &each_row : it_tbl->second) {
         if(each_row.pid == pid) {
-          std::cout << "found in m_user_scope_table" << std::endl;
+          //std::cout << "found in m_user_scope_table" << std::endl;
           return each_row;
         }
       }
@@ -632,7 +631,7 @@ private:
     std::string query_key = TypeConverter::toString(nlohmann::json::to_cbor(query));
     nlohmann::json query_result;
 
-    std::cout << "query = " << query << std::endl;
+    std::cout << "> query = " << query << std::endl;
 
     auto it_cache = m_query_cache.find(query_key);
     if(it_cache != m_query_cache.end()) {
@@ -642,7 +641,7 @@ private:
       m_query_cache[query_key] = query_result;
     }
 
-    std::cout << "result = " << query_result << std::endl << std::endl;
+    std::cout << "< result = " << query_result << std::endl;
 
     auto query_result_name = JsonTool::get<nlohmann::json>(query_result,"name");
     auto query_result_data = JsonTool::get<nlohmann::json>(query_result,"data");
