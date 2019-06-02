@@ -4,6 +4,7 @@
 #include <boost/test/included/unit_test.hpp>
 #include "../src/engine.hpp"
 #include "dummy_storage.hpp"
+#include "../src/chain/block.hpp"
 
 BOOST_AUTO_TEST_SUITE(runner_test)
 
@@ -25,10 +26,23 @@ BOOST_AUTO_TEST_CASE(simple_run) {
       "hash": ""
     },
     "tx": [],
-    "state": {},
-    "signer" : [],
+    "state": {
+      "txroot": "dummy_value",
+      "usroot": "dummy_value",
+      "csroot": "dummy_value",
+      "sgroot": "dummy_value"
+    },
+    "signer" : [
+      {
+        "id" : "5g9CMGLSXbNAKJMbWqBNp7rm78BJCMKhLzZVukBNGHSF",
+        "sig" : "dummy_sig"
+      }
+    ],
     "certificate" : [],
-    "producer" : {}
+    "producer" : {
+      "id": "5g9CMGLSXbNAKJMbWqBNp7rm78BJCMKhLzZVukBNGHSF",
+      "sig": "dummy_sig"
+    }
   })"_json;
 
   nlohmann::json msg_tx = R"({
@@ -67,7 +81,10 @@ BOOST_AUTO_TEST_CASE(simple_run) {
 
   msg_block["tx"].emplace_back(TypeConverter::encodeBase<64>(nlohmann::json::to_cbor(msg_tx)));
 
-  auto result_query = test_engine.procBlock(msg_block);
+  tethys::Block block;
+  block.initialize(msg_block);
+
+  auto result_query = test_engine.procBlock(block);
 
   if(!result_query) {
     BOOST_TEST(false);
