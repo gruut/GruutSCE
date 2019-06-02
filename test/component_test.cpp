@@ -18,10 +18,16 @@ BOOST_AUTO_TEST_CASE(simple_compare) {
 </condition>
 )";
 
-  pugi::xml_document doc;
+  tinyxml2::XMLDocument xml_doc;
 
-  if (doc.load_string(compare_condition.c_str(), pugi::parse_minimal)) {
-    pugi::xml_node doc_node = doc.document_element();
+  xml_doc.Parse(compare_condition.c_str());
+
+  if(xml_doc.Error()) {
+    BOOST_TEST(false);
+  }
+  else {
+
+    tinyxml2::XMLElement* doc_node = xml_doc.RootElement();
 
     ConditionManager condition_manager;
     DataManager data_manager;
@@ -31,14 +37,12 @@ BOOST_AUTO_TEST_CASE(simple_compare) {
 
     BOOST_TEST(condition_manager.evalue(doc_node,data_manager));
 
-  } else {
-    BOOST_TEST(false);
   }
 }
 
 BOOST_AUTO_TEST_CASE(simple_endorser) {
 
-  std::string endorser_condition = R"(
+  std::string endorser_condition_1 = R"(
 <condition id="test">
   <endorser>
     <if eval-rule="or">
@@ -58,44 +62,42 @@ BOOST_AUTO_TEST_CASE(simple_endorser) {
 </condition>
 )";
 
-  pugi::xml_document doc;
-  pugi::xml_document doc2;
+  tinyxml2::XMLDocument xml_doc_1;
+  tinyxml2::XMLDocument xml_doc_2;
 
-  if (doc.load_string(endorser_condition.c_str(), pugi::parse_minimal)) {
-    pugi::xml_node doc_node = doc.document_element();
+  xml_doc_1.Parse(endorser_condition_1.c_str());
+  xml_doc_2.Parse(endorser_condition_2.c_str());
 
-    ConditionManager condition_manager;
-    DataManager data_manager;
-
-    data_manager.updateValue("$tx.endorser.count", "1");
-    data_manager.updateValue("$tx.endorser[0].id", "bt1fDSTLzc1AdSoxXTy6bfAG5NZFHJBThEHjjWYHN2H");
-
-    BOOST_TEST(condition_manager.evalue(doc_node,data_manager));
-
-  } else {
+  if(xml_doc_1.Error() || xml_doc_2.Error()) {
     BOOST_TEST(false);
-  }
-
-  if (doc2.load_string(endorser_condition_2.c_str(), pugi::parse_minimal)) {
-    pugi::xml_node doc_node = doc2.document_element();
-
-    ConditionManager condition_manager;
-    DataManager data_manager;
-
-    data_manager.updateValue("$tx.endorser.count", "1");
-    data_manager.updateValue("$tx.endorser[0].id", "bt1fDSTLzc1AdSoxXTy6bfAG5NZFHJBThEHjjWYHN2H");
-
-    BOOST_TEST(!condition_manager.evalue(doc_node,data_manager));
-
   } else {
-    BOOST_TEST(false);
+
+    tinyxml2::XMLElement* doc_node_1 = xml_doc_1.RootElement();
+    tinyxml2::XMLElement* doc_node_2 = xml_doc_2.RootElement();
+
+    ConditionManager condition_manager_1;
+    DataManager data_manager_1;
+
+    data_manager_1.updateValue("$tx.endorser.count", "1");
+    data_manager_1.updateValue("$tx.endorser[0].id", "bt1fDSTLzc1AdSoxXTy6bfAG5NZFHJBThEHjjWYHN2H");
+
+    BOOST_TEST(condition_manager_1.evalue(doc_node_1,data_manager_1));
+
+    ConditionManager condition_manager_2;
+    DataManager data_manager_2;
+
+    data_manager_2.updateValue("$tx.endorser.count", "1");
+    data_manager_2.updateValue("$tx.endorser[0].id", "bt1fDSTLzc1AdSoxXTy6bfAG5NZFHJBThEHjjWYHN2H");
+
+    BOOST_TEST(!condition_manager_2.evalue(doc_node_2,data_manager_2));
+
   }
 
 }
 
 BOOST_AUTO_TEST_CASE(simple_user) {
 
-  std::string time_condition = R"(
+  std::string user_condition = R"(
 <condition id="test">
   <user>
     <id>bt1fDSTLzc1AdSoxXTy6bfAG5NZFHJBThEHjjWYHN2H</id>
@@ -104,10 +106,16 @@ BOOST_AUTO_TEST_CASE(simple_user) {
 </condition>
 )";
 
-  pugi::xml_document doc;
+  tinyxml2::XMLDocument xml_doc;
 
-  if (doc.load_string(time_condition.c_str(), pugi::parse_minimal)) {
-    pugi::xml_node doc_node = doc.document_element();
+  xml_doc.Parse(user_condition.c_str());
+
+  if(xml_doc.Error()) {
+    BOOST_TEST(false);
+  }
+  else {
+
+    tinyxml2::XMLElement* doc_node = xml_doc.RootElement();
 
     ConditionManager condition_manager;
     DataManager data_manager;
@@ -118,10 +126,7 @@ BOOST_AUTO_TEST_CASE(simple_user) {
 
     BOOST_TEST(condition_manager.evalue(doc_node,data_manager));
 
-  } else {
-    BOOST_TEST(false);
   }
-
 }
 
 BOOST_AUTO_TEST_CASE(simple_time) {
@@ -135,10 +140,16 @@ BOOST_AUTO_TEST_CASE(simple_time) {
 </condition>
 )";
 
-  pugi::xml_document doc;
+  tinyxml2::XMLDocument xml_doc;
 
-  if (doc.load_string(time_condition.c_str(), pugi::parse_minimal)) {
-    pugi::xml_node doc_node = doc.document_element();
+  xml_doc.Parse(time_condition.c_str());
+
+  if(xml_doc.Error()) {
+    BOOST_TEST(false);
+  }
+  else {
+
+    tinyxml2::XMLElement* doc_node = xml_doc.RootElement();
 
     ConditionManager condition_manager;
     DataManager data_manager;
@@ -148,10 +159,7 @@ BOOST_AUTO_TEST_CASE(simple_time) {
 
     BOOST_TEST(condition_manager.evalue(doc_node,data_manager));
 
-  } else {
-    BOOST_TEST(false);
   }
-
 }
 
 BOOST_AUTO_TEST_CASE(simple_certificate) {
@@ -196,10 +204,17 @@ BOOST_AUTO_TEST_CASE(simple_certificate) {
 </condition>
 )";
 
-  pugi::xml_document doc;
 
-  if (doc.load_string(cert_certificate.c_str(), pugi::parse_minimal)) {
-    pugi::xml_node doc_node = doc.document_element();
+  tinyxml2::XMLDocument xml_doc;
+
+  xml_doc.Parse(cert_certificate.c_str());
+
+  if(xml_doc.Error()) {
+    BOOST_TEST(false);
+  }
+  else {
+
+    tinyxml2::XMLElement* doc_node = xml_doc.RootElement();
 
     ConditionManager condition_manager;
     DataManager data_manager;
@@ -231,10 +246,7 @@ wJqkw2WHOoNK3DJHznphy9LiuwmV9ZQY3Z2LO3wJcIS5YqYQrEczbzyGKS0F3hz7
 
     BOOST_TEST(condition_manager.evalue(doc_node,data_manager));
 
-  } else {
-    BOOST_TEST(false);
   }
-
 }
 
 

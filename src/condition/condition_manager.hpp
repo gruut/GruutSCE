@@ -36,7 +36,7 @@ public:
     }
     else { // we don't know any keywords!
       std::function<void(tinyxml2::XMLElement*,std::vector<std::string> &)> keyword_search;
-      keyword_search = [=,&keyword_search](tinyxml2::XMLElement*,std::vector<std::string> &keywords){
+      keyword_search = [=,&keyword_search](tinyxml2::XMLElement* doc_node,std::vector<std::string> &keywords){
 
         std::string tag_name = mt::c2s(doc_node->Name());
 
