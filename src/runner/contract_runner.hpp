@@ -22,7 +22,7 @@ private:
   GetHandler m_get_handler;
   SetHandler m_set_handler;
   ElementParser m_element_parser;
-  TransactionJson m_tx_json;
+  Transaction m_proc_tx;
   FeeHandler m_fee_handler;
 
 
@@ -59,63 +59,63 @@ public:
     return m_element_parser.setContract(xml_doc);
   }
 
-  bool setTransaction(TransactionJson &tx_agg_json, std::string &error) {
+  bool setTransaction(Transaction &proc_tx, std::string &error) {
 
-    m_tx_json = tx_agg_json;
+    m_proc_tx = proc_tx;
 
-    auto time = JsonTool::get<std::string>(m_tx_json,"time");
-    auto cid = JsonTool::get<std::string>(m_tx_json["body"],"cid");
-    auto receiver = JsonTool::get<std::string>(m_tx_json["body"],"receiver");
-    auto fee = JsonTool::get<std::string>(m_tx_json["body"],"fee");
-    auto user_id = JsonTool::get<std::string>(m_tx_json["user"],"id");
-    auto txid = JsonTool::get<std::string>(m_tx_json,"txid");
+    auto time = proc_tx.getTxTime();
+    auto cid = proc_tx.getContractId();
+    auto receiver = proc_tx.getReceiverId();
+    auto user_fee = proc_tx.getFee();
+    auto user_id = proc_tx.getUserId();
+    auto txid = proc_tx.getTxId();
 
-    if(!time || !cid || !receiver || !fee || !user_id || !txid) {
+    if(cid.empty() || receiver.empty() || user_id.empty() || txid.empty()) {
       error = "missing elements";
       return false;
     }
 
-    if(mt::str2num<int64_t>(fee.value()) < MIN_USER_FEE) {
+    if(user_fee < MIN_USER_FEE) {
       error = "less than minimum user fee";
       return false;
     }
 
-    auto user_pk = JsonTool::get<std::string>(tx_agg_json["user"],"pk");
+    auto user_pk = proc_tx.getTxUserPk();
 
-    m_data_manager.updateValue("$tx.txid", txid.value());
-    m_data_manager.updateValue("$txid", txid.value());
+    m_data_manager.updateValue("$tx.txid", txid);
+    m_data_manager.updateValue("$txid", txid);
 
-    m_data_manager.updateValue("$tx.time", time.value());
-    m_data_manager.updateValue("$time", time.value());
+    m_data_manager.updateValue("$tx.time", std::to_string(time));
+    m_data_manager.updateValue("$time", std::to_string(time));
 
-    std::vector<std::string> cid_components = mt::split(cid.value(),"::");
+    std::vector<std::string> cid_components = mt::split(cid,"::");
 
-    m_data_manager.updateValue("$tx.body.cid", cid.value());
-    m_data_manager.updateValue("$cid", cid.value());
+    m_data_manager.updateValue("$tx.body.cid", cid);
+    m_data_manager.updateValue("$cid", cid);
     m_data_manager.updateValue("$author", cid_components[1]);
     m_data_manager.updateValue("$chain", cid_components[2]);
     m_data_manager.updateValue("$world", cid_components[3]);
-    m_data_manager.updateValue("$tx.body.receiver", receiver.value());
-    m_data_manager.updateValue("$receiver", receiver.value());
+    m_data_manager.updateValue("$tx.body.receiver", receiver);
+    m_data_manager.updateValue("$receiver", receiver);
 
-    m_data_manager.updateValue("$tx.body.fee", fee.value());
-    m_data_manager.updateValue("$fee", fee.value());
+    m_data_manager.updateValue("$tx.body.fee", std::to_string(user_fee));
+    m_data_manager.updateValue("$fee", std::to_string(user_fee));
 
-    m_data_manager.updateValue("$tx.user.id", user_id.value());
-    m_data_manager.updateValue("$user", user_id.value());
+    m_data_manager.updateValue("$tx.user.id", user_id);
+    m_data_manager.updateValue("$user", user_id);
 
-    m_data_manager.updateValue("$tx.user.pk", user_pk.value());
+    m_data_manager.updateValue("$tx.user.pk", user_pk);
 
-    nlohmann::json tx_endorsers_json = m_tx_json["body"]["endorser"];
+    auto tx_endorsers = proc_tx.getEndorsers();
 
-    for(int i = 0 ; i < tx_endorsers_json.size(); ++i){
+    for(int i = 0 ; i < tx_endorsers.size(); ++i){
       std::string id_key = "$tx.endorser[" + to_string(i) + "].id";
       std::string pk_key = "$tx.endorser[" + to_string(i) + "].pk";
-      m_data_manager.updateValue(id_key, JsonTool::get<std::string>(tx_endorsers_json[i], "id").value_or(""));
-      m_data_manager.updateValue(pk_key, JsonTool::get<std::string>(tx_endorsers_json[i], "pk").value_or(""));
+      m_data_manager.updateValue(id_key, tx_endorsers[i].endorser_id);
+      m_data_manager.updateValue(pk_key, tx_endorsers[i].endorser_pk);
     }
 
-    m_data_manager.updateValue("$tx.endorser.count", std::to_string(tx_endorsers_json.size()));
+    m_data_manager.updateValue("$tx.endorser.count", std::to_string(tx_endorsers.size()));
 
     return true;
   }
@@ -205,7 +205,10 @@ public:
     // process input directive
 
     auto input_node = m_element_parser.getNode("input");
-    if(!m_input_handler.parseInput(m_tx_json["body"]["input"],input_node,m_data_manager)){
+
+    auto tx_input_json = nlohmann::json::from_cbor(m_proc_tx.getTxInputCbor());
+
+    if(!m_input_handler.parseInput(tx_input_json,input_node,m_data_manager)){
       result_query["status"] = false;
       result_query["info"] = TSCE_ERROR_MSG["RUN_INPUT"];
       return result_query;
