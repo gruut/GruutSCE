@@ -35,9 +35,6 @@ public:
     if(m_storage_interface == nullptr)
       return std::nullopt;
 
-    //uint64_t block_hgt = mt::str2num<uint64_t>(JsonTool::get<std::string>(block["block"],"height").value_or(""));
-    //std::string block_id = JsonTool::get<std::string>(block["block"],"id").value_or("");
-
     if(block.getNumTransaction() <= 0) {
       return std::nullopt;
     }
@@ -50,19 +47,11 @@ public:
     ContractRunner contract_runner;
     contract_runner.attachReadInterface(m_storage_interface);
 
-    if(!contract_runner.setWorldChain())
+    if(!contract_runner.loadWorldChain())
       return std::nullopt;
 
-//    if(!block["tx"].is_array())
-//      return std::nullopt;
-
-    //for (auto &each_tx_cbor : block["tx"]) {
     for(auto &each_tx : block.getTransactions()) {
 
-      contract_runner.clear();
-
-      //auto txid = JsonTool::get<std::string>(each_tx, "txid");
-      //auto cid = JsonTool::get<std::string>(each_tx["body"], "cid");
       auto txid = each_tx.getTxId();
       auto cid = each_tx.getContractId();
 
@@ -74,6 +63,14 @@ public:
 
       if (txid.empty() || cid.empty()) {
         result_fail["info"] = TSCE_ERROR_MSG["INVALID_TX"];
+        result_queries.emplace_back(result_fail);
+        continue;
+      }
+
+      contract_runner.clear();
+
+      if(!contract_runner.setWorldChain()){
+        result_fail["info"] = TSCE_ERROR_MSG["CONFIG_WORLD"];
         result_queries.emplace_back(result_fail);
         continue;
       }
