@@ -25,6 +25,9 @@ private:
   Transaction m_proc_tx;
   FeeHandler m_fee_handler;
 
+  std::vector<DataAttribute> m_world_attr;
+  std::vector<DataAttribute> m_chain_attr;
+
 
 public:
   ContractRunner() = default;
@@ -38,17 +41,27 @@ public:
     m_data_manager.clear();
   }
 
-  bool setWorldChain() {
-
+  bool loadWorldChain() {
     auto world_attr = m_data_manager.getWorld();
     auto chain_attr = m_data_manager.getChain();
 
-    if(world_attr.empty() || chain_attr.empty()){
+    if (world_attr.empty() || chain_attr.empty()) {
       return false;
     }
 
-    attrToMap(world_attr, "$world");
-    attrToMap(chain_attr, "$chain");
+    m_world_attr = world_attr;
+    m_chain_attr = chain_attr;
+
+    return true;
+  }
+
+  bool setWorldChain() {
+
+    if(m_world_attr.empty() || m_chain_attr.empty())
+      return false;
+
+    attrToMap(m_world_attr, "$world");
+    attrToMap(m_chain_attr, "$chain");
 
     m_data_manager.setKeyCurrencyName(m_data_manager.eval("$world.keyc_name"));
 
