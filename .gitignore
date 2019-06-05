@@ -42,7 +42,7 @@ cmake-build-debug/
 cmake-build-release/
 cmake-build-debug-wsl/
 cmake-build-debug-remote-host/
-cmake-build-gruut-dev/
+cmake-build-tethys-dev/
 cmake-build-tethys-dev/
 Makefile
 output.txt

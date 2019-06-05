@@ -203,6 +203,6 @@ public:
     return m_tx_pos;
   }
 };
-} // namespace gruut
+} // namespace tethys
 
 #endif

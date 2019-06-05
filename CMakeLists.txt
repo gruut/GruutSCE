@@ -20,17 +20,17 @@ endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory(src/utils/gruut-utils)
+add_subdirectory(tethys-utils)
 
 set(LIB_PREFIX "/usr/local/lib")
-set(BOTAN_LIBS "${LIB_PREFIX}/libbotan-2.so")
+set(BOTAN_LIBS "${LIB_PREFIX}/libbotan-2.a")
 
 file(GLOB SOURCE_FILES
     "src/*.cpp"
     "src/*/*.cpp"
     "include/*.cpp"
     "include/*/*.cpp"
-    "utils/gruut-utils/src/*.cpp"
+    "tethys-utils/src/*.cpp"
     )
 
 file(GLOB HEADER_FILES
@@ -38,7 +38,7 @@ file(GLOB HEADER_FILES
     "src/*/*.hpp"
     "include/*.hpp"
     "include/*/*.hpp"
-    "utils/gruut-utils/src/*.hpp"
+    "tethys-utils/src/*.hpp"
     )
 
 add_executable(TSCE main.cpp ${SOURCE_FILES} ${HEADER_FILES})

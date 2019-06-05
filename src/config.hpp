@@ -19,11 +19,11 @@
 
 #include "utils/json.hpp"
 #include "utils/misc_tool.hpp"
-#include "utils/gruut-utils/src/sha256.hpp"
-#include "utils/gruut-utils/src/type_converter.hpp"
-#include "utils/gruut-utils/src/bytes_builder.hpp"
-#include "utils/gruut-utils/src/ecdsa.hpp"
-#include "utils/gruut-utils/src/ags.hpp"
+#include "../tethys-utils/src/sha256.hpp"
+#include "../tethys-utils/src/type_converter.hpp"
+#include "../tethys-utils/src/bytes_builder.hpp"
+#include "../tethys-utils/src/ecdsa.hpp"
+#include "../tethys-utils/src/ags.hpp"
 
 namespace tethys::tsce {
 

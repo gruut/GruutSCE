@@ -298,5 +298,5 @@ public:
     return m_block_certificate;
   }
 };
-} // namespace gruut
+} // namespace tethys
 #endif
