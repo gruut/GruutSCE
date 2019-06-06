@@ -67,3 +67,11 @@ target_link_libraries(run_test
     ${BOTAN_LIBS}
 )
 
+add_executable(rccqp_test test/rccqp_test.cpp ${SOURCE_FILES} ${HEADER_FILES})
+target_include_directories(rccqp_test PRIVATE include/ /usr/local/include)
+target_link_libraries(rccqp_test
+    PRIVATE
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+    ${Boost_LIBRARIES}
+    ${BOTAN_LIBS}
+)
