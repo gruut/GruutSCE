@@ -2,6 +2,7 @@
 #define TETHYS_SCE_DATA_STORAGE_HPP
 
 #include <string>
+#include <rcc_qp.hpp>
 
 #include "../config.hpp"
 #include "datamap.hpp"
@@ -62,13 +63,11 @@ private:
   std::string m_keyc_name{"KEYC"};
   std::unordered_map<std::string, nlohmann::json> m_query_cache;
 
-  // TODO : replace cache tables to real cache
-
   std::map<std::string, std::vector<UserScopeRecord>> m_user_scope_table;
   std::map<std::string, ContractScopeRecord> m_contract_scope_table;
 
-  std::map<std::string, UserAttributeRecord> m_user_attr_table;
-  std::map<std::string, std::vector<UserCertRecord>> m_user_cert_table;
+  RCCQP<UserAttributeRecord> m_user_attr_table;
+  RCCQP<std::vector<UserCertRecord>> m_user_cert_table;
 
   std::function<nlohmann::json(nlohmann::json&)> m_read_storage_interface;
 
@@ -159,16 +158,17 @@ public:
 
     std::string user_id = eval(user_id_);
 
-    auto it_tbl = m_user_attr_table.find(user_id);
-    if(it_tbl != m_user_attr_table.end()) {
+    auto it_tbl = m_user_attr_table.get(user_id);
+
+    if(it_tbl.has_value()) {
       std::vector<DataAttribute> ret_vec;
-      ret_vec.emplace_back("register_day",it_tbl->second.register_day);
-      ret_vec.emplace_back("register_code",it_tbl->second.register_code);
-      ret_vec.emplace_back("gender", getEnumString(it_tbl->second.gender));
-      ret_vec.emplace_back("isc_type",it_tbl->second.isc_type);
-      ret_vec.emplace_back("isc_code",it_tbl->second.isc_code);
-      ret_vec.emplace_back("location",it_tbl->second.location);
-      ret_vec.emplace_back("age_limit",std::to_string(it_tbl->second.age_limit));
+      ret_vec.emplace_back("register_day",it_tbl.value().register_day);
+      ret_vec.emplace_back("register_code",it_tbl.value().register_code);
+      ret_vec.emplace_back("gender", getEnumString(it_tbl.value().gender));
+      ret_vec.emplace_back("isc_type",it_tbl.value().isc_type);
+      ret_vec.emplace_back("isc_code",it_tbl.value().isc_code);
+      ret_vec.emplace_back("location",it_tbl.value().location);
+      ret_vec.emplace_back("age_limit",std::to_string(it_tbl.value().age_limit));
       return ret_vec;
     }
 
@@ -434,7 +434,9 @@ private:
 
     if(!result_name.empty() && !result_data.empty()) {
 
-      m_user_cert_table[id].clear();
+      m_user_cert_table.erase(id);
+
+      std::vector<UserCertRecord> user_certs;
 
       for (auto &each_row : result_data) {
 
@@ -455,8 +457,10 @@ private:
           ret_vec.emplace_back(result_name[i], value);
         }
 
-        m_user_cert_table[id].emplace_back(buf_record);
+        user_certs.emplace_back(buf_record);
       }
+
+      m_user_cert_table.push(id,user_certs);
 
     }
 
@@ -497,7 +501,7 @@ private:
         ret_vec.emplace_back(result_name[i],col_data);
       }
 
-      m_user_attr_table[user_id] = buf_record;
+      m_user_attr_table.push(user_id,buf_record);
 
     }
 
